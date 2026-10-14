@@ -5,4 +5,3 @@ passlib[bcrypt]
 bcrypt
 python-multipart
 psycopg2-binary
-psycopg
