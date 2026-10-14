@@ -1,0 +1,544 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sistema de Gestión Vehicular</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-slate-100 min-h-screen text-slate-800">
+
+  <!-- PANTALLA DE LOGIN -->
+  <div id="pantalla-login" class="flex items-center justify-center min-h-screen p-4">
+    <div class="bg-white p-6 md:p-8 rounded-xl shadow-lg w-full max-w-md border border-slate-200">
+      <div class="text-center mb-6">
+        <h1 class="text-2xl font-bold text-slate-900">Gestión Vehicular</h1>
+        <p class="text-sm text-slate-500 mt-1">Ingresa tus credenciales</p>
+      </div>
+      <form id="form-login" onsubmit="iniciarSesion(event)" class="space-y-4">
+        <div>
+          <label class="block text-sm font-medium text-slate-700 mb-1">Correo Electrónico</label>
+          <input type="email" id="email" required placeholder="correo@empresa.com" class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none">
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-slate-700 mb-1">Contraseña</label>
+          <input type="password" id="password" required placeholder="••••••••" class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none">
+        </div>
+        <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2.5 rounded-lg transition">Iniciar Sesión</button>
+      </form>
+      <p id="error-login" class="text-red-500 text-sm mt-3 text-center hidden">Credenciales incorrectas.</p>
+    </div>
+  </div>
+
+  <!-- DASHBOARD PRINCIPAL -->
+  <div id="pantalla-dashboard" class="hidden">
+    <header class="bg-slate-900 text-white p-4 sticky top-0 z-50 flex justify-between items-center shadow-md">
+      <span class="font-bold text-lg">🚗 Gestión Vehicular</span>
+      <div class="flex items-center space-x-3">
+        <span id="usuario-badge" class="text-xs bg-blue-800 text-blue-200 px-2.5 py-1 rounded-full font-medium"></span>
+        <button onclick="cerrarSesion()" class="bg-red-600 hover:bg-red-700 text-xs px-3 py-1.5 rounded-lg transition">Salir</button>
+      </div>
+    </header>
+
+    <main class="p-4 md:p-6 max-w-6xl mx-auto space-y-6">
+      
+      <!-- ALERTAS CONSOLIDADAS -->
+      <section class="bg-white p-4 rounded-xl shadow-sm border border-slate-200">
+        <h2 class="text-lg font-bold text-slate-800 mb-3 flex items-center gap-2">
+          🚨 Alertas de Vencimiento (SOAT, Seguro, GPS, Rev. Técnica)
+        </h2>
+        <div id="lista-alertas" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 text-sm">
+          <p class="text-slate-500 italic">Cargando vencimientos...</p>
+        </div>
+      </section>
+
+      <!-- REGISTROS -->
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        
+        <!-- FORMULARIO 1: REGISTRAR VEHÍCULO + TIVE -->
+        <section class="bg-white p-4 rounded-xl shadow-sm border border-slate-200 space-y-3">
+          <h3 class="font-bold text-slate-800 border-b pb-2">+ Registrar Vehículo</h3>
+          <form onsubmit="registrarVehiculo(event)" class="space-y-3 text-sm" enctype="multipart/form-data">
+            <div class="grid grid-cols-2 gap-2">
+              <input type="text" id="v-placa" placeholder="Placa (ej. ABC-123) *" required class="p-2 border rounded uppercase">
+              <input type="text" id="v-sede" placeholder="Sede Asignada (Opcional)" class="p-2 border rounded">
+            </div>
+            <div class="grid grid-cols-2 gap-2">
+              <input type="text" id="v-marca" placeholder="Marca (Opcional)" class="p-2 border rounded">
+              <input type="text" id="v-modelo" placeholder="Modelo (Opcional)" class="p-2 border rounded">
+            </div>
+            <div class="grid grid-cols-2 gap-2">
+              <input type="number" id="v-anio" placeholder="Año (Opcional)" class="p-2 border rounded">
+              <input type="text" id="v-vin" placeholder="VIN (Opcional)" class="p-2 border rounded">
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-slate-600 mb-1">🪪 Adjuntar TIVE Digital (PDF / Foto)</label>
+              <input type="file" id="v-tive-file" accept=".pdf,image/*" class="w-full p-1.5 border rounded text-xs bg-slate-50">
+            </div>
+            <textarea id="v-descripcion" placeholder="Descripción operativa (Opcional)..." class="w-full p-2 border rounded h-16"></textarea>
+            <button type="submit" class="w-full bg-slate-800 text-white py-2 rounded font-medium hover:bg-slate-900">Guardar Vehículo</button>
+          </form>
+        </section>
+
+        <!-- FORMULARIO 2: REGISTRAR SOAT / SEGURO -->
+        <section class="bg-white p-4 rounded-xl shadow-sm border border-slate-200 space-y-3">
+          <h3 class="font-bold text-slate-800 border-b pb-2">+ Registrar SOAT / Seguro</h3>
+          <form onsubmit="registrarSeguro(event)" class="space-y-3 text-sm" enctype="multipart/form-data">
+            <select id="seg-vehiculo" required class="w-full p-2 border rounded bg-white">
+              <option value="">Selecciona Vehículo...</option>
+            </select>
+            <div class="grid grid-cols-2 gap-2">
+              <select id="seg-tipo" required class="p-2 border rounded bg-white">
+                <option value="SOAT">SOAT</option>
+                <option value="Seguro Vehicular">Seguro Vehicular</option>
+              </select>
+              <input type="text" id="seg-compania" placeholder="Compañía" required class="p-2 border rounded">
+            </div>
+            <div class="grid grid-cols-2 gap-2">
+              <input type="text" id="seg-broker" placeholder="Broker" required class="p-2 border rounded">
+              <input type="number" step="0.01" id="seg-prima" placeholder="Prima (S/.)" required class="p-2 border rounded">
+            </div>
+            <input type="text" id="seg-poliza" placeholder="N° de Póliza" required class="w-full p-2 border rounded">
+            <div>
+              <label class="block text-xs font-semibold text-slate-600 mb-1">🛡️ Adjuntar Póliza / SOAT (PDF / Foto)</label>
+              <input type="file" id="seg-adjunto-file" accept=".pdf,image/*" class="w-full p-1.5 border rounded text-xs bg-slate-50">
+            </div>
+            <div class="grid grid-cols-2 gap-2">
+              <div>
+                <label class="text-xs text-slate-500">Inicio</label>
+                <input type="date" id="seg-f-inicio" required class="w-full p-2 border rounded">
+              </div>
+              <div>
+                <label class="text-xs text-slate-500">Vencimiento (Alarma)</label>
+                <input type="date" id="seg-f-venc" required class="w-full p-2 border rounded">
+              </div>
+            </div>
+            <button type="submit" class="w-full bg-emerald-600 text-white py-2 rounded font-medium hover:bg-emerald-700">Guardar Seguro / SOAT</button>
+          </form>
+        </section>
+
+        <!-- FORMULARIO 3: REGISTRAR REVISIÓN TÉCNICA -->
+        <section class="bg-white p-4 rounded-xl shadow-sm border border-slate-200 space-y-3">
+          <h3 class="font-bold text-slate-800 border-b pb-2">+ Registrar Revisión Técnica</h3>
+          <form onsubmit="registrarDocumento(event)" class="space-y-3 text-sm" enctype="multipart/form-data">
+            <select id="doc-vehiculo" required class="w-full p-2 border rounded bg-white">
+              <option value="">Selecciona Vehículo...</option>
+            </select>
+            <div class="grid grid-cols-2 gap-2">
+              <input type="text" id="doc-entidad" placeholder="Entidad CITV" required class="p-2 border rounded">
+              <input type="text" id="doc-numero" placeholder="N° Certificado" required class="p-2 border rounded">
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-slate-600 mb-1">📋 Adjuntar Certificado Rev. Técnica (PDF / Foto)</label>
+              <input type="file" id="doc-adjunto-file" accept=".pdf,image/*" class="w-full p-1.5 border rounded text-xs bg-slate-50">
+            </div>
+            <div class="grid grid-cols-2 gap-2">
+              <div>
+                <label class="text-xs text-slate-500">Emisión</label>
+                <input type="date" id="doc-f-emision" required class="w-full p-2 border rounded">
+              </div>
+              <div>
+                <label class="text-xs text-slate-500">Vencimiento (Alarma)</label>
+                <input type="date" id="doc-f-venc" required class="w-full p-2 border rounded">
+              </div>
+            </div>
+            <button type="submit" class="w-full bg-amber-600 text-white py-2 rounded font-medium hover:bg-amber-700">Guardar Revisión Técnica</button>
+          </form>
+        </section>
+
+        <!-- FORMULARIO 4: REPARACIONES -->
+        <section class="bg-white p-4 rounded-xl shadow-sm border border-slate-200 space-y-3">
+          <h3 class="font-bold text-slate-800 border-b pb-2">+ Registrar Reparación</h3>
+          <form onsubmit="registrarReparacion(event)" class="space-y-3 text-sm">
+            <select id="rep-vehiculo" required class="w-full p-2 border rounded bg-white">
+              <option value="">Selecciona Vehículo...</option>
+            </select>
+            <div class="grid grid-cols-2 gap-2">
+              <select id="rep-tipo" required class="p-2 border rounded bg-white">
+                <option value="Preventivo">Preventivo</option>
+                <option value="Correctivo">Correctivo</option>
+              </select>
+              <input type="text" id="rep-taller" placeholder="Taller" required class="p-2 border rounded">
+            </div>
+            <div class="grid grid-cols-2 gap-2">
+              <input type="text" id="rep-responsable" placeholder="Responsable Reparación" required class="p-2 border rounded">
+              <input type="date" id="rep-f-ingreso" required class="p-2 border rounded">
+            </div>
+            <textarea id="rep-falla" placeholder="Descripción de la falla..." required class="w-full p-2 border rounded h-16"></textarea>
+            <button type="submit" class="w-full bg-indigo-600 text-white py-2 rounded font-medium hover:bg-indigo-700">Guardar Reparación</button>
+          </form>
+        </section>
+
+      </div>
+
+      <!-- BUSCADOR Y FLOTA -->
+      <section class="bg-white p-4 rounded-xl shadow-sm border border-slate-200 space-y-4">
+        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+          <div>
+            <h2 class="text-lg font-bold text-slate-800">Flota de Vehículos Registrados</h2>
+            <span id="total-vehiculos" class="text-xs font-semibold text-slate-500">0 vehículos en total</span>
+          </div>
+          <div class="w-full sm:w-80">
+            <input 
+              type="text" 
+              id="buscador-vehiculos" 
+              oninput="filtrarVehiculos()" 
+              placeholder="🔍 Buscar por placa, sede o descripción..." 
+              class="w-full px-3 py-2 border rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none"
+            >
+          </div>
+        </div>
+
+        <div id="contenedor-vehiculos" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4"></div>
+      </section>
+
+    </main>
+  </div>
+
+  <!-- MODAL HOJA DE VIDA -->
+  <div id="modal-hoja-vida" class="fixed inset-0 bg-slate-900 bg-opacity-50 z-50 flex items-center justify-center p-4 hidden">
+    <div class="bg-white rounded-xl shadow-xl w-full max-w-4xl max-h-[90vh] overflow-y-auto p-6 space-y-6 border border-slate-200">
+      <div class="flex justify-between items-center border-b pb-3">
+        <h2 class="text-xl font-bold text-slate-900" id="hv-titulo">Hoja de Vida de Vehículo</h2>
+        <button onclick="cerrarHojaVida()" class="text-slate-400 hover:text-slate-700 font-bold text-xl">&times;</button>
+      </div>
+
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-4 bg-slate-50 p-4 rounded-lg border text-sm">
+        <div><p class="text-xs text-slate-500">Placa</p><p class="font-bold text-base" id="hv-placa"></p></div>
+        <div><p class="text-xs text-slate-500">Sede</p><p class="font-semibold" id="hv-sede"></p></div>
+        <div><p class="text-xs text-slate-500">Marca / Modelo</p><p class="font-semibold" id="hv-marca-modelo"></p></div>
+        <div><p class="text-xs text-slate-500">Kilometraje</p><p class="font-semibold" id="hv-km"></p></div>
+      </div>
+
+      <div>
+        <h3 class="font-bold text-slate-800 text-sm mb-2 border-b pb-1">📄 Documentación Digital Adjunta</h3>
+        <div id="hv-documentos" class="flex flex-wrap gap-2 text-xs"></div>
+      </div>
+
+      <div>
+        <h3 class="font-bold text-slate-800 text-sm mb-2 border-b pb-1">🛠️ Mantenimientos y Reparaciones</h3>
+        <div id="hv-reparaciones" class="space-y-2 text-xs"></div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const API_URL = "http://127.0.0.1:8000";
+    let listaVehiculosGlobal = [];
+
+    async function iniciarSesion(event) {
+      event.preventDefault();
+      const email = document.getElementById("email").value.trim();
+      const password = document.getElementById("password").value;
+      const errorEl = document.getElementById("error-login");
+      errorEl.classList.add("hidden");
+
+      const formData = new URLSearchParams();
+      formData.append("username", email);
+      formData.append("password", password);
+
+      try {
+        const res = await fetch(`${API_URL}/login/`, {
+          method: "POST",
+          headers: { "Content-Type": "application/x-www-form-urlencoded" },
+          body: formData
+        });
+
+        if (res.ok) {
+          const data = await res.json();
+          mostrarDashboard(data);
+        } else {
+          errorEl.innerText = "Correo o contraseña incorrectos.";
+          errorEl.classList.remove("hidden");
+        }
+      } catch (err) {
+        alert("Asegúrate de tener corriendo el servidor backend.");
+      }
+    }
+
+    function mostrarDashboard(data) {
+      document.getElementById("pantalla-login").classList.add("hidden");
+      document.getElementById("pantalla-dashboard").classList.remove("hidden");
+      document.getElementById("usuario-badge").innerText = `${data.mensaje} (${data.rol})`;
+      cargarVehiculos();
+      cargarAlertas();
+    }
+
+    function cerrarSesion() { location.reload(); }
+
+    async function cargarVehiculos() {
+      try {
+        const res = await fetch(`${API_URL}/vehiculos/`);
+        listaVehiculosGlobal = await res.json();
+        document.getElementById("total-vehiculos").innerText = `${listaVehiculosGlobal.length} vehículos en total`;
+
+        const selSeg = document.getElementById("seg-vehiculo");
+        const selDoc = document.getElementById("doc-vehiculo");
+        const selRep = document.getElementById("rep-vehiculo");
+
+        const opciones = `<option value="">Selecciona Vehículo...</option>` +
+          listaVehiculosGlobal.map(v => `<option value="${v.id_vehiculo}">${v.placa} - ${v.marca || ''} ${v.modelo || ''}</option>`).join("");
+        
+        selSeg.innerHTML = opciones;
+        selDoc.innerHTML = opciones;
+        if(selRep) selRep.innerHTML = opciones;
+
+        renderizarVehiculos(listaVehiculosGlobal);
+      } catch (e) {
+        console.error(e);
+      }
+    }
+
+    function renderizarVehiculos(vehiculos) {
+      const contenedor = document.getElementById("contenedor-vehiculos");
+
+      if (!vehiculos || vehiculos.length === 0) {
+        contenedor.innerHTML = `<p class="col-span-full text-slate-500 text-sm italic">No se encontraron vehículos.</p>`;
+        return;
+      }
+
+      contenedor.innerHTML = vehiculos.map(v => `
+        <div class="border border-slate-200 p-4 rounded-lg bg-slate-50 shadow-sm hover:shadow transition flex flex-col justify-between space-y-3">
+          <div>
+            <div class="flex justify-between items-start">
+              <div>
+                <span class="text-xl font-black text-slate-900">${v.placa}</span>
+                <span class="ml-2 text-xs bg-slate-200 text-slate-700 px-2 py-0.5 rounded font-semibold">Sede: ${v.sede_asignada || 'Sin Sede'}</span>
+              </div>
+              <span class="text-xs px-2 py-0.5 rounded bg-emerald-100 text-emerald-800 font-semibold">${v.estado || 'Activo'}</span>
+            </div>
+            <p class="text-sm font-medium text-slate-700 mt-1">${v.marca || 'N/A'} ${v.modelo || ''} (${v.anio || 'N/A'})</p>
+            ${v.descripcion ? `<p class="text-xs text-slate-600 mt-2 bg-white p-2 rounded border border-slate-100 italic">${v.descripcion}</p>` : ''}
+          </div>
+          <button onclick="verHojaVida(${v.id_vehiculo})" class="w-full bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold py-2 rounded transition">
+            📋 Ver Hoja de Vida
+          </button>
+        </div>
+      `).join("");
+    }
+
+    async function verHojaVida(idVehiculo) {
+      const res = await fetch(`${API_URL}/vehiculos/${idVehiculo}/hoja_vida/`);
+      if (!res.ok) return alert("Error al cargar la hoja de vida.");
+      const data = await res.json();
+
+      document.getElementById("hv-placa").innerText = data.placa;
+      document.getElementById("hv-sede").innerText = data.sede_asignada || 'N/A';
+      document.getElementById("hv-marca-modelo").innerText = `${data.marca || 'N/A'} ${data.modelo || ''} (${data.anio || 'N/A'})`;
+      document.getElementById("hv-km").innerText = `${data.kilometraje_actual || 0} km`;
+
+      let docsHtml = "";
+      if (data.url_tive) {
+        docsHtml += `<a href="${API_URL}${data.url_tive}" target="_blank" class="bg-blue-600 text-white px-3 py-1.5 rounded font-semibold hover:bg-blue-700 transition">🪪 Ver TIVE Digital</a>`;
+      }
+      data.seguros.forEach(s => {
+        if (s.url_adjunto) {
+          docsHtml += `<a href="${API_URL}${s.url_adjunto}" target="_blank" class="bg-emerald-600 text-white px-3 py-1.5 rounded font-semibold hover:bg-emerald-700 transition">🛡️ Ver ${s.tipo_seguro}</a>`;
+        }
+      });
+      data.documentos.forEach(d => {
+        if (d.url_adjunto) {
+          docsHtml += `<a href="${API_URL}${d.url_adjunto}" target="_blank" class="bg-amber-600 text-white px-3 py-1.5 rounded font-semibold hover:bg-amber-700 transition">📋 Ver ${d.tipo_documento}</a>`;
+        }
+      });
+      document.getElementById("hv-documentos").innerHTML = docsHtml || `<p class="text-slate-400 italic">No hay archivos PDF o imágenes adjuntas.</p>`;
+
+      let repHtml = "";
+      if (!data.reparaciones || data.reparaciones.length === 0) {
+        repHtml = `<p class="text-slate-400 italic">Sin mantenimientos registrados.</p>`;
+      } else {
+        repHtml = data.reparaciones.map(r => `
+          <div class="border p-2.5 rounded bg-slate-50 space-y-1">
+            <div class="flex justify-between font-semibold">
+              <span>${r.tipo_mantenimiento} - Taller: ${r.taller_servicio}</span>
+              <span class="text-slate-500">${r.fecha_ingreso}</span>
+            </div>
+            <p><strong>Falla:</strong> ${r.descripcion_falla}</p>
+            <p class="text-blue-700"><strong>Responsable Reparación:</strong> ${r.responsable_reparacion}</p>
+          </div>
+        `).join("");
+      }
+      document.getElementById("hv-reparaciones").innerHTML = repHtml;
+
+      document.getElementById("modal-hoja-vida").classList.remove("hidden");
+    }
+
+    function cerrarHojaVida() {
+      document.getElementById("modal-hoja-vida").classList.add("hidden");
+    }
+
+    function filtrarVehiculos() {
+      const texto = document.getElementById("buscador-vehiculos").value.toLowerCase().trim();
+      const filtrados = listaVehiculosGlobal.filter(v => 
+        v.placa.toLowerCase().includes(texto) || 
+        (v.descripcion && v.descripcion.toLowerCase().includes(texto)) ||
+        (v.sede_asignada && v.sede_asignada.toLowerCase().includes(texto))
+      );
+      renderizarVehiculos(filtrados);
+    }
+
+    async function registrarVehiculo(e) {
+      e.preventDefault();
+      const formData = new FormData();
+      const anioVal = document.getElementById("v-anio").value;
+
+      formData.append("placa", document.getElementById("v-placa").value.trim().toUpperCase());
+      formData.append("sede_asignada", document.getElementById("v-sede").value.trim() || "Sin Sede");
+      formData.append("marca", document.getElementById("v-marca").value.trim() || "N/A");
+      formData.append("modelo", document.getElementById("v-modelo").value.trim() || "N/A");
+      formData.append("anio", anioVal ? parseInt(anioVal) : 0);
+      formData.append("numero_vin", document.getElementById("v-vin").value.trim() || "N/A");
+      formData.append("descripcion", document.getElementById("v-descripcion").value.trim() || "");
+
+      const fileInput = document.getElementById("v-tive-file");
+      if (fileInput.files.length > 0) {
+        formData.append("archivo_tive", fileInput.files[0]);
+      }
+
+      const res = await fetch(`${API_URL}/vehiculos/`, {
+        method: "POST",
+        body: formData
+      });
+
+      if (res.ok) {
+        alert("Vehículo y TIVE registrados exitosamente.");
+        e.target.reset();
+        cargarVehiculos();
+      } else {
+        alert("Error al registrar vehículo.");
+      }
+    }
+
+    async function registrarSeguro(e) {
+      e.preventDefault();
+      const formData = new FormData();
+      formData.append("id_vehiculo", parseInt(document.getElementById("seg-vehiculo").value));
+      formData.append("tipo_seguro", document.getElementById("seg-tipo").value);
+      formData.append("compania_seguros", document.getElementById("seg-compania").value);
+      formData.append("broker", document.getElementById("seg-broker").value);
+      formData.append("costo_prima", parseFloat(document.getElementById("seg-prima").value));
+      formData.append("numero_poliza", document.getElementById("seg-poliza").value);
+      formData.append("fecha_inicio", document.getElementById("seg-f-inicio").value);
+      formData.append("fecha_vencimiento", document.getElementById("seg-f-venc").value);
+
+      const fileInput = document.getElementById("seg-adjunto-file");
+      if (fileInput.files.length > 0) {
+        formData.append("archivo_adjunto", fileInput.files[0]);
+      }
+
+      const res = await fetch(`${API_URL}/seguros/`, {
+        method: "POST",
+        body: formData
+      });
+
+      if (res.ok) {
+        alert("Seguro / SOAT y archivo adjunto registrados exitosamente.");
+        e.target.reset();
+        cargarAlertas();
+      } else {
+        alert("Error al registrar seguro.");
+      }
+    }
+
+    async function registrarDocumento(e) {
+      e.preventDefault();
+      const formData = new FormData();
+      formData.append("id_vehiculo", parseInt(document.getElementById("doc-vehiculo").value));
+      formData.append("tipo_documento", "Revision Tecnica");
+      formData.append("entidad_emisora", document.getElementById("doc-entidad").value);
+      formData.append("numero_documento", document.getElementById("doc-numero").value);
+      formData.append("fecha_emision", document.getElementById("doc-f-emision").value);
+      formData.append("fecha_vencimiento", document.getElementById("doc-f-venc").value);
+
+      const fileInput = document.getElementById("doc-adjunto-file");
+      if (fileInput.files.length > 0) {
+        formData.append("archivo_adjunto", fileInput.files[0]);
+      }
+
+      const res = await fetch(`${API_URL}/documentos/`, {
+        method: "POST",
+        body: formData
+      });
+
+      if (res.ok) {
+        alert("Revisión Técnica y certificado adjunto registrados exitosamente.");
+        e.target.reset();
+        cargarAlertas();
+      } else {
+        alert("Error al registrar la Revisión Técnica.");
+      }
+    }
+
+    async function registrarReparacion(e) {
+      e.preventDefault();
+      const formData = new FormData();
+      formData.append("id_vehiculo", parseInt(document.getElementById("rep-vehiculo").value));
+      formData.append("tipo_mantenimiento", document.getElementById("rep-tipo").value);
+      formData.append("taller_servicio", document.getElementById("rep-taller").value);
+      formData.append("responsable_reparacion", document.getElementById("rep-responsable").value);
+      formData.append("fecha_ingreso", document.getElementById("rep-f-ingreso").value);
+      formData.append("descripcion_falla", document.getElementById("rep-falla").value);
+
+      const res = await fetch(`${API_URL}/reparaciones/`, {
+        method: "POST",
+        body: formData
+      });
+
+      if (res.ok) {
+        alert("Reparación registrada exitosamente.");
+        e.target.reset();
+      } else {
+        alert("Error al registrar reparación.");
+      }
+    }
+
+    async function cargarAlertas() {
+      try {
+        const resSeg = await fetch(`${API_URL}/seguros/vencimientos/`);
+        const seguros = await resSeg.json();
+        const resDoc = await fetch(`${API_URL}/documentos/vencimientos/`);
+        const docs = await resDoc.json();
+
+        const contenedor = document.getElementById("lista-alertas");
+        let htmlAlertas = "";
+
+        if (Array.isArray(seguros)) {
+          seguros.forEach(s => {
+            const veh = listaVehiculosGlobal.find(v => v.id_vehiculo === s.id_vehiculo);
+            const placaVeh = veh ? veh.placa : `Vehículo N°${s.id_vehiculo}`;
+            htmlAlertas += `
+              <div class="bg-amber-50 border-l-4 border-amber-500 p-3 rounded text-amber-900 shadow-sm">
+                <p class="font-bold">🛡️ ${s.tipo_seguro}: ${placaVeh}</p>
+                <p class="text-xs mt-1">Compañía: <strong>${s.compania_seguros}</strong> | Broker: ${s.broker}</p>
+                <p class="text-xs">Prima: S/. ${s.costo_prima} | Vence: <strong class="text-red-700">${s.fecha_vencimiento}</strong></p>
+              </div>
+            `;
+          });
+        }
+
+        if (Array.isArray(docs)) {
+          docs.forEach(d => {
+            const veh = listaVehiculosGlobal.find(v => v.id_vehiculo === d.id_vehiculo);
+            const placaVeh = veh ? veh.placa : `Vehículo N°${d.id_vehiculo}`;
+            htmlAlertas += `
+              <div class="bg-orange-50 border-l-4 border-orange-500 p-3 rounded text-orange-900 shadow-sm">
+                <p class="font-bold">📋 ${d.tipo_documento}: ${placaVeh}</p>
+                <p class="text-xs mt-1">CITV: <strong>${d.entidad_emisora}</strong> | Cert: ${d.numero_documento}</p>
+                <p class="text-xs">Vence: <strong class="text-red-700">${d.fecha_vencimiento}</strong></p>
+              </div>
+            `;
+          });
+        }
+
+        if (htmlAlertas === "") {
+          contenedor.innerHTML = `<p class="text-emerald-600 font-medium col-span-full">✓ Sin alertas pendientes de SOAT, Seguros o Revisiones Técnicas.</p>`;
+        } else {
+          contenedor.innerHTML = htmlAlertas;
+        }
+      } catch (e) {
+        console.error(e);
+      }
+    }
+  </script>
+</body>
+</html>
