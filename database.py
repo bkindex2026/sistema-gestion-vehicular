@@ -1,20 +1,33 @@
+import os
 from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 
-# Configuración de la conexión a PostgreSQL
-# IMPORTANTE: Reemplaza 'TU_CONTRASEÑA' con la clave que creaste para postgres en la instalación
-DATABASE_URL = "postgresql://postgres:Bkindex123$%&@localhost:5432/gestion_vehicular"
+DATABASE_URL = os.getenv(
+    "DATABASE_URL",
+    "postgresql://postgres:tu_password_local@localhost:5432/vehiculos_db",
+)
+
+# Convertir la URL para asegurar compatibilidad con SQLAlchemy en la nube
+if DATABASE_URL.startswith("postgres://"):
+  DATABASE_URL = DATABASE_URL.replace(
+      "postgres://", "postgresql+psycopg2://", 1
+  )
+elif DATABASE_URL.startswith("postgresql://") and not DATABASE_URL.startswith(
+    "postgresql+psycopg2://"
+):
+  DATABASE_URL = DATABASE_URL.replace(
+      "postgresql://", "postgresql+psycopg2://", 1
+  )
 
 engine = create_engine(DATABASE_URL)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
-
 Base = declarative_base()
 
 
 def get_db():
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
+  db = SessionLocal()
+  try:
+    yield db
+  finally:
+    db.close()
