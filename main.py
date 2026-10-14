@@ -1,5 +1,7 @@
 import os
 import shutil
+import models
+from database import engine
 from typing import Optional
 from database import Base, engine, get_db
 from fastapi import Depends, FastAPI, File, Form, HTTPException, UploadFile, status
