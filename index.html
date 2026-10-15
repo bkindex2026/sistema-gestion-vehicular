@@ -3,299 +3,202 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Sistema de Gestión Vehicular</title>
+  <title>Ponderosa Flota - Gestión Vehicular</title>
   <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="bg-slate-100 min-h-screen text-slate-800">
 
-  <!-- PANTALLA DE LOGIN -->
+  <!-- PANTALLA 1: LOGIN -->
   <div id="pantalla-login" class="flex items-center justify-center min-h-screen p-4">
     <div class="bg-white p-6 md:p-8 rounded-xl shadow-lg w-full max-w-md border border-slate-200">
       <div class="text-center mb-6">
-        <h1 class="text-2xl font-bold text-slate-900">Gestión Vehicular</h1>
-        <p class="text-sm text-slate-500 mt-1">Ingresa tus credenciales</p>
+        <h1 class="text-2xl font-bold text-slate-900">PONDEROSA FLOTA</h1>
+        <p class="text-xs text-slate-500 uppercase tracking-widest mt-1">Control de Gestión Vehicular</p>
       </div>
       <form id="form-login" onsubmit="iniciarSesion(event)" class="space-y-4">
         <div>
-          <label class="block text-sm font-medium text-slate-700 mb-1">Correo Electrónico</label>
-          <input type="email" id="email" required placeholder="correo@empresa.com" class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none">
+          <label class="block text-xs font-semibold uppercase text-slate-600 mb-1">Correo Electrónico</label>
+          <input type="email" id="email" required class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none text-sm">
         </div>
         <div>
-          <label class="block text-sm font-medium text-slate-700 mb-1">Contraseña</label>
-          <input type="password" id="password" required placeholder="••••••••" class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none">
+          <label class="block text-xs font-semibold uppercase text-slate-600 mb-1">Contraseña</label>
+          <input type="password" id="password" required class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none text-sm">
         </div>
-        <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2.5 rounded-lg transition">Iniciar Sesión</button>
+        <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-lg text-sm transition">Ingresar al Sistema</button>
       </form>
-          <p id="error-login" class="text-red-500 text-sm mt-3 text-center hidden">Credenciales incorrectas.</p>
+      <p id="error-login" class="text-red-500 text-sm mt-3 text-center hidden">Credenciales incorrectas.</p>
     </div>
   </div>
 
-  <!-- DASHBOARD PRINCIPAL -->
+  <!-- PANTALLA 2: DASHBOARD / SISTEMA PRINCIPAL -->
   <div id="pantalla-dashboard" class="hidden">
-    <header class="bg-slate-900 text-white p-4 sticky top-0 z-50 flex justify-between items-center shadow-md">
-  <div class="flex items-center space-x-3">
-    <!-- LOGO DE PONDEROSA -->
-    <img src="/uploads/logo-ponderosa.png" alt="Ponderosa Minerals" class="h-9 w-auto object-contain">
-    <span class="font-bold text-lg border-l border-slate-700 pl-3">🚗 Gestión Vehicular</span>
-  </div>
-  <div class="flex items-center space-x-3">
-    <span id="usuario-badge" class="text-xs bg-blue-800 text-blue-200 px-2.5 py-1 rounded-full font-medium"></span>
-    <button onclick="cerrarSesion()" class="bg-red-600 hover:bg-red-700 text-xs px-3 py-1.5 rounded-lg transition">Salir</button>
-  </div>
-</header>
-
-    <main class="p-4 md:p-6 max-w-6xl mx-auto space-y-6">
-      
-      <!-- ALERTAS CONSOLIDADAS -->
-      <section class="bg-white p-4 rounded-xl shadow-sm border border-slate-200">
-        <h2 class="text-lg font-bold text-slate-800 mb-3 flex items-center gap-2">
-          🚨 Alertas de Vencimiento (SOAT, Seguro, GPS, Rev. Técnica)
-        </h2>
-        <div id="lista-alertas" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 text-sm">
-          <p class="text-slate-500 italic">Cargando vencimientos...</p>
+    
+    <!-- BARRA DE NAVEGACIÓN SUPERIOR (MENÚ ADAPTABLE) -->
+    <nav class="bg-slate-900 text-white p-4 shadow-md">
+      <div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4">
+        <div class="flex items-center space-x-3">
+          <span class="bg-blue-600 text-white text-xs font-bold px-2.5 py-1 rounded">FLOTA</span>
+          <h1 class="text-lg font-bold tracking-wide">Ponderosa Minerals</h1>
         </div>
-      </section>
-
-      <!-- REGISTROS -->
-      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
         
-        <!-- FORMULARIO 1: REGISTRAR VEHÍCULO + TIVE -->
-        <section class="bg-white p-4 rounded-xl shadow-sm border border-slate-200 space-y-3">
-          <h3 class="font-bold text-slate-800 border-b pb-2">+ Registrar Vehículo</h3>
-          <form onsubmit="registrarVehiculo(event)" class="space-y-3 text-sm" enctype="multipart/form-data">
-            <div class="grid grid-cols-2 gap-2">
-              <input type="text" id="v-placa" placeholder="Placa (ej. ABC-123) *" required class="p-2 border rounded uppercase">
-              <input type="text" id="v-sede" placeholder="Sede Asignada (Opcional)" class="p-2 border rounded">
-            </div>
-            <div class="grid grid-cols-2 gap-2">
-              <input type="text" id="v-marca" placeholder="Marca (Opcional)" class="p-2 border rounded">
-              <input type="text" id="v-modelo" placeholder="Modelo (Opcional)" class="p-2 border rounded">
-            </div>
-            <div class="grid grid-cols-2 gap-2">
-              <input type="number" id="v-anio" placeholder="Año (Opcional)" class="p-2 border rounded">
-              <input type="text" id="v-vin" placeholder="VIN (Opcional)" class="p-2 border rounded">
-            </div>
-            <div>
-              <label class="block text-xs font-semibold text-slate-600 mb-1">🪪 Adjuntar TIVE Digital (PDF / Foto)</label>
-              <input type="file" id="v-tive-file" accept=".pdf,image/*" class="w-full p-1.5 border rounded text-xs bg-slate-50">
-            </div>
-            <textarea id="v-descripcion" placeholder="Descripción operativa (Opcional)..." class="w-full p-2 border rounded h-16"></textarea>
-            <button type="submit" class="w-full bg-slate-800 text-white py-2 rounded font-medium hover:bg-slate-900">Guardar Vehículo</button>
-          </form>
-        </section>
+        <!-- OPCIONES DEL MENÚ -->
+        <div class="flex flex-wrap justify-center gap-2 md:gap-4 text-xs md:text-sm font-medium">
+          <button onclick="cambiarPestaña('resumen')" class="px-3 py-1.5 rounded hover:bg-slate-800 transition">Resumen</button>
+          <button onclick="cambiarPestaña('vehiculos')" class="px-3 py-1.5 rounded hover:bg-slate-800 transition">Vehículos</button>
+          <button onclick="cambiarPestaña('vencimientos')" class="px-3 py-1.5 rounded hover:bg-slate-800 transition">Vencimientos</button>
+          <button onclick="cambiarPestaña('taller')" class="px-3 py-1.5 rounded hover:bg-slate-800 transition">Taller</button>
+          <button onclick="cambiarPestaña('usuarios')" class="seccion-usuarios px-3 py-1.5 rounded hover:bg-slate-800 transition">Usuarios</button>
+        </div>
 
-        <!-- FORMULARIO 2: REGISTRAR SOAT / SEGURO -->
-        <section class="bg-white p-4 rounded-xl shadow-sm border border-slate-200 space-y-3">
-          <h3 class="font-bold text-slate-800 border-b pb-2">+ Registrar SOAT / Seguro</h3>
-          <form onsubmit="registrarSeguro(event)" class="space-y-3 text-sm" enctype="multipart/form-data">
-            <select id="seg-vehiculo" required class="w-full p-2 border rounded bg-white">
-              <option value="">Selecciona Vehículo...</option>
-            </select>
-            <div class="grid grid-cols-2 gap-2">
-              <select id="seg-tipo" required class="p-2 border rounded bg-white">
-                <option value="SOAT">SOAT</option>
-                <option value="Seguro Vehicular">Seguro Vehicular</option>
-              </select>
-              <input type="text" id="seg-compania" placeholder="Compañía" required class="p-2 border rounded">
-            </div>
-            <div class="grid grid-cols-2 gap-2">
-              <input type="text" id="seg-broker" placeholder="Broker" required class="p-2 border rounded">
-              <input type="number" step="0.01" id="seg-prima" placeholder="Prima (S/.)" required class="p-2 border rounded">
-            </div>
-            <input type="text" id="seg-poliza" placeholder="N° de Póliza" required class="w-full p-2 border rounded">
-            <div>
-              <label class="block text-xs font-semibold text-slate-600 mb-1">🛡️ Adjuntar Póliza / SOAT (PDF / Foto)</label>
-              <input type="file" id="seg-adjunto-file" accept=".pdf,image/*" class="w-full p-1.5 border rounded text-xs bg-slate-50">
-            </div>
-            <div class="grid grid-cols-2 gap-2">
-              <div>
-                <label class="text-xs text-slate-500">Inicio</label>
-                <input type="date" id="seg-f-inicio" required class="w-full p-2 border rounded">
-              </div>
-              <div>
-                <label class="text-xs text-slate-500">Vencimiento (Alarma)</label>
-                <input type="date" id="seg-f-venc" required class="w-full p-2 border rounded">
-              </div>
-            </div>
-            <button type="submit" class="w-full bg-emerald-600 text-white py-2 rounded font-medium hover:bg-emerald-700">Guardar Seguro / SOAT</button>
-          </form>
-        </section>
+        <button onclick="cerrarSesion()" class="bg-red-600 hover:bg-red-700 text-xs px-3 py-1.5 rounded transition">Cerrar Sesión</button>
+      </div>
+    </nav>
 
-        <!-- FORMULARIO 3: REGISTRAR REVISIÓN TÉCNICA -->
-        <section class="bg-white p-4 rounded-xl shadow-sm border border-slate-200 space-y-3">
-          <h3 class="font-bold text-slate-800 border-b pb-2">+ Registrar Revisión Técnica</h3>
-          <form onsubmit="registrarDocumento(event)" class="space-y-3 text-sm" enctype="multipart/form-data">
-            <select id="doc-vehiculo" required class="w-full p-2 border rounded bg-white">
-              <option value="">Selecciona Vehículo...</option>
-            </select>
-            <div class="grid grid-cols-2 gap-2">
-              <input type="text" id="doc-entidad" placeholder="Entidad CITV" required class="p-2 border rounded">
-              <input type="text" id="doc-numero" placeholder="N° Certificado" required class="p-2 border rounded">
-            </div>
-            <div>
-              <label class="block text-xs font-semibold text-slate-600 mb-1">📋 Adjuntar Certificado Rev. Técnica (PDF / Foto)</label>
-              <input type="file" id="doc-adjunto-file" accept=".pdf,image/*" class="w-full p-1.5 border rounded text-xs bg-slate-50">
-            </div>
-            <div class="grid grid-cols-2 gap-2">
-              <div>
-                <label class="text-xs text-slate-500">Emisión</label>
-                <input type="date" id="doc-f-emision" required class="w-full p-2 border rounded">
-              </div>
-              <div>
-                <label class="text-xs text-slate-500">Vencimiento (Alarma)</label>
-                <input type="date" id="doc-f-venc" required class="w-full p-2 border rounded">
-              </div>
-            </div>
-            <button type="submit" class="w-full bg-amber-600 text-white py-2 rounded font-medium hover:bg-amber-700">Guardar Revisión Técnica</button>
-          </form>
-        </section>
+    <!-- SECCIÓN 1: RESUMEN Y KPIS -->
+    <main class="max-w-7xl mx-auto p-4 md:p-6 space-y-6">
+      
+      <div id="modulo-resumen" class="space-y-6">
+        <!-- TARJETAS DE MÉTRICAS (KPIS) -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div class="bg-white p-5 rounded-xl shadow-sm border-l-4 border-blue-600">
+            <p class="text-xs text-slate-500 uppercase font-bold">Total Vehículos</p>
+            <h3 id="kpi-total-vehiculos" class="text-3xl font-bold text-slate-800 mt-1">0</h3>
+          </div>
+          <div class="bg-white p-5 rounded-xl shadow-sm border-l-4 border-yellow-500">
+            <p class="text-xs text-slate-500 uppercase font-bold">SOAT / Seguros por Vencer</p>
+            <h3 id="kpi-soat-vencer" class="text-3xl font-bold text-yellow-600 mt-1">0</h3>
+          </div>
+          <div class="bg-white p-5 rounded-xl shadow-sm border-l-4 border-red-600">
+            <p class="text-xs text-slate-500 uppercase font-bold">CITV Vencidos</p>
+            <h3 id="kpi-citv-vencidos" class="text-3xl font-bold text-red-600 mt-1">0</h3>
+          </div>
+          <div class="bg-white p-5 rounded-xl shadow-sm border-l-4 border-slate-600">
+            <p class="text-xs text-slate-500 uppercase font-bold">Servicios GPS Activos</p>
+            <h3 id="kpi-gps-activos" class="text-3xl font-bold text-slate-700 mt-1">0</h3>
+          </div>
+        </div>
 
-        <!-- FORMULARIO 4: REPARACIONES -->
-        <section class="bg-white p-4 rounded-xl shadow-sm border border-slate-200 space-y-3">
-          <h3 class="font-bold text-slate-800 border-b pb-2">+ Registrar Reparación</h3>
-          <form onsubmit="registrarReparacion(event)" class="space-y-3 text-sm">
-            <select id="rep-vehiculo" required class="w-full p-2 border rounded bg-white">
-              <option value="">Selecciona Vehículo...</option>
-            </select>
-            <div class="grid grid-cols-2 gap-2">
-              <select id="rep-tipo" required class="p-2 border rounded bg-white">
-                <option value="Preventivo">Preventivo</option>
-                <option value="Correctivo">Correctivo</option>
-              </select>
-              <input type="text" id="rep-taller" placeholder="Taller" required class="p-2 border rounded">
-            </div>
-            <div class="grid grid-cols-2 gap-2">
-              <input type="text" id="rep-responsable" placeholder="Responsable Reparación" required class="p-2 border rounded">
-              <input type="date" id="rep-f-ingreso" required class="p-2 border rounded">
-            </div>
-            <textarea id="rep-falla" placeholder="Descripción de la falla..." required class="w-full p-2 border rounded h-16"></textarea>
-            <button type="submit" class="w-full bg-indigo-600 text-white py-2 rounded font-medium hover:bg-indigo-700">Guardar Reparación</button>
-          </form>
-        </section>
-
+        <!-- TABLA DE ALERTAS PRÓXIMAS -->
+        <div class="bg-white p-5 md:p-6 rounded-xl shadow-sm border border-slate-200">
+          <h3 class="text-base font-bold text-slate-800 mb-4">Alertas Prioritarias de Documentación</h3>
+          <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse text-xs md:text-sm">
+              <thead>
+                <tr class="border-b bg-slate-50 text-slate-600 font-semibold uppercase">
+                  <th class="p-3">Vehículo / Placa</th>
+                  <th class="p-3">Documento</th>
+                  <th class="p-3">Vencimiento</th>
+                  <th class="p-3">Estado</th>
+                </tr>
+              </thead>
+              <tbody id="tabla-alertas-resumen">
+                <tr><td colspan="4" class="p-4 text-center text-slate-400">Cargando alertas del sistema...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
       </div>
 
-      <!-- BUSCADOR Y FLOTA -->
-      <section class="bg-white p-4 rounded-xl shadow-sm border border-slate-200 space-y-4">
-        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
-          <div>
-            <h2 class="text-lg font-bold text-slate-800">Flota de Vehículos Registrados</h2>
-            <span id="total-vehiculos" class="text-xs font-semibold text-slate-500">0 vehículos en total</span>
-          </div>
-          <div class="w-full sm:w-80">
-            <input 
-              type="text" 
-              id="buscador-vehiculos" 
-              oninput="filtrarVehiculos()" 
-              placeholder="🔍 Buscar por placa, sede o descripción..." 
-              class="w-full px-3 py-2 border rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none"
-            >
-          </div>
-        </div>
-
-        <div id="contenedor-vehiculos" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4"></div>
-      </section>
+      <!-- MÓDULOS ADICIONALES (CONTENEDORES) -->
+      <div id="modulo-vehiculos" class="hidden bg-white p-6 rounded-xl shadow-sm border"><h2 class="text-lg font-bold">Módulo de Flota Vehicular</h2><p class="text-sm text-slate-500 mt-2">Aquí se gestiona el catálogo de unidades y tarjetas TIVE.</p></div>
+      <div id="modulo-vencimientos" class="hidden bg-white p-6 rounded-xl shadow-sm border"><h2 class="text-lg font-bold">Módulo de Vencimientos</h2><p class="text-sm text-slate-500 mt-2">Registro de pólizas SOAT, CITV y GPS.</p></div>
+      <div id="modulo-taller" class="hidden bg-white p-6 rounded-xl shadow-sm border"><h2 class="text-lg font-bold">Módulo de Taller y Reparaciones</h2><p class="text-sm text-slate-500 mt-2">Ingreso de ordenes de mantenimiento.</p></div>
+      <div id="modulo-usuarios" class="hidden bg-white p-6 rounded-xl shadow-sm border"><h2 class="text-lg font-bold">Administración de Usuarios</h2><p class="text-sm text-slate-500 mt-2">Panel exclusivo de creación y gestión de accesos.</p></div>
 
     </main>
   </div>
 
-  <!-- MODAL HOJA DE VIDA -->
-  <div id="modal-hoja-vida" class="fixed inset-0 bg-slate-900 bg-opacity-50 z-50 flex items-center justify-center p-4 hidden">
-    <div class="bg-white rounded-xl shadow-xl w-full max-w-4xl max-h-[90vh] overflow-y-auto p-6 space-y-6 border border-slate-200">
-      <div class="flex justify-between items-center border-b pb-3">
-        <h2 class="text-xl font-bold text-slate-900" id="hv-titulo">Hoja de Vida de Vehículo</h2>
-        <button onclick="cerrarHojaVida()" class="text-slate-400 hover:text-slate-700 font-bold text-xl">&times;</button>
-      </div>
-
-      <div class="grid grid-cols-2 md:grid-cols-4 gap-4 bg-slate-50 p-4 rounded-lg border text-sm">
-        <div><p class="text-xs text-slate-500">Placa</p><p class="font-bold text-base" id="hv-placa"></p></div>
-        <div><p class="text-xs text-slate-500">Sede</p><p class="font-semibold" id="hv-sede"></p></div>
-        <div><p class="text-xs text-slate-500">Marca / Modelo</p><p class="font-semibold" id="hv-marca-modelo"></p></div>
-        <div><p class="text-xs text-slate-500">Kilometraje</p><p class="font-semibold" id="hv-km"></p></div>
-      </div>
-
-      <div>
-        <h3 class="font-bold text-slate-800 text-sm mb-2 border-b pb-1">📄 Documentación Digital Adjunta</h3>
-        <div id="hv-documentos" class="flex flex-wrap gap-2 text-xs"></div>
-      </div>
-
-      <div>
-        <h3 class="font-bold text-slate-800 text-sm mb-2 border-b pb-1">🛠️ Mantenimientos y Reparaciones</h3>
-        <div id="hv-reparaciones" class="space-y-2 text-xs"></div>
-      </div>
-    </div>
-  </div>
-
+  <!-- SCRIPT LOGICA PRINCIPAL -->
   <script>
-  // Dirección pública del backend en Render
-  const API_URL = "https://ponderosa-flota-v1.onrender.com";
+    const API_URL = "https://ponderosa-flota-v1.onrender.com";
 
-  // Función para procesar el inicio de sesión
-  async function iniciarSesion(event) {
-    event.preventDefault();
-    const email = document.getElementById("email").value;
-    const password = document.getElementById("password").value;
-    const formData = new URLSearchParams();
-    formData.append("username", email);
-    formData.append("password", password);
+    async function iniciarSesion(event) {
+      event.preventDefault();
+      const email = document.getElementById("email").value;
+      const password = document.getElementById("password").value;
+      const formData = new URLSearchParams();
+      formData.append("username", email);
+      formData.append("password", password);
 
-    try {
-      const response = await fetch(`${API_URL}/login/`, {
-        method: "POST",
-        headers: { "Content-Type": "application/x-www-form-urlencoded" },
-        body: formData
-      });
+      try {
+        const response = await fetch(`${API_URL}/login/`, {
+          method: "POST",
+          headers: { "Content-Type": "application/x-www-form-urlencoded" },
+          body: formData
+        });
 
-      if (!response.ok) throw new Error("Credenciales incorrectas");
+        if (!response.ok) throw new Error("Credenciales incorrectas");
 
-      const data = await response.json();
+        const data = await response.json();
+        localStorage.setItem("user_role", data.rol);
+        localStorage.setItem("user_email", data.access_token);
+        
+        aplicarPermisosDeRol(data.rol);
+        document.getElementById("pantalla-login").classList.add("hidden");
+        document.getElementById("pantalla-dashboard").classList.remove("hidden");
+        
+        cargarMétricasResumen();
 
-      // Guardar datos de sesión al autenticar
-      localStorage.setItem("user_role", data.rol);
-      localStorage.setItem("user_email", data.access_token);
-      
-      // Aplicar restricciones visuales según el rol
-      aplicarPermisosDeRol(data.rol);
-
-      // Ocultar login y mostrar el panel principal
-      document.getElementById("pantalla-login").classList.add("hidden");
-      document.getElementById("pantalla-dashboard").classList.remove("hidden");
-
-    } catch (error) {
-      document.getElementById("error-login").classList.remove("hidden");
+      } catch (error) {
+        document.getElementById("error-login").classList.remove("hidden");
+      }
     }
-  }
 
-  // Función para aplicar restricciones visuales según el rol
-  function aplicarPermisosDeRol(rol) {
-    const userRole = rol || localStorage.getItem("user_role");
-
-    if (userRole === "Lectura") {
-      // Modo Consulta: Oculta botones de creación, edición, eliminación y formularios
-      document.querySelectorAll(".btn-crear, .btn-editar, .btn-eliminar, form:not(#form-login)").forEach(el => {
-        el.style.display = "none";
-      });
-    } else if (userRole === "Edicion") {
-      // Modo Operativo: Permite edición pero oculta gestión de usuarios
-      document.querySelectorAll(".btn-crear, .btn-editar, .btn-eliminar").forEach(el => {
-        el.style.display = "inline-block";
-      });
-      document.querySelectorAll(".seccion-usuarios").forEach(el => {
-        el.style.display = "none";
-      });
-    } else if (userRole === "Administrador") {
-      // Modo Total: Muestra todos los controles del sistema
-      document.querySelectorAll(".btn-crear, .btn-editar, .btn-eliminar, .seccion-usuarios, form").forEach(el => {
-        el.style.display = "block";
-      });
+    function aplicarPermisosDeRol(rol) {
+      const userRole = rol || localStorage.getItem("user_role");
+      if (userRole === "Lectura") {
+        document.querySelectorAll(".btn-crear, .btn-editar, .btn-eliminar, form:not(#form-login)").forEach(el => el.style.display = "none");
+      } else if (userRole === "Edicion") {
+        document.querySelectorAll(".seccion-usuarios").forEach(el => el.style.display = "none");
+      }
     }
-  }
 
-  // Comprobar rol al cargar la página si ya había sesión guardada
-  document.addEventListener("DOMContentLoaded", () => {
-    const savedRole = localStorage.getItem("user_role");
-    if (savedRole) {
-      aplicarPermisosDeRol(savedRole);
+    function cambiarPestaña(nombreModulo) {
+      ["resumen", "vehiculos", "vencimientos", "taller", "usuarios"].forEach(m => {
+        const el = document.getElementById(`modulo-${m}`);
+        if (el) el.classList.add("hidden");
+      });
+      const objetivo = document.getElementById(`modulo-${nombreModulo}`);
+      if (objetivo) objetivo.classList.remove("hidden");
     }
-  });
-</script>
+
+    async function cargarMétricasResumen() {
+      try {
+        const [resVehiculos, resSeguros, resDocumentos, resGps] = await Promise.all([
+          fetch(`${API_URL}/vehiculos/`).then(r => r.json()),
+          fetch(`${API_URL}/seguros/vencimientos/`).then(r => r.json()),
+          fetch(`${API_URL}/documentos/vencimientos/`).then(r => r.json()),
+          fetch(`${API_URL}/gps/vencimientos/`).then(r => r.json())
+        ]);
+
+        document.getElementById("kpi-total-vehiculos").innerText = resVehiculos.length || 0;
+        document.getElementById("kpi-soat-vencer").innerText = resSeguros.length || 0;
+        document.getElementById("kpi-citv-vencidos").innerText = resDocumentos.length || 0;
+        document.getElementById("kpi-gps-activos").innerText = resGps.length || 0;
+
+        const tablaAlertas = document.getElementById("tabla-alertas-resumen");
+        if (resSeguros.length === 0 && resDocumentos.length === 0) {
+          tablaAlertas.innerHTML = `<tr><td colspan="4" class="p-4 text-center text-slate-500">No hay alertas ni documentos registrados aún.</td></tr>`;
+        }
+      } catch (error) {
+        console.error("Error cargando KPIs:", error);
+      }
+    }
+
+    function cerrarSesion() {
+      localStorage.clear();
+      window.location.reload();
+    }
+
+    document.addEventListener("DOMContentLoaded", () => {
+      const savedRole = localStorage.getItem("user_role");
+      if (savedRole) {
+        aplicarPermisosDeRol(savedRole);
+        document.getElementById("pantalla-login").classList.add("hidden");
+        document.getElementById("pantalla-dashboard").classList.remove("hidden");
+        cargarMétricasResumen();
+      }
+    });
+  </script>
+</body>
+</html>
