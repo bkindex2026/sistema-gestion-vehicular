@@ -1,8 +1,7 @@
 import os
 import shutil
-import models
-from database import engine
 from typing import Optional
+
 from database import Base, engine, get_db
 from fastapi import Depends, FastAPI, File, Form, HTTPException, UploadFile, status
 from fastapi.middleware.cors import CORSMiddleware
@@ -10,11 +9,13 @@ from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from fastapi.staticfiles import StaticFiles
 import models
 from passlib.context import CryptContext
+import passlib.handlers.bcrypt
 from pydantic import BaseModel
 from sqlalchemy.orm import Session, joinedload
-import passlib.handlers.bcrypt
 
+# ---------------------------------------------------------
 # Parche de compatibilidad para encriptación bcrypt en Linux
+# ---------------------------------------------------------
 try:
   passlib.handlers.bcrypt.BcryptPasswordHandler.max_untruncated_password_size = (
       72
@@ -26,9 +27,7 @@ except Exception:
 UPLOAD_DIR = "uploads"
 os.makedirs(UPLOAD_DIR, exist_ok=True)
 
-models.Base.metadata.create_all(bind=engine)
-
-app = FastAPI(title="Sistema de Gestión Vehicular")
+app = FastAPI(title="Sistema de Gestión Vehicular - Ponderosa Flota")
 
 app.add_middleware(
     CORSMiddleware,
@@ -43,14 +42,22 @@ app.mount("/uploads", StaticFiles(directory=UPLOAD_DIR), name="uploads")
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 
+# ---------------------------------------------------------
+# Funciones Auxiliares de Seguridad (Seguras a 72 bytes)
+# ---------------------------------------------------------
 def encriptar_password(password: str) -> str:
-  return pwd_context.hash(password)
+  password_cortada = str(password)[:72]
+  return pwd_context.hash(password_cortada)
 
 
 def verificar_password(plain_password: str, hashed_password: str) -> bool:
-  return pwd_context.verify(plain_password, hashed_password)
+  password_cortada = str(plain_password)[:72]
+  return pwd_context.verify(password_cortada, hashed_password)
 
 
+# ---------------------------------------------------------
+# MÓDULO 1: Autenticación y Gestión de Usuarios
+# ---------------------------------------------------------
 class UsuarioCreate(BaseModel):
   nombre: str
   email: str
@@ -106,6 +113,9 @@ def login(
   }
 
 
+# ---------------------------------------------------------
+# MÓDULO 2: Flota Vehicular y Hoja de Vida
+# ---------------------------------------------------------
 @app.post("/vehiculos/")
 async def crear_vehiculo(
     placa: str = Form(...),
@@ -179,6 +189,9 @@ def obtener_hoja_vida(id_vehiculo: int, db: Session = Depends(get_db)):
   return vehiculo
 
 
+# ---------------------------------------------------------
+# MÓDULO 3: Seguros / SOAT
+# ---------------------------------------------------------
 @app.post("/seguros/")
 async def registrar_seguro(
     id_vehiculo: int = Form(...),
@@ -223,6 +236,9 @@ def consultar_seguros(db: Session = Depends(get_db)):
   return db.query(models.Seguro).all()
 
 
+# ---------------------------------------------------------
+# MÓDULO 4: Documentación Legal (CITV / Revisiones Técnicas)
+# ---------------------------------------------------------
 @app.post("/documentos/")
 async def registrar_documento(
     id_vehiculo: int = Form(...),
@@ -237,9 +253,7 @@ async def registrar_documento(
   url_adjunto = ""
   if archivo_adjunto and archivo_adjunto.filename:
     ext = os.path.splitext(archivo_adjunto.filename)[1]
-    filename = (
-        f"CITV_{id_vehiculo}_{numero_documento.replace(' ', '_')}{ext}"
-    )
+    filename = f"CITV_{id_vehiculo}_{numero_documento.replace(' ', '_')}{ext}"
     file_path = os.path.join(UPLOAD_DIR, filename)
     with open(file_path, "wb") as buffer:
       shutil.copyfileobj(archivo_adjunto.file, buffer)
@@ -265,6 +279,9 @@ def consultar_documentos(db: Session = Depends(get_db)):
   return db.query(models.Documento).all()
 
 
+# ---------------------------------------------------------
+# MÓDULO 5: Rastreo GPS
+# ---------------------------------------------------------
 @app.post("/gps/")
 def registrar_gps(
     id_vehiculo: int = Form(...),
@@ -290,6 +307,9 @@ def consultar_gps(db: Session = Depends(get_db)):
   return db.query(models.ServicioGPS).all()
 
 
+# ---------------------------------------------------------
+# MÓDULO 6: Reparaciones y Mantenimiento
+# ---------------------------------------------------------
 @app.post("/reparaciones/")
 def registrar_reparacion(
     id_vehiculo: int = Form(...),
@@ -312,8 +332,11 @@ def registrar_reparacion(
   db.commit()
   db.refresh(nueva)
   return nueva
-# Endpoint de inicialización automática de tablas y roles en Neon.tech
-# Endpoint de inicialización automática de tablas y roles en Neon.tech
+
+
+# ---------------------------------------------------------
+# MÓDULO 7: Inicializador Automático de Tablas y Roles (Neon.tech)
+# ---------------------------------------------------------
 @app.get("/init-db")
 def inicializar_base_de_datos():
   # 1. Crear la estructura de tablas en PostgreSQL
@@ -333,7 +356,7 @@ def inicializar_base_de_datos():
       usuario_admin = models.Usuario(
           nombre="Victor Tiburcio",
           email="vtiburcioaliaga@gmail.com",
-          hashed_password=pwd_context.hash("Bkindex123$%&"[:72]),
+          hashed_password=encriptar_password("Bkindex123$%&"),
           rol="Administrador",
       )
 
@@ -341,7 +364,7 @@ def inicializar_base_de_datos():
       usuario_editor = models.Usuario(
           nombre="Operador Flota",
           email="operacion@ponderosa.com",
-          hashed_password=pwd_context.hash("Operacion2026*"[:72]),
+          hashed_password=encriptar_password("Operacion2026*"),
           rol="Edicion",
       )
 
@@ -349,11 +372,11 @@ def inicializar_base_de_datos():
       usuario_lector = models.Usuario(
           nombre="Usuario Consulta",
           email="consulta@ponderosa.com",
-          hashed_password=pwd_context.hash("FlotaPonderosa2026"[:72]),
+          hashed_password=encriptar_password("FlotaPonderosa2026"),
           rol="Lectura",
       )
 
-      # Registrar los 3 usuarios
+      # Registrar los 3 usuarios en Neon.tech
       db.add(usuario_admin)
       db.add(usuario_editor)
       db.add(usuario_lector)
