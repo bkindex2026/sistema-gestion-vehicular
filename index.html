@@ -3,17 +3,17 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Ponderosa Flota - Gestión Vehicular</title>
+  <title>Ponderosa Flota - Gestión Vehicular Integrada</title>
   <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="bg-slate-100 min-h-screen text-slate-800">
 
-  <!-- PANTALLA 1: LOGIN -->
+  <!-- PANTALLA 1: INICIO DE SESIÓN -->
   <div id="pantalla-login" class="flex items-center justify-center min-h-screen p-4">
     <div class="bg-white p-6 md:p-8 rounded-xl shadow-lg w-full max-w-md border border-slate-200">
       <div class="text-center mb-6">
         <h1 class="text-2xl font-bold text-slate-900">PONDEROSA FLOTA</h1>
-        <p class="text-xs text-slate-500 uppercase tracking-widest mt-1">Control de Gestión Vehicular</p>
+        <p class="text-xs text-slate-500 uppercase tracking-widest mt-1">Sistema de Control Vehicular</p>
       </div>
       <form id="form-login" onsubmit="iniciarSesion(event)" class="space-y-4">
         <div>
@@ -30,19 +30,18 @@
     </div>
   </div>
 
-  <!-- PANTALLA 2: DASHBOARD / SISTEMA PRINCIPAL -->
+  <!-- PANTALLA 2: DASHBOARD PRINCIPAL (LO PRIMERO QUE SE VE AL INGRESAR ES EL RESUMEN) -->
   <div id="pantalla-dashboard" class="hidden">
     
-    <!-- BARRA DE NAVEGACIÓN SUPERIOR (MENÚ ADAPTABLE) -->
+    <!-- BARRA DE NAVEGACIÓN SUPERIOR -->
     <nav class="bg-slate-900 text-white p-4 shadow-md">
       <div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4">
         <div class="flex items-center space-x-3">
           <span class="bg-blue-600 text-white text-xs font-bold px-2.5 py-1 rounded">FLOTA</span>
-          <h1 class="text-lg font-bold tracking-wide">Ponderosa Minerals</h1>
+          <h1 class="text-lg font-bold tracking-wide">Ponderosa Minerals S.A.C.</h1>
         </div>
         
-        <!-- OPCIONES DEL MENÚ -->
-        <div class="flex flex-wrap justify-center gap-2 md:gap-4 text-xs md:text-sm font-medium">
+        <div class="flex flex-wrap justify-center gap-2 md:gap-3 text-xs md:text-sm font-medium">
           <button onclick="cambiarPestaña('resumen')" class="px-3 py-1.5 rounded hover:bg-slate-800 transition">Resumen</button>
           <button onclick="cambiarPestaña('vehiculos')" class="px-3 py-1.5 rounded hover:bg-slate-800 transition">Vehículos</button>
           <button onclick="cambiarPestaña('vencimientos')" class="px-3 py-1.5 rounded hover:bg-slate-800 transition">Vencimientos</button>
@@ -54,64 +53,326 @@
       </div>
     </nav>
 
-    <!-- SECCIÓN 1: RESUMEN Y KPIS -->
+    <!-- CONTENEDOR PRINCIPAL -->
     <main class="max-w-7xl mx-auto p-4 md:p-6 space-y-6">
       
+      <!-- MÓDULO 1: RESUMEN Y KPIS -->
       <div id="modulo-resumen" class="space-y-6">
-        <!-- TARJETAS DE MÉTRICAS (KPIS) -->
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           <div class="bg-white p-5 rounded-xl shadow-sm border-l-4 border-blue-600">
-            <p class="text-xs text-slate-500 uppercase font-bold">Total Vehículos</p>
+            <p class="text-xs text-slate-500 uppercase font-bold">Total Flota Activa</p>
             <h3 id="kpi-total-vehiculos" class="text-3xl font-bold text-slate-800 mt-1">0</h3>
           </div>
           <div class="bg-white p-5 rounded-xl shadow-sm border-l-4 border-yellow-500">
-            <p class="text-xs text-slate-500 uppercase font-bold">SOAT / Seguros por Vencer</p>
+            <p class="text-xs text-slate-500 uppercase font-bold">SOAT / Seguros Vencimientos</p>
             <h3 id="kpi-soat-vencer" class="text-3xl font-bold text-yellow-600 mt-1">0</h3>
           </div>
           <div class="bg-white p-5 rounded-xl shadow-sm border-l-4 border-red-600">
-            <p class="text-xs text-slate-500 uppercase font-bold">CITV Vencidos</p>
+            <p class="text-xs text-slate-500 uppercase font-bold">CITV Vencimientos</p>
             <h3 id="kpi-citv-vencidos" class="text-3xl font-bold text-red-600 mt-1">0</h3>
           </div>
-          <div class="bg-white p-5 rounded-xl shadow-sm border-l-4 border-slate-600">
-            <p class="text-xs text-slate-500 uppercase font-bold">Servicios GPS Activos</p>
-            <h3 id="kpi-gps-activos" class="text-3xl font-bold text-slate-700 mt-1">0</h3>
+          <div class="bg-white p-5 rounded-xl shadow-sm border-l-4 border-emerald-600">
+            <p class="text-xs text-slate-500 uppercase font-bold">Servicios GPS Registrados</p>
+            <h3 id="kpi-gps-activos" class="text-3xl font-bold text-emerald-700 mt-1">0</h3>
           </div>
         </div>
 
-        <!-- TABLA DE ALERTAS PRÓXIMAS -->
+        <!-- TABLA DE ALERTAS DE VENCIMIENTO -->
         <div class="bg-white p-5 md:p-6 rounded-xl shadow-sm border border-slate-200">
-          <h3 class="text-base font-bold text-slate-800 mb-4">Alertas Prioritarias de Documentación</h3>
+          <h3 class="text-base font-bold text-slate-800 mb-4">Consolidado de Alertas de Vencimiento</h3>
           <div class="overflow-x-auto">
             <table class="w-full text-left border-collapse text-xs md:text-sm">
               <thead>
                 <tr class="border-b bg-slate-50 text-slate-600 font-semibold uppercase">
-                  <th class="p-3">Vehículo / Placa</th>
-                  <th class="p-3">Documento</th>
-                  <th class="p-3">Vencimiento</th>
+                  <th class="p-3">Vehículo ID / Placa</th>
+                  <th class="p-3">Documento / Servicio</th>
+                  <th class="p-3">Detalle / Emisor</th>
+                  <th class="p-3">Fecha Vencimiento</th>
                   <th class="p-3">Estado</th>
                 </tr>
               </thead>
               <tbody id="tabla-alertas-resumen">
-                <tr><td colspan="4" class="p-4 text-center text-slate-400">Cargando alertas del sistema...</td></tr>
+                <tr><td colspan="5" class="p-4 text-center text-slate-400">Cargando alertas del sistema...</td></tr>
               </tbody>
             </table>
           </div>
         </div>
       </div>
 
-      <!-- MÓDULOS ADICIONALES (CONTENEDORES) -->
-      <div id="modulo-vehiculos" class="hidden bg-white p-6 rounded-xl shadow-sm border"><h2 class="text-lg font-bold">Módulo de Flota Vehicular</h2><p class="text-sm text-slate-500 mt-2">Aquí se gestiona el catálogo de unidades y tarjetas TIVE.</p></div>
-      <div id="modulo-vencimientos" class="hidden bg-white p-6 rounded-xl shadow-sm border"><h2 class="text-lg font-bold">Módulo de Vencimientos</h2><p class="text-sm text-slate-500 mt-2">Registro de pólizas SOAT, CITV y GPS.</p></div>
-      <div id="modulo-taller" class="hidden bg-white p-6 rounded-xl shadow-sm border"><h2 class="text-lg font-bold">Módulo de Taller y Reparaciones</h2><p class="text-sm text-slate-500 mt-2">Ingreso de ordenes de mantenimiento.</p></div>
-      <div id="modulo-usuarios" class="hidden bg-white p-6 rounded-xl shadow-sm border"><h2 class="text-lg font-bold">Administración de Usuarios</h2><p class="text-sm text-slate-500 mt-2">Panel exclusivo de creación y gestión de accesos.</p></div>
+      <!-- MÓDULO 2: GESTIÓN DE VEHÍCULOS (SOLO PLACA OBLIGATORIA) -->
+      <div id="modulo-vehiculos" class="hidden space-y-6">
+        <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
+          <h2 class="text-lg font-bold text-slate-800 mb-4">Registrar Nuevo Vehículo</h2>
+          <form id="form-vehiculo" onsubmit="registrarVehiculo(event)" class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div>
+              <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Placa (* Obligatorio)</label>
+              <input type="text" id="v-placa" required placeholder="Ej. ABC-123" class="w-full p-2.5 border rounded-lg text-sm border-blue-400 focus:ring-2 focus:ring-blue-500">
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Sede / Unidad (Opcional)</label>
+              <input type="text" id="v-sede" placeholder="Ej. Lucanas / Chacas" class="w-full p-2.5 border rounded-lg text-sm">
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Marca (Opcional)</label>
+              <input type="text" id="v-marca" placeholder="Ej. Toyota / JCB" class="w-full p-2.5 border rounded-lg text-sm">
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Modelo (Opcional)</label>
+              <input type="text" id="v-modelo" placeholder="Ej. Hilux / 3CX" class="w-full p-2.5 border rounded-lg text-sm">
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Año de Fabricación (Opcional)</label>
+              <input type="number" id="v-anio" placeholder="Ej. 2024" class="w-full p-2.5 border rounded-lg text-sm">
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Número VIN / Chasis (Opcional)</label>
+              <input type="text" id="v-vin" placeholder="Número de serie" class="w-full p-2.5 border rounded-lg text-sm">
+            </div>
+            <div class="md:col-span-2">
+              <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Descripción / Observaciones (Opcional)</label>
+              <input type="text" id="v-descripcion" placeholder="Detalles adicionales" class="w-full p-2.5 border rounded-lg text-sm">
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Tarjeta TIVE (Foto o PDF - Opcional)</label>
+              <input type="file" id="v-archivo" accept="image/*,.pdf" class="w-full text-xs text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-blue-50 file:text-blue-700">
+            </div>
+            <div class="md:col-span-3 flex justify-end">
+              <button type="submit" class="btn-crear bg-blue-600 hover:bg-blue-700 text-white font-bold px-6 py-2.5 rounded-lg text-sm transition">Crear Vehículo</button>
+            </div>
+          </form>
+        </div>
+
+        <!-- LISTA DE VEHÍCULOS REGISTRADOS -->
+        <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
+          <h3 class="text-base font-bold text-slate-800 mb-4">Catálogo de Flota Activa</h3>
+          <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse text-xs md:text-sm">
+              <thead>
+                <tr class="border-b bg-slate-50 text-slate-600 font-semibold uppercase">
+                  <th class="p-3">ID</th>
+                  <th class="p-3">Placa</th>
+                  <th class="p-3">Sede</th>
+                  <th class="p-3">Marca / Modelo</th>
+                  <th class="p-3">Año</th>
+                  <th class="p-3">TIVE Adjunta</th>
+                  <th class="p-3">Acciones</th>
+                </tr>
+              </thead>
+              <tbody id="tabla-vehiculos-lista">
+                <tr><td colspan="7" class="p-4 text-center text-slate-400">Cargando catálogo...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- MÓDULO 3: VENCIMIENTOS (SOAT, CITV, GPS) -->
+      <div id="modulo-vencimientos" class="hidden space-y-6">
+        
+        <!-- REGISTRO DE SEGUROS / SOAT CON ADJUNTO -->
+        <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200 space-y-4">
+          <h2 class="text-lg font-bold text-slate-800">1. Registrar Seguro / SOAT</h2>
+          <form id="form-seguro" onsubmit="registrarSeguro(event)" class="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div>
+              <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Vehículo (*)</label>
+              <select id="s-vehiculo" required class="select-vehiculos-dinamico w-full p-2.5 border rounded-lg text-sm"><option value="">Cargando vehículos...</option></select>
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Tipo Seguro</label>
+              <input type="text" id="s-tipo" placeholder="SOAT / Todo Riesgo" required class="w-full p-2.5 border rounded-lg text-sm">
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Aseguradora</label>
+              <input type="text" id="s-compania" placeholder="Rímac / Positiva" required class="w-full p-2.5 border rounded-lg text-sm">
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Broker / Asesor</label>
+              <input type="text" id="s-broker" placeholder="Nombre Broker" class="w-full p-2.5 border rounded-lg text-sm">
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">N° Póliza</label>
+              <input type="text" id="s-poliza" required class="w-full p-2.5 border rounded-lg text-sm">
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Costo Prima (S/)</label>
+              <input type="number" step="0.01" id="s-costo" placeholder="0.00" class="w-full p-2.5 border rounded-lg text-sm">
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Fecha Inicio</label>
+              <input type="date" id="s-inicio" required class="w-full p-2.5 border rounded-lg text-sm">
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Fecha Vencimiento</label>
+              <input type="date" id="s-vencimiento" required class="w-full p-2.5 border rounded-lg text-sm">
+            </div>
+            <div class="md:col-span-3">
+              <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Adjuntar Póliza o SOAT (Foto o PDF - Opcional)</label>
+              <input type="file" id="s-archivo" accept="image/*,.pdf" class="w-full text-xs text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-blue-50 file:text-blue-700">
+            </div>
+            <div class="flex items-end">
+              <button type="submit" class="btn-crear w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2.5 rounded-lg text-sm transition">Guardar Seguro</button>
+            </div>
+          </form>
+        </div>
+
+        <!-- REGISTRO DE REVISIÓN TÉCNICA (CITV) CON ADJUNTO -->
+        <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200 space-y-4">
+          <h2 class="text-lg font-bold text-slate-800">2. Registrar Revisión Técnica (CITV)</h2>
+          <form id="form-citv" onsubmit="registrarCITV(event)" class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div>
+              <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Vehículo (*)</label>
+              <select id="c-vehiculo" required class="select-vehiculos-dinamico w-full p-2.5 border rounded-lg text-sm"><option value="">Cargando vehículos...</option></select>
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Entidad Emisora</label>
+              <input type="text" id="c-entidad" placeholder="Farenet / CRT" required class="w-full p-2.5 border rounded-lg text-sm">
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">N° Certificado CITV</label>
+              <input type="text" id="c-numero" required class="w-full p-2.5 border rounded-lg text-sm">
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Fecha Emisión</label>
+              <input type="date" id="c-emision" required class="w-full p-2.5 border rounded-lg text-sm">
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Fecha Vencimiento</label>
+              <input type="date" id="c-vencimiento" required class="w-full p-2.5 border rounded-lg text-sm">
+            </div>
+            <div class="md:col-span-2">
+              <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Adjuntar Certificado CITV (Foto o PDF - Opcional)</label>
+              <input type="file" id="c-archivo" accept="image/*,.pdf" class="w-full text-xs text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-blue-50 file:text-blue-700">
+            </div>
+            <div class="flex items-end">
+              <button type="submit" class="btn-crear w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2.5 rounded-lg text-sm transition">Guardar CITV</button>
+            </div>
+          </form>
+        </div>
+
+        <!-- REGISTRO DE RASTREO GPS -->
+        <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200 space-y-4">
+          <h2 class="text-lg font-bold text-slate-800">3. Registrar Servicio de Rastreo GPS</h2>
+          <form id="form-gps" onsubmit="registrarGPS(event)" class="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div>
+              <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Vehículo (*)</label>
+              <select id="g-vehiculo" required class="select-vehiculos-dinamico w-full p-2.5 border rounded-lg text-sm"><option value="">Cargando vehículos...</option></select>
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Proveedor GPS</label>
+              <input type="text" id="g-empresa" placeholder="Tracklink / Hunter" required class="w-full p-2.5 border rounded-lg text-sm">
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Fecha Inicio</label>
+              <input type="date" id="g-inicio" required class="w-full p-2.5 border rounded-lg text-sm">
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Fecha Vencimiento</label>
+              <input type="date" id="g-vencimiento" required class="w-full p-2.5 border rounded-lg text-sm">
+            </div>
+            <div class="md:col-span-4 flex justify-end">
+              <button type="submit" class="btn-crear bg-blue-600 hover:bg-blue-700 text-white font-bold px-6 py-2.5 rounded-lg text-sm transition">Guardar Servicio GPS</button>
+            </div>
+          </form>
+        </div>
+
+      </div>
+
+      <!-- MÓDULO 4: TALLER Y MANTENIMIENTO CON ADJUNTO -->
+      <div id="modulo-taller" class="hidden space-y-6">
+        <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
+          <h2 class="text-lg font-bold text-slate-800 mb-4">Registrar Ingreso a Taller / Mantenimiento</h2>
+          <form id="form-taller" onsubmit="registrarTaller(event)" class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div>
+              <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Vehículo (*)</label>
+              <select id="t-vehiculo" required class="select-vehiculos-dinamico w-full p-2.5 border rounded-lg text-sm"><option value="">Cargando vehículos...</option></select>
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Tipo Mantenimiento</label>
+              <select id="t-tipo" class="w-full p-2.5 border rounded-lg text-sm">
+                <option value="Preventivo">Preventivo</option>
+                <option value="Correctivo">Correctivo</option>
+              </select>
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Taller de Servicio</label>
+              <input type="text" id="t-taller" placeholder="Taller / Proveedor" required class="w-full p-2.5 border rounded-lg text-sm">
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Responsable</label>
+              <input type="text" id="t-responsable" placeholder="Técnico a cargo" required class="w-full p-2.5 border rounded-lg text-sm">
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Fecha Ingreso</label>
+              <input type="date" id="t-fecha" required class="w-full p-2.5 border rounded-lg text-sm">
+            </div>
+            <div class="md:col-span-3">
+              <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Descripción Falla / Trabajo</label>
+              <textarea id="t-descripcion" rows="2" placeholder="Detalles del diagnóstico o mantenimiento..." class="w-full p-2.5 border rounded-lg text-sm"></textarea>
+            </div>
+            <div class="md:col-span-3">
+              <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Adjuntar Comprobante o Informe (Foto o PDF - Opcional)</label>
+              <input type="file" id="t-archivo" accept="image/*,.pdf" class="w-full text-xs text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-blue-50 file:text-blue-700">
+            </div>
+            <div class="md:col-span-3 flex justify-end">
+              <button type="submit" class="btn-crear bg-blue-600 hover:bg-blue-700 text-white font-bold px-6 py-2.5 rounded-lg text-sm transition">Registrar Mantenimiento</button>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <!-- MÓDULO 5: ADMINISTRACIÓN DE USUARIOS -->
+      <div id="modulo-usuarios" class="hidden space-y-6">
+        <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
+          <h2 class="text-lg font-bold text-slate-800 mb-4">Crear Nuevo Usuario</h2>
+          <form id="form-usuario" onsubmit="registrarUsuario(event)" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Nombre Completo</label>
+              <input type="text" id="u-nombre" required placeholder="Ej. Juan Pérez" class="w-full p-2.5 border rounded-lg text-sm">
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Correo Electrónico</label>
+              <input type="email" id="u-email" required placeholder="usuario@ponderosa.com" class="w-full p-2.5 border rounded-lg text-sm">
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Contraseña</label>
+              <input type="password" id="u-password" required class="w-full p-2.5 border rounded-lg text-sm">
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Rol Asignado</label>
+              <select id="u-rol" class="w-full p-2.5 border rounded-lg text-sm">
+                <option value="Administrador">Administrador (Acceso Total)</option>
+                <option value="Edicion">Edición (Modificación Operativa)</option>
+                <option value="Lectura">Lectura (Solo Consulta)</option>
+              </select>
+            </div>
+            <div class="md:col-span-2 flex justify-end">
+              <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white font-bold px-6 py-2.5 rounded-lg text-sm transition">Registrar Usuario</button>
+            </div>
+          </form>
+        </div>
+      </div>
 
     </main>
   </div>
 
-  <!-- SCRIPT LOGICA PRINCIPAL -->
+  <!-- MODAL DE HOJA DE VIDA DE VEHÍCULO -->
+  <div id="modal-hoja-vida" class="hidden fixed inset-0 bg-slate-900 bg-opacity-50 flex items-center justify-center p-4 z-50">
+    <div class="bg-white rounded-xl shadow-xl max-w-3xl w-full p-6 max-h-[90vh] overflow-y-auto space-y-4">
+      <div class="flex justify-between items-center border-b pb-3">
+        <h3 id="hv-titulo" class="text-lg font-bold text-slate-800">Hoja de Vida Vehicular</h3>
+        <button onclick="cerrarHojaVida()" class="text-slate-400 hover:text-slate-600 font-bold">✕</button>
+      </div>
+      <div id="hv-contenido" class="space-y-4 text-xs md:text-sm">
+        <p class="text-slate-400">Cargando expediente...</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- CÓDIGO JAVASCRIPT DE INTEGRACIÓN -->
   <script>
     const API_URL = "https://ponderosa-flota-v1.onrender.com";
 
+    // 1. AUTENTICACIÓN
     async function iniciarSesion(event) {
       event.preventDefault();
       const email = document.getElementById("email").value;
@@ -138,16 +399,18 @@
         document.getElementById("pantalla-dashboard").classList.remove("hidden");
         
         cargarMétricasResumen();
+        cargarListaVehiculos();
 
       } catch (error) {
         document.getElementById("error-login").classList.remove("hidden");
       }
     }
 
+    // 2. RESTRICCIONES DE ROL (RBAC)
     function aplicarPermisosDeRol(rol) {
       const userRole = rol || localStorage.getItem("user_role");
       if (userRole === "Lectura") {
-        document.querySelectorAll(".btn-crear, .btn-editar, .btn-eliminar, form:not(#form-login)").forEach(el => el.style.display = "none");
+        document.querySelectorAll(".btn-crear, form:not(#form-login)").forEach(el => el.style.display = "none");
       } else if (userRole === "Edicion") {
         document.querySelectorAll(".seccion-usuarios").forEach(el => el.style.display = "none");
       }
@@ -162,6 +425,220 @@
       if (objetivo) objetivo.classList.remove("hidden");
     }
 
+    // 3. VEHÍCULOS Y HOJA DE VIDA
+    async function cargarListaVehiculos() {
+      try {
+        const res = await fetch(`${API_URL}/vehiculos/`);
+        const vehiculos = await res.json();
+        
+        const tbody = document.getElementById("tabla-vehiculos-lista");
+        tbody.innerHTML = vehiculos.map(v => `
+          <tr class="border-b hover:bg-slate-50">
+            <td class="p-3 text-slate-400">#${v.id_vehiculo}</td>
+            <td class="p-3 font-bold text-blue-600">${v.placa}</td>
+            <td class="p-3">${v.sede_asignada || 'Sin Sede'}</td>
+            <td class="p-3">${v.marca} / ${v.modelo}</td>
+            <td class="p-3">${v.anio}</td>
+            <td class="p-3">${v.url_tive ? `<a href="${API_URL}${v.url_tive}" target="_blank" class="bg-blue-100 text-blue-700 font-bold px-2 py-1 rounded text-xs hover:bg-blue-200">Ver TIVE</a>` : 'Sin TIVE'}</td>
+            <td class="p-3"><button onclick="verHojaVida(${v.id_vehiculo})" class="bg-slate-800 text-white px-2.5 py-1 rounded text-xs hover:bg-slate-700">Hoja de Vida</button></td>
+          </tr>
+        `).join('') || `<tr><td colspan="7" class="p-4 text-center text-slate-400">No hay vehículos registrados.</td></tr>`;
+
+        const selects = document.querySelectorAll(".select-vehiculos-dinamico");
+        selects.forEach(s => {
+          s.innerHTML = `<option value="">Seleccione placa...</option>` + 
+            vehiculos.map(v => `<option value="${v.id_vehiculo}">${v.placa} (${v.marca} ${v.modelo})</option>`).join('');
+        });
+
+      } catch (e) {
+        console.error("Error cargando vehículos:", e);
+      }
+    }
+
+    async function verHojaVida(idVehiculo) {
+      document.getElementById("modal-hoja-vida").classList.remove("hidden");
+      const contenedor = document.getElementById("hv-contenido");
+      contenedor.innerHTML = "<p class='text-slate-400'>Consultando historial en Neon.tech...</p>";
+
+      try {
+        const res = await fetch(`${API_URL}/vehiculos/${idVehiculo}/hoja_vida/`);
+        const data = await res.json();
+
+        document.getElementById("hv-titulo").innerText = `Hoja de Vida: ${data.placa} (${data.marca} ${data.modelo})`;
+        
+        contenedor.innerHTML = `
+          <div class="bg-slate-50 p-3 rounded-lg border grid grid-cols-2 gap-2">
+            <div><strong>Sede:</strong> ${data.sede_asignada}</div>
+            <div><strong>VIN:</strong> ${data.numero_vin}</div>
+            <div><strong>Año:</strong> ${data.anio}</div>
+            <div><strong>Km Actual:</strong> ${data.kilometraje_actual} km</div>
+          </div>
+          <div>
+            <h4 class="font-bold border-b pb-1 mb-2 text-slate-700">Seguros / SOAT (${data.seguros.length})</h4>
+            ${data.seguros.map(s => `<p>• ${s.tipo_seguro} (${s.compania_seguros}) - Vence: ${s.fecha_vencimiento}${s.url_adjunto ? `<a href="${API_URL}${s.url_adjunto}" target="_blank" class="text-blue-500 underline ml-2">[Ver Póliza]</a>` : ''}</p>`).join('') || '<p class="text-slate-400">Sin seguros.</p>'}
+          </div>
+          <div>
+            <h4 class="font-bold border-b pb-1 mb-2 text-slate-700">CITV / Revisiones (${data.documentos.length})</h4>
+            ${data.documentos.map(d => `<p>• Certificado: ${d.numero_documento} (${d.entidad_emisora}) - Vence: ${d.fecha_vencimiento}${d.url_adjunto ? `<a href="${API_URL}${d.url_adjunto}" target="_blank" class="text-blue-500 underline ml-2">[Ver CITV]</a>` : ''}</p>`).join('') || '<p class="text-slate-400">Sin CITV.</p>'}
+          </div>
+          <div>
+            <h4 class="font-bold border-b pb-1 mb-2 text-slate-700">Mantenimientos y Taller (${data.reparaciones.length})</h4>
+            ${data.reparaciones.map(r => `<p>• [${r.fecha_ingreso}] ${r.tipo_mantenimiento} en${r.taller_servicio}: ${r.descripcion_falla}${r.url_adjunto ? `<a href="${API_URL}${r.url_adjunto}" target="_blank" class="text-blue-500 underline ml-2">[Ver Comprobante]</a>` : ''}</p>`).join('') || '<p class="text-slate-400">Sin registros de taller.</p>'}
+          </div>
+        `;
+      } catch (e) {
+        contenedor.innerHTML = "<p class='text-red-500'>Error al obtener expediente.</p>";
+      }
+    }
+
+    function cerrarHojaVida() {
+      document.getElementById("modal-hoja-vida").classList.add("hidden");
+    }
+
+    // 4. REGISTROS CON ADJUNTOS OPCIONALES
+    async function registrarVehiculo(e) {
+      e.preventDefault();
+      const placa = document.getElementById("v-placa").value.trim();
+      if (!placa) { alert("El número de placa es obligatorio."); return; }
+
+      const formData = new FormData();
+      formData.append("placa", placa);
+      formData.append("sede_asignada", document.getElementById("v-sede").value.trim() || "Por Asignar");
+      formData.append("marca", document.getElementById("v-marca").value.trim() || "Por Especificar");
+      formData.append("modelo", document.getElementById("v-modelo").value.trim() || "Por Especificar");
+      formData.append("anio", document.getElementById("v-anio").value || 2024);
+      formData.append("numero_vin", document.getElementById("v-vin").value.trim() || "S/N");
+      formData.append("descripcion", document.getElementById("v-descripcion").value.trim() || "Registrado por placa");
+      
+      const fileInput = document.getElementById("v-archivo");
+      if (fileInput && fileInput.files[0]) formData.append("archivo_tive", fileInput.files[0]);
+
+      try {
+        const res = await fetch(`${API_URL}/vehiculos/`, { method: "POST", body: formData });
+        if (res.ok) {
+          alert(`Vehículo con placa ${placa} creado exitosamente.`);
+          document.getElementById("form-vehiculo").reset();
+          cargarListaVehiculos();
+          cargarMétricasResumen();
+        } else {
+          const err = await res.json();
+          alert("Error al registrar: " + (err.detail || "Verifique los datos."));
+        }
+      } catch (err) {
+        alert("Error de conexión al servidor en Render.");
+      }
+    }
+
+    async function registrarSeguro(e) {
+      e.preventDefault();
+      const formData = new FormData();
+      formData.append("id_vehiculo", document.getElementById("s-vehiculo").value);
+      formData.append("tipo_seguro", document.getElementById("s-tipo").value);
+      formData.append("compania_seguros", document.getElementById("s-compania").value);
+      formData.append("broker", document.getElementById("s-broker").value || "Directo");
+      formData.append("costo_prima", document.getElementById("s-costo").value || 0);
+      formData.append("numero_poliza", document.getElementById("s-poliza").value);
+      formData.append("fecha_inicio", document.getElementById("s-inicio").value);
+      formData.append("fecha_vencimiento", document.getElementById("s-vencimiento").value);
+
+      const fileInput = document.getElementById("s-archivo");
+      if (fileInput && fileInput.files[0]) formData.append("archivo_adjunto", fileInput.files[0]);
+
+      try {
+        const res = await fetch(`${API_URL}/seguros/`, { method: "POST", body: formData });
+        if (res.ok) {
+          alert("Seguro / SOAT guardado exitosamente.");
+          document.getElementById("form-seguro").reset();
+          cargarMétricasResumen();
+        } else { alert("Error al guardar seguro."); }
+      } catch (err) { alert("Error de conexión."); }
+    }
+
+    async function registrarCITV(e) {
+      e.preventDefault();
+      const formData = new FormData();
+      formData.append("id_vehiculo", document.getElementById("c-vehiculo").value);
+      formData.append("tipo_documento", "Revision Tecnica");
+      formData.append("entidad_emisora", document.getElementById("c-entidad").value);
+      formData.append("numero_documento", document.getElementById("c-numero").value);
+      formData.append("fecha_emision", document.getElementById("c-emision").value);
+      formData.append("fecha_vencimiento", document.getElementById("c-vencimiento").value);
+
+      const fileInput = document.getElementById("c-archivo");
+      if (fileInput && fileInput.files[0]) formData.append("archivo_adjunto", fileInput.files[0]);
+
+      try {
+        const res = await fetch(`${API_URL}/documentos/`, { method: "POST", body: formData });
+        if (res.ok) {
+          alert("CITV guardado exitosamente.");
+          document.getElementById("form-citv").reset();
+          cargarMétricasResumen();
+        } else { alert("Error al guardar CITV."); }
+      } catch (err) { alert("Error de conexión."); }
+    }
+
+    async function registrarGPS(e) {
+      e.preventDefault();
+      const formData = new FormData();
+      formData.append("id_vehiculo", document.getElementById("g-vehiculo").value);
+      formData.append("empresa_gps", document.getElementById("g-empresa").value);
+      formData.append("fecha_inicio", document.getElementById("g-inicio").value);
+      formData.append("fecha_vencimiento", document.getElementById("g-vencimiento").value);
+
+      try {
+        const res = await fetch(`${API_URL}/gps/`, { method: "POST", body: formData });
+        if (res.ok) {
+          alert("Servicio GPS guardado exitosamente.");
+          document.getElementById("form-gps").reset();
+          cargarMétricasResumen();
+        } else { alert("Error al guardar GPS."); }
+      } catch (err) { alert("Error de conexión."); }
+    }
+
+    async function registrarTaller(e) {
+      e.preventDefault();
+      const formData = new FormData();
+      formData.append("id_vehiculo", document.getElementById("t-vehiculo").value);
+      formData.append("tipo_mantenimiento", document.getElementById("t-tipo").value);
+      formData.append("taller_servicio", document.getElementById("t-taller").value);
+      formData.append("responsable_reparacion", document.getElementById("t-responsable").value);
+      formData.append("fecha_ingreso", document.getElementById("t-fecha").value);
+      formData.append("descripcion_falla", document.getElementById("t-descripcion").value);
+
+      const fileInput = document.getElementById("t-archivo");
+      if (fileInput && fileInput.files[0]) formData.append("archivo_adjunto", fileInput.files[0]);
+
+      try {
+        const res = await fetch(`${API_URL}/reparaciones/`, { method: "POST", body: formData });
+        if (res.ok) {
+          alert("Ingreso a taller guardado exitosamente.");
+          document.getElementById("form-taller").reset();
+        } else { alert("Error al guardar mantenimiento."); }
+      } catch (err) { alert("Error de conexión."); }
+    }
+
+    async function registrarUsuario(e) {
+      e.preventDefault();
+      const bodyData = {
+        nombre: document.getElementById("u-nombre").value,
+        email: document.getElementById("u-email").value,
+        password: document.getElementById("u-password").value,
+        rol: document.getElementById("u-rol").value
+      };
+
+      const res = await fetch(`${API_URL}/usuarios/`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(bodyData)
+      });
+
+      if (res.ok) {
+        alert("Usuario registrado exitosamente.");
+        document.getElementById("form-usuario").reset();
+      } else { alert("Error al crear usuario."); }
+    }
+
+    // 5. CARGA DE MÉTRICAS Y ALERTAS
     async function cargarMétricasResumen() {
       try {
         const [resVehiculos, resSeguros, resDocumentos, resGps] = await Promise.all([
@@ -176,12 +653,28 @@
         document.getElementById("kpi-citv-vencidos").innerText = resDocumentos.length || 0;
         document.getElementById("kpi-gps-activos").innerText = resGps.length || 0;
 
-        const tablaAlertas = document.getElementById("tabla-alertas-resumen");
-        if (resSeguros.length === 0 && resDocumentos.length === 0) {
-          tablaAlertas.innerHTML = `<tr><td colspan="4" class="p-4 text-center text-slate-500">No hay alertas ni documentos registrados aún.</td></tr>`;
+        const alertas = [];
+        resSeguros.forEach(s => alertas.push({ id_vehiculo: s.id_vehiculo, doc: `SOAT/Seguro (${s.tipo_seguro})`, detalle: s.compania_seguros, venc: s.fecha_vencimiento, url: s.url_adjunto }));
+        resDocumentos.forEach(d => alertas.push({ id_vehiculo: d.id_vehiculo, doc: `CITV (${d.tipo_documento})`, detalle: d.entidad_emisora, venc: d.fecha_vencimiento, url: d.url_adjunto }));
+        resGps.forEach(g => alertas.push({ id_vehiculo: g.id_vehiculo, doc: "Servicio GPS", detalle: g.empresa_gps, venc: g.fecha_vencimiento, url: null }));
+
+        const tbody = document.getElementById("tabla-alertas-resumen");
+        if (alertas.length === 0) {
+          tbody.innerHTML = `<tr><td colspan="5" class="p-4 text-center text-slate-400">No hay documentos registrados aún.</td></tr>`;
+        } else {
+          tbody.innerHTML = alertas.map(a => `
+            <tr class="border-b hover:bg-slate-50">
+              <td class="p-3 font-bold text-slate-700">Vehículo #${a.id_vehiculo}</td>
+              <td class="p-3 font-semibold text-blue-600">${a.doc}</td>
+              <td class="p-3">${a.detalle}</td>
+              <td class="p-3 font-medium">${a.venc}</td>
+              <td class="p-3">${a.url ? `<a href="${API_URL}${a.url}" target="_blank" class="bg-blue-100 text-blue-700 font-bold px-2 py-1 rounded text-xs hover:bg-blue-200">Ver Adjunto</a>` : '<span class="text-slate-400">Sin adjunto</span>'}</td>
+            </tr>
+          `).join('');
         }
+
       } catch (error) {
-        console.error("Error cargando KPIs:", error);
+        console.error("Error cargando métricas:", error);
       }
     }
 
@@ -197,6 +690,7 @@
         document.getElementById("pantalla-login").classList.add("hidden");
         document.getElementById("pantalla-dashboard").classList.remove("hidden");
         cargarMétricasResumen();
+        cargarListaVehiculos();
       }
     });
   </script>
