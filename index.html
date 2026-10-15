@@ -26,7 +26,7 @@
         </div>
         <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2.5 rounded-lg transition">Iniciar Sesión</button>
       </form>
-      <p id="error-login" class="text-red-500 text-sm mt-3 text-center hidden">Credenciales incorrectas.</p>
+          <p id="error-login" class="text-red-500 text-sm mt-3 text-center hidden">Credenciales incorrectas.</p>
     </div>
   </div>
 
@@ -227,322 +227,75 @@
   </div>
 
   <script>
-    const API_URL = "https://ponderosa-flota-v1.onrender.com";
-    let listaVehiculosGlobal = [];
+  // Dirección pública del backend en Render
+  const API_URL = "https://ponderosa-flota-v1.onrender.com";
 
-    async function iniciarSesion(event) {
-      event.preventDefault();
-      const email = document.getElementById("email").value.trim();
-      const password = document.getElementById("password").value;
-      const errorEl = document.getElementById("error-login");
-      errorEl.classList.add("hidden");
+  // Función para procesar el inicio de sesión
+  async function iniciarSesion(event) {
+    event.preventDefault();
+    const email = document.getElementById("email").value;
+    const password = document.getElementById("password").value;
+    const formData = new URLSearchParams();
+    formData.append("username", email);
+    formData.append("password", password);
 
-      const formData = new URLSearchParams();
-      formData.append("username", email);
-      formData.append("password", password);
+    try {
+      const response = await fetch(`${API_URL}/login/`, {
+        method: "POST",
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        body: formData
+      });
 
-      try {
-        const res = await fetch(`${API_URL}/login/`, {
-          method: "POST",
-          headers: { "Content-Type": "application/x-www-form-urlencoded" },
-          body: formData
-        });
+      if (!response.ok) throw new Error("Credenciales incorrectas");
 
-        if (res.ok) {
-          const data = await res.json();
-          mostrarDashboard(data);
-        } else {
-          errorEl.innerText = "Correo o contraseña incorrectos.";
-          errorEl.classList.remove("hidden");
-        }
-      } catch (err) {
-        alert("Asegúrate de tener corriendo el servidor backend.");
-      }
-    }
+      const data = await response.json();
 
-    function mostrarDashboard(data) {
+      // Guardar datos de sesión al autenticar
+      localStorage.setItem("user_role", data.rol);
+      localStorage.setItem("user_email", data.access_token);
+      
+      // Aplicar restricciones visuales según el rol
+      aplicarPermisosDeRol(data.rol);
+
+      // Ocultar login y mostrar el panel principal
       document.getElementById("pantalla-login").classList.add("hidden");
       document.getElementById("pantalla-dashboard").classList.remove("hidden");
-      document.getElementById("usuario-badge").innerText = `${data.mensaje} (${data.rol})`;
-      cargarVehiculos();
-      cargarAlertas();
+
+    } catch (error) {
+      document.getElementById("error-login").classList.remove("hidden");
     }
+  }
 
-    function cerrarSesion() { location.reload(); }
+  // Función para aplicar restricciones visuales según el rol
+  function aplicarPermisosDeRol(rol) {
+    const userRole = rol || localStorage.getItem("user_role");
 
-    async function cargarVehiculos() {
-      try {
-        const res = await fetch(`${API_URL}/vehiculos/`);
-        listaVehiculosGlobal = await res.json();
-        document.getElementById("total-vehiculos").innerText = `${listaVehiculosGlobal.length} vehículos en total`;
-
-        const selSeg = document.getElementById("seg-vehiculo");
-        const selDoc = document.getElementById("doc-vehiculo");
-        const selRep = document.getElementById("rep-vehiculo");
-
-        const opciones = `<option value="">Selecciona Vehículo...</option>` +
-          listaVehiculosGlobal.map(v => `<option value="${v.id_vehiculo}">${v.placa} - ${v.marca || ''} ${v.modelo || ''}</option>`).join("");
-        
-        selSeg.innerHTML = opciones;
-        selDoc.innerHTML = opciones;
-        if(selRep) selRep.innerHTML = opciones;
-
-        renderizarVehiculos(listaVehiculosGlobal);
-      } catch (e) {
-        console.error(e);
-      }
-    }
-
-    function renderizarVehiculos(vehiculos) {
-      const contenedor = document.getElementById("contenedor-vehiculos");
-
-      if (!vehiculos || vehiculos.length === 0) {
-        contenedor.innerHTML = `<p class="col-span-full text-slate-500 text-sm italic">No se encontraron vehículos.</p>`;
-        return;
-      }
-
-      contenedor.innerHTML = vehiculos.map(v => `
-        <div class="border border-slate-200 p-4 rounded-lg bg-slate-50 shadow-sm hover:shadow transition flex flex-col justify-between space-y-3">
-          <div>
-            <div class="flex justify-between items-start">
-              <div>
-                <span class="text-xl font-black text-slate-900">${v.placa}</span>
-                <span class="ml-2 text-xs bg-slate-200 text-slate-700 px-2 py-0.5 rounded font-semibold">Sede: ${v.sede_asignada || 'Sin Sede'}</span>
-              </div>
-              <span class="text-xs px-2 py-0.5 rounded bg-emerald-100 text-emerald-800 font-semibold">${v.estado || 'Activo'}</span>
-            </div>
-            <p class="text-sm font-medium text-slate-700 mt-1">${v.marca || 'N/A'} ${v.modelo || ''} (${v.anio || 'N/A'})</p>
-            ${v.descripcion ? `<p class="text-xs text-slate-600 mt-2 bg-white p-2 rounded border border-slate-100 italic">${v.descripcion}</p>` : ''}
-          </div>
-          <button onclick="verHojaVida(${v.id_vehiculo})" class="w-full bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold py-2 rounded transition">
-            📋 Ver Hoja de Vida
-          </button>
-        </div>
-      `).join("");
-    }
-
-    async function verHojaVida(idVehiculo) {
-      const res = await fetch(`${API_URL}/vehiculos/${idVehiculo}/hoja_vida/`);
-      if (!res.ok) return alert("Error al cargar la hoja de vida.");
-      const data = await res.json();
-
-      document.getElementById("hv-placa").innerText = data.placa;
-      document.getElementById("hv-sede").innerText = data.sede_asignada || 'N/A';
-      document.getElementById("hv-marca-modelo").innerText = `${data.marca || 'N/A'} ${data.modelo || ''} (${data.anio || 'N/A'})`;
-      document.getElementById("hv-km").innerText = `${data.kilometraje_actual || 0} km`;
-
-      let docsHtml = "";
-      if (data.url_tive) {
-        docsHtml += `<a href="${API_URL}${data.url_tive}" target="_blank" class="bg-blue-600 text-white px-3 py-1.5 rounded font-semibold hover:bg-blue-700 transition">🪪 Ver TIVE Digital</a>`;
-      }
-      data.seguros.forEach(s => {
-        if (s.url_adjunto) {
-          docsHtml += `<a href="${API_URL}${s.url_adjunto}" target="_blank" class="bg-emerald-600 text-white px-3 py-1.5 rounded font-semibold hover:bg-emerald-700 transition">🛡️ Ver ${s.tipo_seguro}</a>`;
-        }
+    if (userRole === "Lectura") {
+      // Modo Consulta: Oculta botones de creación, edición, eliminación y formularios
+      document.querySelectorAll(".btn-crear, .btn-editar, .btn-eliminar, form:not(#form-login)").forEach(el => {
+        el.style.display = "none";
       });
-      data.documentos.forEach(d => {
-        if (d.url_adjunto) {
-          docsHtml += `<a href="${API_URL}${d.url_adjunto}" target="_blank" class="bg-amber-600 text-white px-3 py-1.5 rounded font-semibold hover:bg-amber-700 transition">📋 Ver ${d.tipo_documento}</a>`;
-        }
+    } else if (userRole === "Edicion") {
+      // Modo Operativo: Permite edición pero oculta gestión de usuarios
+      document.querySelectorAll(".btn-crear, .btn-editar, .btn-eliminar").forEach(el => {
+        el.style.display = "inline-block";
       });
-      document.getElementById("hv-documentos").innerHTML = docsHtml || `<p class="text-slate-400 italic">No hay archivos PDF o imágenes adjuntas.</p>`;
-
-      let repHtml = "";
-      if (!data.reparaciones || data.reparaciones.length === 0) {
-        repHtml = `<p class="text-slate-400 italic">Sin mantenimientos registrados.</p>`;
-      } else {
-        repHtml = data.reparaciones.map(r => `
-          <div class="border p-2.5 rounded bg-slate-50 space-y-1">
-            <div class="flex justify-between font-semibold">
-              <span>${r.tipo_mantenimiento} - Taller: ${r.taller_servicio}</span>
-              <span class="text-slate-500">${r.fecha_ingreso}</span>
-            </div>
-            <p><strong>Falla:</strong> ${r.descripcion_falla}</p>
-            <p class="text-blue-700"><strong>Responsable Reparación:</strong> ${r.responsable_reparacion}</p>
-          </div>
-        `).join("");
-      }
-      document.getElementById("hv-reparaciones").innerHTML = repHtml;
-
-      document.getElementById("modal-hoja-vida").classList.remove("hidden");
-    }
-
-    function cerrarHojaVida() {
-      document.getElementById("modal-hoja-vida").classList.add("hidden");
-    }
-
-    function filtrarVehiculos() {
-      const texto = document.getElementById("buscador-vehiculos").value.toLowerCase().trim();
-      const filtrados = listaVehiculosGlobal.filter(v => 
-        v.placa.toLowerCase().includes(texto) || 
-        (v.descripcion && v.descripcion.toLowerCase().includes(texto)) ||
-        (v.sede_asignada && v.sede_asignada.toLowerCase().includes(texto))
-      );
-      renderizarVehiculos(filtrados);
-    }
-
-    async function registrarVehiculo(e) {
-      e.preventDefault();
-      const formData = new FormData();
-      const anioVal = document.getElementById("v-anio").value;
-
-      formData.append("placa", document.getElementById("v-placa").value.trim().toUpperCase());
-      formData.append("sede_asignada", document.getElementById("v-sede").value.trim() || "Sin Sede");
-      formData.append("marca", document.getElementById("v-marca").value.trim() || "N/A");
-      formData.append("modelo", document.getElementById("v-modelo").value.trim() || "N/A");
-      formData.append("anio", anioVal ? parseInt(anioVal) : 0);
-      formData.append("numero_vin", document.getElementById("v-vin").value.trim() || "N/A");
-      formData.append("descripcion", document.getElementById("v-descripcion").value.trim() || "");
-
-      const fileInput = document.getElementById("v-tive-file");
-      if (fileInput.files.length > 0) {
-        formData.append("archivo_tive", fileInput.files[0]);
-      }
-
-      const res = await fetch(`${API_URL}/vehiculos/`, {
-        method: "POST",
-        body: formData
+      document.querySelectorAll(".seccion-usuarios").forEach(el => {
+        el.style.display = "none";
       });
-
-      if (res.ok) {
-        alert("Vehículo y TIVE registrados exitosamente.");
-        e.target.reset();
-        cargarVehiculos();
-      } else {
-        alert("Error al registrar vehículo.");
-      }
-    }
-
-    async function registrarSeguro(e) {
-      e.preventDefault();
-      const formData = new FormData();
-      formData.append("id_vehiculo", parseInt(document.getElementById("seg-vehiculo").value));
-      formData.append("tipo_seguro", document.getElementById("seg-tipo").value);
-      formData.append("compania_seguros", document.getElementById("seg-compania").value);
-      formData.append("broker", document.getElementById("seg-broker").value);
-      formData.append("costo_prima", parseFloat(document.getElementById("seg-prima").value));
-      formData.append("numero_poliza", document.getElementById("seg-poliza").value);
-      formData.append("fecha_inicio", document.getElementById("seg-f-inicio").value);
-      formData.append("fecha_vencimiento", document.getElementById("seg-f-venc").value);
-
-      const fileInput = document.getElementById("seg-adjunto-file");
-      if (fileInput.files.length > 0) {
-        formData.append("archivo_adjunto", fileInput.files[0]);
-      }
-
-      const res = await fetch(`${API_URL}/seguros/`, {
-        method: "POST",
-        body: formData
+    } else if (userRole === "Administrador") {
+      // Modo Total: Muestra todos los controles del sistema
+      document.querySelectorAll(".btn-crear, .btn-editar, .btn-eliminar, .seccion-usuarios, form").forEach(el => {
+        el.style.display = "block";
       });
-
-      if (res.ok) {
-        alert("Seguro / SOAT y archivo adjunto registrados exitosamente.");
-        e.target.reset();
-        cargarAlertas();
-      } else {
-        alert("Error al registrar seguro.");
-      }
     }
+  }
 
-    async function registrarDocumento(e) {
-      e.preventDefault();
-      const formData = new FormData();
-      formData.append("id_vehiculo", parseInt(document.getElementById("doc-vehiculo").value));
-      formData.append("tipo_documento", "Revision Tecnica");
-      formData.append("entidad_emisora", document.getElementById("doc-entidad").value);
-      formData.append("numero_documento", document.getElementById("doc-numero").value);
-      formData.append("fecha_emision", document.getElementById("doc-f-emision").value);
-      formData.append("fecha_vencimiento", document.getElementById("doc-f-venc").value);
-
-      const fileInput = document.getElementById("doc-adjunto-file");
-      if (fileInput.files.length > 0) {
-        formData.append("archivo_adjunto", fileInput.files[0]);
-      }
-
-      const res = await fetch(`${API_URL}/documentos/`, {
-        method: "POST",
-        body: formData
-      });
-
-      if (res.ok) {
-        alert("Revisión Técnica y certificado adjunto registrados exitosamente.");
-        e.target.reset();
-        cargarAlertas();
-      } else {
-        alert("Error al registrar la Revisión Técnica.");
-      }
+  // Comprobar rol al cargar la página si ya había sesión guardada
+  document.addEventListener("DOMContentLoaded", () => {
+    const savedRole = localStorage.getItem("user_role");
+    if (savedRole) {
+      aplicarPermisosDeRol(savedRole);
     }
-
-    async function registrarReparacion(e) {
-      e.preventDefault();
-      const formData = new FormData();
-      formData.append("id_vehiculo", parseInt(document.getElementById("rep-vehiculo").value));
-      formData.append("tipo_mantenimiento", document.getElementById("rep-tipo").value);
-      formData.append("taller_servicio", document.getElementById("rep-taller").value);
-      formData.append("responsable_reparacion", document.getElementById("rep-responsable").value);
-      formData.append("fecha_ingreso", document.getElementById("rep-f-ingreso").value);
-      formData.append("descripcion_falla", document.getElementById("rep-falla").value);
-
-      const res = await fetch(`${API_URL}/reparaciones/`, {
-        method: "POST",
-        body: formData
-      });
-
-      if (res.ok) {
-        alert("Reparación registrada exitosamente.");
-        e.target.reset();
-      } else {
-        alert("Error al registrar reparación.");
-      }
-    }
-
-    async function cargarAlertas() {
-      try {
-        const resSeg = await fetch(`${API_URL}/seguros/vencimientos/`);
-        const seguros = await resSeg.json();
-        const resDoc = await fetch(`${API_URL}/documentos/vencimientos/`);
-        const docs = await resDoc.json();
-
-        const contenedor = document.getElementById("lista-alertas");
-        let htmlAlertas = "";
-
-        if (Array.isArray(seguros)) {
-          seguros.forEach(s => {
-            const veh = listaVehiculosGlobal.find(v => v.id_vehiculo === s.id_vehiculo);
-            const placaVeh = veh ? veh.placa : `Vehículo N°${s.id_vehiculo}`;
-            htmlAlertas += `
-              <div class="bg-amber-50 border-l-4 border-amber-500 p-3 rounded text-amber-900 shadow-sm">
-                <p class="font-bold">🛡️ ${s.tipo_seguro}: ${placaVeh}</p>
-                <p class="text-xs mt-1">Compañía: <strong>${s.compania_seguros}</strong> | Broker: ${s.broker}</p>
-                <p class="text-xs">Prima: S/. ${s.costo_prima} | Vence: <strong class="text-red-700">${s.fecha_vencimiento}</strong></p>
-              </div>
-            `;
-          });
-        }
-
-        if (Array.isArray(docs)) {
-          docs.forEach(d => {
-            const veh = listaVehiculosGlobal.find(v => v.id_vehiculo === d.id_vehiculo);
-            const placaVeh = veh ? veh.placa : `Vehículo N°${d.id_vehiculo}`;
-            htmlAlertas += `
-              <div class="bg-orange-50 border-l-4 border-orange-500 p-3 rounded text-orange-900 shadow-sm">
-                <p class="font-bold">📋 ${d.tipo_documento}: ${placaVeh}</p>
-                <p class="text-xs mt-1">CITV: <strong>${d.entidad_emisora}</strong> | Cert: ${d.numero_documento}</p>
-                <p class="text-xs">Vence: <strong class="text-red-700">${d.fecha_vencimiento}</strong></p>
-              </div>
-            `;
-          });
-        }
-
-        if (htmlAlertas === "") {
-          contenedor.innerHTML = `<p class="text-emerald-600 font-medium col-span-full">✓ Sin alertas pendientes de SOAT, Seguros o Revisiones Técnicas.</p>`;
-        } else {
-          contenedor.innerHTML = htmlAlertas;
-        }
-      } catch (e) {
-        console.error(e);
-      }
-    }
-  </script>
-</body>
-</html>
+  });
+</script>
