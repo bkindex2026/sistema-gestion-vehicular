@@ -12,6 +12,15 @@ import models
 from passlib.context import CryptContext
 from pydantic import BaseModel
 from sqlalchemy.orm import Session, joinedload
+import passlib.handlers.bcrypt
+
+# Parche de compatibilidad para encriptación bcrypt en Linux
+try:
+  passlib.handlers.bcrypt.BcryptPasswordHandler.max_untruncated_password_size = (
+      72
+  )
+except Exception:
+  pass
 
 # Carpeta física donde se guardan las fotos y PDFs subidos
 UPLOAD_DIR = "uploads"
@@ -304,6 +313,7 @@ def registrar_reparacion(
   db.refresh(nueva)
   return nueva
 # Endpoint de inicialización automática de tablas y roles en Neon.tech
+# Endpoint de inicialización automática de tablas y roles en Neon.tech
 @app.get("/init-db")
 def inicializar_base_de_datos():
   # 1. Crear la estructura de tablas en PostgreSQL
@@ -323,7 +333,7 @@ def inicializar_base_de_datos():
       usuario_admin = models.Usuario(
           nombre="Victor Tiburcio",
           email="vtiburcioaliaga@gmail.com",
-          password=pwd_context.hash("Bkindex123$%&"),
+          hashed_password=pwd_context.hash("Bkindex123$%&"[:72]),
           rol="Administrador",
       )
 
@@ -331,7 +341,7 @@ def inicializar_base_de_datos():
       usuario_editor = models.Usuario(
           nombre="Operador Flota",
           email="operacion@ponderosa.com",
-          password=pwd_context.hash("Operacion2026*"),
+          hashed_password=pwd_context.hash("Operacion2026*"[:72]),
           rol="Edicion",
       )
 
@@ -339,7 +349,7 @@ def inicializar_base_de_datos():
       usuario_lector = models.Usuario(
           nombre="Usuario Consulta",
           email="consulta@ponderosa.com",
-          password=pwd_context.hash("FlotaPonderosa2026"),
+          hashed_password=pwd_context.hash("FlotaPonderosa2026"[:72]),
           rol="Lectura",
       )
 
@@ -367,4 +377,3 @@ def inicializar_base_de_datos():
     return {"status": "error", "detalle": str(e)}
   finally:
     db.close()
-    
