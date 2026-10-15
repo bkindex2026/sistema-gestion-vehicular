@@ -303,3 +303,68 @@ def registrar_reparacion(
   db.commit()
   db.refresh(nueva)
   return nueva
+# Endpoint de inicialización automática de tablas y roles en Neon.tech
+@app.get("/init-db")
+def inicializar_base_de_datos():
+  # 1. Crear la estructura de tablas en PostgreSQL
+  models.Base.metadata.create_all(bind=engine)
+
+  db = next(get_db())
+  try:
+    # 2. Comprobar si ya existe el Administrador principal
+    admin_exist = (
+        db.query(models.Usuario)
+        .filter(models.Usuario.email == "vtiburcioaliaga@gmail.com")
+        .first()
+    )
+
+    if not admin_exist:
+      # Usuario 1: ADMINISTRADOR (Control Total)
+      usuario_admin = models.Usuario(
+          nombre="Victor Tiburcio",
+          email="vtiburcioaliaga@gmail.com",
+          password=pwd_context.hash("Bkindex123$%&"),
+          rol="Administrador",
+      )
+
+      # Usuario 2: EDICIÓN (Ingreso, modificación y borrado operativo)
+      usuario_editor = models.Usuario(
+          nombre="Operador Flota",
+          email="operacion@ponderosa.com",
+          password=pwd_context.hash("Operacion2026*"),
+          rol="Edicion",
+      )
+
+      # Usuario 3: LECTURA (Solo consulta de datos y reportes)
+      usuario_lector = models.Usuario(
+          nombre="Usuario Consulta",
+          email="consulta@ponderosa.com",
+          password=pwd_context.hash("FlotaPonderosa2026"),
+          rol="Lectura",
+      )
+
+      # Registrar los 3 usuarios
+      db.add(usuario_admin)
+      db.add(usuario_editor)
+      db.add(usuario_lector)
+      db.commit()
+
+      return {
+          "status": "ok",
+          "mensaje": (
+              "Tablas y los 3 usuarios registrados exitosamente en Neon.tech"
+          ),
+          "roles": ["Administrador", "Edicion", "Lectura"],
+      }
+
+    return {
+        "status": "ok",
+        "mensaje": "La base de datos ya cuenta con la estructura y usuarios.",
+    }
+
+  except Exception as e:
+    db.rollback()
+    return {"status": "error", "detalle": str(e)}
+  finally:
+    db.close()
+    
