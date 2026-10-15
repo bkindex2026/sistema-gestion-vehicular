@@ -9,19 +9,8 @@ from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from fastapi.staticfiles import StaticFiles
 import models
 from passlib.context import CryptContext
-import passlib.handlers.bcrypt
 from pydantic import BaseModel
 from sqlalchemy.orm import Session, joinedload
-
-# ---------------------------------------------------------
-# Parche de compatibilidad para encriptación bcrypt en Linux
-# ---------------------------------------------------------
-try:
-  passlib.handlers.bcrypt.BcryptPasswordHandler.max_untruncated_password_size = (
-      72
-  )
-except Exception:
-  pass
 
 # Carpeta física donde se guardan las fotos y PDFs subidos
 UPLOAD_DIR = "uploads"
@@ -39,20 +28,21 @@ app.add_middleware(
 
 app.mount("/uploads", StaticFiles(directory=UPLOAD_DIR), name="uploads")
 
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+# Encriptación compatible tanto en Windows como en Render (Linux)
+pwd_context = CryptContext(
+    schemes=["pbkdf2_sha256", "bcrypt"], deprecated="auto"
+)
 
 
 # ---------------------------------------------------------
-# Funciones Auxiliares de Seguridad (Seguras a 72 bytes)
+# Funciones Auxiliares de Seguridad
 # ---------------------------------------------------------
 def encriptar_password(password: str) -> str:
-  password_cortada = str(password)[:72]
-  return pwd_context.hash(password_cortada)
+  return pwd_context.hash(password)
 
 
 def verificar_password(plain_password: str, hashed_password: str) -> bool:
-  password_cortada = str(plain_password)[:72]
-  return pwd_context.verify(password_cortada, hashed_password)
+  return pwd_context.verify(plain_password, hashed_password)
 
 
 # ---------------------------------------------------------
