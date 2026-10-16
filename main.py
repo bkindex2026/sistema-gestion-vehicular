@@ -24,12 +24,12 @@ models.Base.metadata.create_all(bind=engine)
 
 app = FastAPI(title="API Ponderosa Flota - Backend Integrado Cloudinary", version="1.0.4")
 
-# Configuración explícita de orígenes permitidos para corregir bloqueo CORS
+# Lista explícita de orígenes permitidos (Sin comodín '*' para evitar rechazo CORS con credenciales)
 origins = [
     "https://bkindex2026.github.io",
     "http://localhost",
     "http://localhost:8000",
-    "*"
+    "http://127.0.0.1:8000",
 ]
 
 app.add_middleware(
