@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Ponderosa Flota v1.0.2 - Gestión Vehicular Integrada</title>
+  <title>Ponderosa Flota v1.0.4 - Gestión Vehicular Integrada</title>
   <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="bg-slate-100 min-h-screen text-slate-800">
@@ -13,7 +13,7 @@
     <div class="bg-white p-6 md:p-8 rounded-xl shadow-lg w-full max-w-md border border-slate-200">
       <div class="text-center mb-6">
         <h1 class="text-2xl font-bold text-slate-900">PONDEROSA FLOTA</h1>
-        <p class="text-xs text-blue-600 font-bold uppercase tracking-widest mt-1">Versión v1.0.2</p>
+        <p class="text-xs text-blue-600 font-bold uppercase tracking-widest mt-1">Versión v1.0.4 - Cloudinary</p>
       </div>
       <form id="form-login" onsubmit="iniciarSesion(event)" class="space-y-4">
         <div>
@@ -37,7 +37,7 @@
     <nav class="bg-slate-900 text-white p-4 shadow-md">
       <div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4">
         <div class="flex items-center space-x-3">
-          <span class="bg-blue-600 text-white text-xs font-bold px-2.5 py-1 rounded">v1.0.2</span>
+          <span class="bg-blue-600 text-white text-xs font-bold px-2.5 py-1 rounded">v1.0.4</span>
           <h1 class="text-lg font-bold tracking-wide">Ponderosa Minerals S.A.C.</h1>
         </div>
         
@@ -99,7 +99,7 @@
         </div>
       </div>
 
-      <!-- MÓDULO 2: GESTIÓN DE VEHÍCULOS (SOLO PLACA OBLIGATORIA) -->
+      <!-- MÓDULO 2: GESTIÓN DE VEHÍCULOS -->
       <div id="modulo-vehiculos" class="hidden space-y-6">
         <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
           <h2 class="text-lg font-bold text-slate-800 mb-4">Registrar Nuevo Vehículo</h2>
@@ -142,7 +142,6 @@
           </form>
         </div>
 
-        <!-- LISTA DE VEHÍCULOS REGISTRADOS -->
         <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
           <h3 class="text-base font-bold text-slate-800 mb-4">Catálogo de Flota Activa</h3>
           <div class="overflow-x-auto">
@@ -168,8 +167,6 @@
 
       <!-- MÓDULO 3: VENCIMIENTOS -->
       <div id="modulo-vencimientos" class="hidden space-y-6">
-        
-        <!-- CONTROL DE SOAT -->
         <div class="bg-white p-6 rounded-xl shadow-sm border-l-4 border-blue-600 space-y-4">
           <div class="flex justify-between items-center border-b pb-2">
             <h2 class="text-lg font-bold text-slate-800">1. Control de SOAT (Reglamentario)</h2>
@@ -206,7 +203,6 @@
           </form>
         </div>
 
-        <!-- SEGURO VEHICULAR OPCIONAL -->
         <div class="bg-white p-6 rounded-xl shadow-sm border-l-4 border-slate-400 space-y-4">
           <div class="flex justify-between items-center border-b pb-2">
             <h2 class="text-lg font-bold text-slate-800">2. Seguro Vehicular Todo Riesgo (Opcional)</h2>
@@ -239,7 +235,6 @@
           </form>
         </div>
 
-        <!-- CITV -->
         <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200 space-y-4">
           <h2 class="text-lg font-bold text-slate-800">3. Registrar Revisión Técnica (CITV)</h2>
           <form id="form-citv" onsubmit="registrarCITV(event)" class="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -380,7 +375,7 @@
     </main>
   </div>
 
-  <!-- MODAL DE HOJA DE VIDA REAL Y SUBIDA POSTERIOR DE TIVE -->
+  <!-- MODAL DE HOJA DE VIDA REAL -->
   <div id="modal-hoja-vida" class="hidden fixed inset-0 bg-slate-900 bg-opacity-50 flex items-center justify-center p-4 z-50">
     <div class="bg-white rounded-xl shadow-xl max-w-3xl w-full p-6 max-h-[90vh] overflow-y-auto space-y-4">
       <div class="flex justify-between items-center border-b pb-3">
@@ -393,9 +388,13 @@
     </div>
   </div>
 
-  <!-- CÓDIGO JAVASCRIPT DE INTEGRACIÓN EN VERSIÓN v1.0.2 -->
   <script>
     const API_URL = "https://ponderosa-flota-v1.onrender.com";
+
+    function obtenerUrlCompleta(url) {
+      if (!url) return "#";
+      return url.startsWith("http") ? url : `${API_URL}${url}`;
+    }
 
     async function iniciarSesion(event) {
       event.preventDefault();
@@ -448,7 +447,6 @@
       if (objetivo) objetivo.classList.remove("hidden");
     }
 
-    // CARGA DE VEHÍCULOS CON SOPORTE PARA SUBIR TIVE POSTERIORMENTE
     async function cargarListaVehiculos() {
       try {
         const res = await fetch(`${API_URL}/vehiculos/`);
@@ -464,7 +462,7 @@
             <td class="p-3">${v.anio}</td>
             <td class="p-3">
               ${v.url_tive 
-                ? `<a href="${API_URL}${v.url_tive}" target="_blank" class="bg-blue-100 text-blue-700 font-bold px-2 py-1 rounded text-xs hover:bg-blue-200">Ver TIVE</a>` 
+                ? `<a href="${obtenerUrlCompleta(v.url_tive)}" target="_blank" class="bg-blue-100 text-blue-700 font-bold px-2 py-1 rounded text-xs hover:bg-blue-200">Ver TIVE</a>` 
                 : `<label class="bg-yellow-100 text-yellow-800 font-bold px-2 py-1 rounded text-xs cursor-pointer hover:bg-yellow-200">
                     + Adjuntar TIVE
                     <input type="file" class="hidden" accept="image/*,.pdf" onchange="subirTivePosterior(${v.id_vehiculo}, this)">
@@ -486,33 +484,34 @@
       }
     }
 
-    // SUBIDA DE TIVE POSTERIOR SI EL VEHÍCULO SE CREÓ SIN ELLA
     async function subirTivePosterior(idVehiculo, inputElement) {
       if (!inputElement.files || !inputElement.files[0]) return;
+      
       const formData = new FormData();
       formData.append("archivo_tive", inputElement.files[0]);
 
       try {
-        const res = await fetch(`${API_URL}/vehiculos/${idVehiculo}/tive/`, { method: "POST", body: formData });
+        const res = await fetch(`${API_URL}/vehiculos/${idVehiculo}/tive/`, { 
+          method: "POST", 
+          body: formData 
+        });
+        
         if (res.ok) {
-          alert("Tarjeta TIVE adjuntada correctamente al vehículo.");
+          alert("Tarjeta TIVE subida a Cloudinary permanentemente.");
           cargarListaVehiculos();
         } else {
-          // Fallback para actualización de archivo en endpoint estándar
-          alert("Documento procesado correctamente.");
-          cargarListaVehiculos();
+          const err = await res.json();
+          alert("Error al subir TIVE: " + (err.detail || "Verifique el archivo."));
         }
       } catch (err) {
-        alert("Archivo guardado. Refrescando catálogo.");
-        cargarListaVehiculos();
+        alert("Error de conexión al servidor en Render.");
       }
     }
 
-    // APERTURA REAL DE HOJA DE VIDA EN VENTANA EMERGENTE (MODAL)
     async function verHojaVida(idVehiculo) {
       document.getElementById("modal-hoja-vida").classList.remove("hidden");
       const contenedor = document.getElementById("hv-contenido");
-      contenedor.innerHTML = "<p class='text-slate-400'>Consultando historial técnico en Neon.tech...</p>";
+      contenedor.innerHTML = "<p class='text-slate-400'>Consultando historial técnico en Neon.tech y Cloudinary...</p>";
 
       try {
         const res = await fetch(`${API_URL}/vehiculos/${idVehiculo}/hoja_vida/`);
@@ -530,13 +529,13 @@
           <div>
             <h4 class="font-bold border-b pb-1 mb-2 text-slate-800 uppercase">1. Cobertura de Seguros / SOAT (${data.seguros ? data.seguros.length : 0})</h4>
             ${data.seguros && data.seguros.length > 0 
-              ? data.seguros.map(s => `<p class="py-1">• <strong>${s.tipo_seguro}:</strong> ${s.compania_seguros} (Póliza ${s.numero_poliza}) - Vence: ${s.fecha_vencimiento}${s.url_adjunto ? `<a href="${API_URL}${s.url_adjunto}" target="_blank" class="text-blue-600 font-bold underline ml-2">[Ver Póliza]</a>` : ''}</p>`).join('') 
+              ? data.seguros.map(s => `<p class="py-1">• <strong>${s.tipo_seguro}:</strong> ${s.compania_seguros} (Póliza ${s.numero_poliza}) - Vence: ${s.fecha_vencimiento}${s.url_adjunto ? `<a href="${obtenerUrlCompleta(s.url_adjunto)}" target="_blank" class="text-blue-600 font-bold underline ml-2">[Ver Póliza]</a>` : ''}</p>`).join('') 
               : '<p class="text-slate-400 italic">Sin registros de SOAT o póliza vehicular.</p>'}
           </div>
           <div>
             <h4 class="font-bold border-b pb-1 mb-2 text-slate-800 uppercase">2. Revisiones Técnicas CITV (${data.documentos ? data.documentos.length : 0})</h4>
             ${data.documentos && data.documentos.length > 0 
-              ? data.documentos.map(d => `<p class="py-1">• Certificado ${d.numero_documento} (${d.entidad_emisora}) - Vence: ${d.fecha_vencimiento}${d.url_adjunto ? `<a href="${API_URL}${d.url_adjunto}" target="_blank" class="text-blue-600 font-bold underline ml-2">[Ver CITV]</a>` : ''}</p>`).join('') 
+              ? data.documentos.map(d => `<p class="py-1">• Certificado ${d.numero_documento} (${d.entidad_emisora}) - Vence: ${d.fecha_vencimiento}${d.url_adjunto ? `<a href="${obtenerUrlCompleta(d.url_adjunto)}" target="_blank" class="text-blue-600 font-bold underline ml-2">[Ver CITV]</a>` : ''}</p>`).join('') 
               : '<p class="text-slate-400 italic">Sin registros de CITV.</p>'}
           </div>
           <div>
@@ -555,7 +554,6 @@
       document.getElementById("modal-hoja-vida").classList.add("hidden");
     }
 
-    // REGISTRO DE VEHÍCULO (SOLO PLACA OBLIGATORIA + ARCHIVO TIVE)
     async function registrarVehiculo(e) {
       e.preventDefault();
       const placa = document.getElementById("v-placa").value.trim();
@@ -609,7 +607,7 @@
       try {
         const res = await fetch(`${API_URL}/seguros/`, { method: "POST", body: formData });
         if (res.ok) {
-          alert("Certificado SOAT guardado exitosamente.");
+          alert("Certificado SOAT guardado exitosamente en Cloudinary.");
           document.getElementById("form-soat").reset();
           cargarMétricasResumen();
         }
