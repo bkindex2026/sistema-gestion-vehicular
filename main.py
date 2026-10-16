@@ -24,9 +24,17 @@ models.Base.metadata.create_all(bind=engine)
 
 app = FastAPI(title="API Ponderosa Flota - Backend Integrado Cloudinary", version="1.0.4")
 
+# Configuración explícita de orígenes permitidos para corregir bloqueo CORS
+origins = [
+    "https://bkindex2026.github.io",
+    "http://localhost",
+    "http://localhost:8000",
+    "*"
+]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -43,7 +51,7 @@ def subir_a_cloudinary(archivo: UploadFile, folder: str = "ponderosa_flota") -> 
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error al subir archivo a la nube: {str(e)}")
 
-# --- MÓDULO 1: AUTENTICACIÓN Y USUARIOS CON DIAGNÓSTICO DETALLADO ---
+# --- MÓDULO 1: AUTENTICACIÓN Y USUARIOS ---
 @app.post("/login/")
 def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)):
     email_usuario = form_data.username.strip().lower()
