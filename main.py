@@ -4,6 +4,7 @@ from datetime import date
 from fastapi import FastAPI, Depends, HTTPException, status, File, UploadFile, Form
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security import OAuth2PasswordRequestForm
+from sqlalchemy import func
 from sqlalchemy.orm import Session
 import cloudinary
 import cloudinary.uploader
@@ -42,12 +43,20 @@ def subir_a_cloudinary(archivo: UploadFile, folder: str = "ponderosa_flota") -> 
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error al subir archivo a la nube: {str(e)}")
 
-# --- MÓDULO 1: AUTENTICACIÓN Y USUARIOS ---
+# --- MÓDULO 1: AUTENTICACIÓN Y USUARIOS CON DIAGNÓSTICO DETALLADO ---
 @app.post("/login/")
 def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)):
-    usuario = db.query(models.Usuario).filter(models.Usuario.email == form_data.username).first()
-    if not usuario or usuario.password != form_data.password:
-        raise HTTPException(status_code=400, detail="Credenciales incorrectas")
+    email_usuario = form_data.username.strip().lower()
+    clave_usuario = form_data.password.strip()
+
+    usuario = db.query(models.Usuario).filter(func.lower(models.Usuario.email) == email_usuario).first()
+    
+    if not usuario:
+        raise HTTPException(status_code=400, detail="El correo ingresado no está registrado en la base de datos.")
+    
+    if usuario.password.strip() != clave_usuario:
+        raise HTTPException(status_code=400, detail="La contraseña ingresada es incorrecta.")
+
     return {"access_token": usuario.email, "token_type": "bearer", "rol": usuario.rol}
 
 @app.post("/usuarios/")
@@ -269,11 +278,11 @@ async def crear_reparacion(
     db.refresh(nueva_rep)
     return nueva_rep
 
-# --- MÓDULO 7: INICIALIZADOR PROTEGIDO CON CLAVE OFICIAL ---
+# --- MÓDULO 7: INICIALIZADOR PROTEGIDO Y SINCRONIZADOR DE CLAVE ---
 @app.get("/init-db/")
 def inicializar_base_de_datos(db: Session = Depends(get_db)):
     models.Base.metadata.create_all(bind=engine)
-    admin_exist = db.query(models.Usuario).filter(models.Usuario.email == "vtiburcioaliaga@gmail.com").first()
+    admin_exist = db.query(models.Usuario).filter(func.lower(models.Usuario.email) == "vtiburcioaliaga@gmail.com").first()
     if not admin_exist:
         admin = models.Usuario(
             nombre="Víctor Tiburcio",

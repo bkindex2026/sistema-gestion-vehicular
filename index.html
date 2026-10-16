@@ -8,7 +8,7 @@
 </head>
 <body class="bg-slate-100 min-h-screen text-slate-800">
 
-  <!-- PANTALLA 1: INICIO DE SESIÓN -->
+  <!-- PANTALLA 1: INICIO DE SESIÓN CON ÍCONO DE CONTRASEÑA Y ESTADO DE CARGA -->
   <div id="pantalla-login" class="flex items-center justify-center min-h-screen p-4">
     <div class="bg-white p-6 md:p-8 rounded-xl shadow-lg w-full max-w-md border border-slate-200">
       <div class="text-center mb-6">
@@ -18,15 +18,22 @@
       <form id="form-login" onsubmit="iniciarSesion(event)" class="space-y-4">
         <div>
           <label class="block text-xs font-semibold uppercase text-slate-600 mb-1">Correo Electrónico</label>
-          <input type="email" id="email" required class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none text-sm">
+          <input type="email" id="email" required placeholder="vtiburcioaliaga@gmail.com" class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none text-sm">
         </div>
         <div>
           <label class="block text-xs font-semibold uppercase text-slate-600 mb-1">Contraseña</label>
-          <input type="password" id="password" required class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none text-sm">
+          <div class="relative">
+            <input type="password" id="password" required class="w-full p-3 pr-10 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none text-sm">
+            <button type="button" onclick="alternarVerPassword()" class="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-500 hover:text-slate-800 focus:outline-none" title="Mostrar/Ocultar contraseña">
+              <span id="icono-pass" class="text-base">👁️</span>
+            </button>
+          </div>
         </div>
-        <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-lg text-sm transition">Ingresar al Sistema</button>
+        <button type="submit" id="btn-login-submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-lg text-sm transition flex items-center justify-center">
+          Ingresar al Sistema
+        </button>
       </form>
-      <p id="error-login" class="text-red-500 text-sm mt-3 text-center hidden">Credenciales incorrectas.</p>
+      <div id="error-login" class="mt-4 p-3 bg-red-50 border-l-4 border-red-500 text-red-700 text-xs font-medium rounded hidden"></div>
     </div>
   </div>
 
@@ -391,6 +398,18 @@
   <script>
     const API_URL = "https://ponderosa-flota-v1.onrender.com";
 
+    function alternarVerPassword() {
+      const passInput = document.getElementById("password");
+      const icono = document.getElementById("icono-pass");
+      if (passInput.type === "password") {
+        passInput.type = "text";
+        icono.innerText = "🙈";
+      } else {
+        passInput.type = "password";
+        icono.innerText = "👁️";
+      }
+    }
+
     function obtenerUrlCompleta(url) {
       if (!url) return "#";
       return url.startsWith("http") ? url : `${API_URL}${url}`;
@@ -398,8 +417,15 @@
 
     async function iniciarSesion(event) {
       event.preventDefault();
-      const email = document.getElementById("email").value;
-      const password = document.getElementById("password").value;
+      const email = document.getElementById("email").value.trim();
+      const password = document.getElementById("password").value.trim();
+      const errorElem = document.getElementById("error-login");
+      const btnSubmit = document.getElementById("btn-login-submit");
+
+      errorElem.classList.add("hidden");
+      btnSubmit.disabled = true;
+      btnSubmit.innerHTML = `<span class="inline-block animate-spin mr-2">🔄</span> Verificando credenciales...`;
+
       const formData = new URLSearchParams();
       formData.append("username", email);
       formData.append("password", password);
@@ -411,7 +437,11 @@
           body: formData
         });
 
-        if (!response.ok) throw new Error("Credenciales incorrectas");
+        if (!response.ok) {
+          const errData = await response.json().catch(() => null);
+          const mensajeDetallado = errData && errData.detail ? errData.detail : `Error de conexión o servidor (${response.status})`;
+          throw new Error(mensajeDetallado);
+        }
 
         const data = await response.json();
         localStorage.setItem("user_role", data.rol);
@@ -425,7 +455,11 @@
         cargarListaVehiculos();
 
       } catch (error) {
-        document.getElementById("error-login").classList.remove("hidden");
+        errorElem.innerText = error.message;
+        errorElem.classList.remove("hidden");
+      } finally {
+        btnSubmit.disabled = false;
+        btnSubmit.innerHTML = "Ingresar al Sistema";
       }
     }
 
