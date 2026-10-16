@@ -11,7 +11,7 @@ import cloudinary.uploader
 import models
 from database import engine, get_db
 
-# Configuración de Cloudinary para almacenamiento permanente de PDFs y Fotos
+# Configuración de Cloudinary para almacenamiento permanente
 cloudinary.config(
     cloud_name="waeqxw9d",
     api_key="843623439288624",
@@ -19,12 +19,10 @@ cloudinary.config(
     secure=True
 )
 
-# Crear tablas en Neon.tech si no existen
 models.Base.metadata.create_all(bind=engine)
 
 app = FastAPI(title="API Ponderosa Flota - Backend Integrado Cloudinary", version="1.0.4")
 
-# Configurar CORS
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -33,7 +31,6 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Función auxiliar para subir archivos a Cloudinary
 def subir_a_cloudinary(archivo: UploadFile, folder: str = "ponderosa_flota") -> str:
     try:
         resultado = cloudinary.uploader.upload(
@@ -272,7 +269,7 @@ async def crear_reparacion(
     db.refresh(nueva_rep)
     return nueva_rep
 
-# --- MÓDULO 7: INICIALIZADOR PROTEGIDO ---
+# --- MÓDULO 7: INICIALIZADOR PROTEGIDO CON CLAVE OFICIAL ---
 @app.get("/init-db/")
 def inicializar_base_de_datos(db: Session = Depends(get_db)):
     models.Base.metadata.create_all(bind=engine)
@@ -281,10 +278,13 @@ def inicializar_base_de_datos(db: Session = Depends(get_db)):
         admin = models.Usuario(
             nombre="Víctor Tiburcio",
             email="vtiburcioaliaga@gmail.com",
-            password="admin",
+            password="Bkindex123$%&",
             rol="Administrador"
         )
         db.add(admin)
         db.commit()
         return {"mensaje": "Base de datos inicializada y usuario Administrador creado."}
-    return {"mensaje": "Base de datos verificada."}
+    else:
+        admin_exist.password = "Bkindex123$%&"
+        db.commit()
+        return {"mensaje": "Base de datos verificada y clave de Administrador sincronizada."}
