@@ -8,7 +8,7 @@
 </head>
 <body class="bg-slate-100 min-h-screen text-slate-800">
 
-  <!-- PANTALLA 1: INICIO DE SESIÓN CON ÍCONO DE CONTRASEÑA Y ESTADO DE CARGA -->
+  <!-- PANTALLA 1: INICIO DE SESIÓN -->
   <div id="pantalla-login" class="flex items-center justify-center min-h-screen p-4">
     <div class="bg-white p-6 md:p-8 rounded-xl shadow-lg w-full max-w-md border border-slate-200">
       <div class="text-center mb-6">
@@ -424,22 +424,18 @@
 
       errorElem.classList.add("hidden");
       btnSubmit.disabled = true;
-      btnSubmit.innerHTML = `<span class="inline-block animate-spin mr-2">🔄</span> Verificando credenciales...`;
-
-      const formData = new URLSearchParams();
-      formData.append("username", email);
-      formData.append("password", password);
+      btnSubmit.innerHTML = `<span class="inline-block animate-spin mr-2">🔄</span> Conectando con servidor Render...`;
 
       try {
         const response = await fetch(`${API_URL}/login/`, {
           method: "POST",
-          headers: { "Content-Type": "application/x-www-form-urlencoded" },
-          body: formData
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email: email, password: password })
         });
 
         if (!response.ok) {
           const errData = await response.json().catch(() => null);
-          const mensajeDetallado = errData && errData.detail ? errData.detail : `Error de conexión o servidor (${response.status})`;
+          const mensajeDetallado = errData && errData.detail ? errData.detail : `Error de servidor (${response.status})`;
           throw new Error(mensajeDetallado);
         }
 
@@ -455,7 +451,11 @@
         cargarListaVehiculos();
 
       } catch (error) {
-        errorElem.innerText = error.message;
+        if (error.message === "Failed to fetch" || error.name === "TypeError") {
+          errorElem.innerText = "El servidor en Render se está iniciando. Por favor, espera 15 segundos e intenta de nuevo.";
+        } else {
+          errorElem.innerText = error.message;
+        }
         errorElem.classList.remove("hidden");
       } finally {
         btnSubmit.disabled = false;

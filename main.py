@@ -3,7 +3,7 @@ from typing import List, Optional
 from datetime import date
 from fastapi import FastAPI, Depends, HTTPException, status, File, UploadFile, Form
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.security import OAuth2PasswordRequestForm
+from pydantic import BaseModel
 from sqlalchemy import func
 from sqlalchemy.orm import Session
 import cloudinary
@@ -24,7 +24,7 @@ models.Base.metadata.create_all(bind=engine)
 
 app = FastAPI(title="API Ponderosa Flota - Backend Integrado Cloudinary", version="1.0.4")
 
-# Lista explícita de orígenes permitidos (Sin comodín '*' para evitar rechazo CORS con credenciales)
+# Configuración explícita de CORS sin comodines
 origins = [
     "https://bkindex2026.github.io",
     "http://localhost",
@@ -40,6 +40,12 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# Modelo estructurado Pydantic para Autenticación JSON
+class LoginSchema(BaseModel):
+    email: Optional[str] = None
+    password: Optional[str] = None
+    username: Optional[str] = None
+
 def subir_a_cloudinary(archivo: UploadFile, folder: str = "ponderosa_flota") -> str:
     try:
         resultado = cloudinary.uploader.upload(
@@ -51,21 +57,37 @@ def subir_a_cloudinary(archivo: UploadFile, folder: str = "ponderosa_flota") -> 
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error al subir archivo a la nube: {str(e)}")
 
-# --- MÓDULO 1: AUTENTICACIÓN Y USUARIOS ---
+# --- MÓDULO 1: AUTENTICACIÓN Y USUARIOS (NATIVO JSON ANTI-500) ---
 @app.post("/login/")
-def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)):
-    email_usuario = form_data.username.strip().lower()
-    clave_usuario = form_data.password.strip()
+def login(payload: LoginSchema, db: Session = Depends(get_db)):
+    try:
+        raw_email = payload.email or payload.username or ""
+        raw_password = payload.password or ""
+        
+        email_usuario = raw_email.strip().lower()
+        clave_usuario = raw_password.strip()
 
-    usuario = db.query(models.Usuario).filter(func.lower(models.Usuario.email) == email_usuario).first()
-    
-    if not usuario:
-        raise HTTPException(status_code=400, detail="El correo ingresado no está registrado en la base de datos.")
-    
-    if usuario.password.strip() != clave_usuario:
-        raise HTTPException(status_code=400, detail="La contraseña ingresada es incorrecta.")
+        if not email_usuario or not clave_usuario:
+            raise HTTPException(status_code=400, detail="Debe proporcionar correo electrónico y contraseña.")
 
-    return {"access_token": usuario.email, "token_type": "bearer", "rol": usuario.rol}
+        usuario = db.query(models.Usuario).filter(func.lower(models.Usuario.email) == email_usuario).first()
+        
+        if not usuario:
+            raise HTTPException(status_code=400, detail="El correo ingresado no está registrado en la base de datos.")
+        
+        clave_db = (usuario.password or "").strip()
+        if clave_db != clave_usuario:
+            raise HTTPException(status_code=400, detail="La contraseña ingresada es incorrecta.")
+
+        return {
+            "access_token": usuario.email,
+            "token_type": "bearer",
+            "rol": usuario.rol or "Lectura"
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error en servidor backend: {str(e)}")
 
 @app.post("/usuarios/")
 def crear_usuario(usuario: dict, db: Session = Depends(get_db)):
