@@ -40,7 +40,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Modelo estructurado Pydantic para Autenticación JSON
+# Esquema Pydantic para Autenticación JSON
 class LoginSchema(BaseModel):
     email: Optional[str] = None
     password: Optional[str] = None
@@ -57,7 +57,7 @@ def subir_a_cloudinary(archivo: UploadFile, folder: str = "ponderosa_flota") -> 
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error al subir archivo a la nube: {str(e)}")
 
-# --- MÓDULO 1: AUTENTICACIÓN Y USUARIOS (NATIVO JSON ANTI-500) ---
+# --- MÓDULO 1: AUTENTICACIÓN Y USUARIOS (CORREGIDO hashed_password) ---
 @app.post("/login/")
 def login(payload: LoginSchema, db: Session = Depends(get_db)):
     try:
@@ -75,7 +75,7 @@ def login(payload: LoginSchema, db: Session = Depends(get_db)):
         if not usuario:
             raise HTTPException(status_code=400, detail="El correo ingresado no está registrado en la base de datos.")
         
-        clave_db = (usuario.password or "").strip()
+        clave_db = (usuario.hashed_password or "").strip()
         if clave_db != clave_usuario:
             raise HTTPException(status_code=400, detail="La contraseña ingresada es incorrecta.")
 
@@ -94,7 +94,7 @@ def crear_usuario(usuario: dict, db: Session = Depends(get_db)):
     nuevo = models.Usuario(
         nombre=usuario.get("nombre"),
         email=usuario.get("email"),
-        password=usuario.get("password"),
+        hashed_password=usuario.get("password"),
         rol=usuario.get("rol", "Lectura")
     )
     db.add(nuevo)
@@ -254,7 +254,7 @@ async def crear_documento(
 def listar_documentos_vencimientos(db: Session = Depends(get_db)):
     return db.query(models.Documento).all()
 
-# --- MÓDULO 5: RASTREO GPS ---
+# --- MÓDULO 5: RASTREO GPS (CORREGIDO ServicioGPS) ---
 @app.post("/gps/")
 def crear_gps(
     id_vehiculo: int = Form(...),
@@ -263,7 +263,7 @@ def crear_gps(
     fecha_vencimiento: date = Form(...),
     db: Session = Depends(get_db)
 ):
-    nuevo_gps = models.GPS(
+    nuevo_gps = models.ServicioGPS(
         id_vehiculo=id_vehiculo,
         empresa_gps=empresa_gps,
         fecha_inicio=fecha_inicio,
@@ -276,7 +276,7 @@ def crear_gps(
 
 @app.get("/gps/vencimientos/")
 def listar_gps_vencimientos(db: Session = Depends(get_db)):
-    return db.query(models.GPS).all()
+    return db.query(models.ServicioGPS).all()
 
 # --- MÓDULO 6: TALLER, MANTENIMIENTO Y REPUESTOS ---
 @app.post("/reparaciones/")
@@ -317,13 +317,13 @@ def inicializar_base_de_datos(db: Session = Depends(get_db)):
         admin = models.Usuario(
             nombre="Víctor Tiburcio",
             email="vtiburcioaliaga@gmail.com",
-            password="Bkindex123$%&",
+            hashed_password="Bkindex123$%&",
             rol="Administrador"
         )
         db.add(admin)
         db.commit()
         return {"mensaje": "Base de datos inicializada y usuario Administrador creado."}
     else:
-        admin_exist.password = "Bkindex123$%&"
+        admin_exist.hashed_password = "Bkindex123$%&"
         db.commit()
         return {"mensaje": "Base de datos verificada y clave de Administrador sincronizada."}
