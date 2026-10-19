@@ -52,6 +52,7 @@
           <button onclick="cambiarPestaña('resumen')" class="px-3 py-1.5 rounded hover:bg-slate-800 transition">Resumen</button>
           <button onclick="cambiarPestaña('vehiculos')" class="px-3 py-1.5 rounded hover:bg-slate-800 transition">Vehículos</button>
           <button onclick="cambiarPestaña('vencimientos')" class="px-3 py-1.5 rounded hover:bg-slate-800 transition">Vencimientos</button>
+          <button onclick="cambiarPestaña('llantas')" class="px-3 py-1.5 rounded hover:bg-slate-800 transition text-amber-300 font-bold">🛞 Llantas</button>
           <button onclick="cambiarPestaña('taller')" class="px-3 py-1.5 rounded hover:bg-slate-800 transition">Taller y Repuestos</button>
           <button onclick="cambiarPestaña('usuarios')" class="seccion-usuarios px-3 py-1.5 rounded hover:bg-slate-800 transition">Usuarios</button>
         </div>
@@ -272,6 +273,75 @@
         </div>
       </div>
 
+      <!-- MÓDULO NUEVO: CONTROL DE LLANTAS Y NEUMÁTICOS -->
+      <div id="modulo-llantas" class="hidden space-y-6">
+        <div class="bg-white p-6 rounded-xl shadow-sm border-l-4 border-amber-500 space-y-4">
+          <div class="flex justify-between items-center border-b pb-2">
+            <h2 class="text-lg font-bold text-slate-800">🛞 Registro y Control de Llantas por Vehículo</h2>
+            <span class="bg-amber-100 text-amber-800 text-xs font-bold px-2.5 py-1 rounded">Mantenimiento de Neumáticos</span>
+          </div>
+          <form id="form-llanta" onsubmit="registrarLlanta(event)" class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div>
+              <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Vehículo Asignado (*)</label>
+              <select id="ll-vehiculo" required class="select-vehiculos-dinamico w-full p-2.5 border rounded-lg text-sm"><option value="">Cargando vehículos...</option></select>
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Marca de Llanta (*)</label>
+              <input type="text" id="ll-marca" required placeholder="Ej. Michelin / Goodyear / Bridgestone" class="w-full p-2.5 border rounded-lg text-sm">
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Modelo de Llanta (*)</label>
+              <input type="text" id="ll-modelo" required placeholder="Ej. X Multi Z / R249 / Armor" class="w-full p-2.5 border rounded-lg text-sm">
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Posición / Eje (*)</label>
+              <select id="ll-posicion" required class="w-full p-2.5 border rounded-lg text-sm">
+                <option value="">Seleccione posición...</option>
+                <option value="Delantera Izquierda (1)">Delantera Izquierda (1)</option>
+                <option value="Delantera Derecha (2)">Delantera Derecha (2)</option>
+                <option value="Tracción Izq Exterior (3)">Tracción Izq Exterior (3)</option>
+                <option value="Tracción Izq Interior (4)">Tracción Izq Interior (4)</option>
+                <option value="Tracción Der Interior (5)">Tracción Der Interior (5)</option>
+                <option value="Tracción Der Exterior (6)">Tracción Der Exterior (6)</option>
+                <option value="Eje Posterior Izquierdo">Eje Posterior Izquierdo</option>
+                <option value="Eje Posterior Derecho">Eje Posterior Derecho</option>
+                <option value="Repuesto 1">Repuesto 1</option>
+                <option value="Repuesto 2">Repuesto 2</option>
+              </select>
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Fecha de Instalación / Registro (*)</label>
+              <input type="date" id="ll-fecha" required class="w-full p-2.5 border rounded-lg text-sm">
+            </div>
+            <div class="flex items-end">
+              <button type="submit" class="btn-crear w-full bg-amber-600 hover:bg-amber-700 text-white font-bold py-2.5 rounded-lg text-sm transition">Guardar Neumático</button>
+            </div>
+          </form>
+        </div>
+
+        <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
+          <h3 class="text-base font-bold text-slate-800 mb-4">Inventario General de Neumáticos Instalados</h3>
+          <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse text-xs md:text-sm">
+              <thead>
+                <tr class="border-b bg-slate-50 text-slate-600 font-semibold uppercase">
+                  <th class="p-3">ID</th>
+                  <th class="p-3">Placa Vehículo</th>
+                  <th class="p-3">Marca</th>
+                  <th class="p-3">Modelo</th>
+                  <th class="p-3">Posición / Eje</th>
+                  <th class="p-3">Fecha Instalación</th>
+                  <th class="p-3">Acción</th>
+                </tr>
+              </thead>
+              <tbody id="tabla-llantas-lista">
+                <tr><td colspan="7" class="p-4 text-center text-slate-400">Cargando inventario de llantas...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
       <!-- MÓDULO 4: TALLER Y REPUESTOS -->
       <div id="modulo-taller" class="hidden space-y-6">
         <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
@@ -397,6 +467,7 @@
 
   <script>
     const API_URL = "https://ponderosa-flota-v1.onrender.com";
+    let listaVehiculosGlobal = [];
 
     function alternarVerPassword() {
       const passInput = document.getElementById("password");
@@ -449,6 +520,7 @@
         
         cargarMétricasResumen();
         cargarListaVehiculos();
+        cargarListaLlantas();
 
       } catch (error) {
         if (error.message === "Failed to fetch" || error.name === "TypeError") {
@@ -473,18 +545,23 @@
     }
 
     function cambiarPestaña(nombreModulo) {
-      ["resumen", "vehiculos", "vencimientos", "taller", "usuarios"].forEach(m => {
+      ["resumen", "vehiculos", "vencimientos", "llantas", "taller", "usuarios"].forEach(m => {
         const el = document.getElementById(`modulo-${m}`);
         if (el) el.classList.add("hidden");
       });
       const objetivo = document.getElementById(`modulo-${nombreModulo}`);
       if (objetivo) objetivo.classList.remove("hidden");
+      
+      if (nombreModulo === 'llantas') {
+        cargarListaLlantas();
+      }
     }
 
     async function cargarListaVehiculos() {
       try {
         const res = await fetch(`${API_URL}/vehiculos/`);
         const vehiculos = await res.json();
+        listaVehiculosGlobal = vehiculos;
         
         const tbody = document.getElementById("tabla-vehiculos-lista");
         tbody.innerHTML = vehiculos.map(v => `
@@ -542,7 +619,7 @@
               ? data.seguros.map(s => `
                 <div class="flex justify-between items-center py-1 border-b border-slate-100">
                   <p>• <strong>${s.tipo_seguro}:</strong> ${s.compania_seguros} (Póliza ${s.numero_poliza}) - Vence: ${s.fecha_vencimiento}${s.url_adjunto ? `<a href="${obtenerUrlCompleta(s.url_adjunto)}" target="_blank" class="text-blue-600 font-bold underline ml-2">[Ver Póliza]</a>` : ''}</p>
-                  <button onclick="borrarSeguro(${s.id_seguro},${data.id_vehiculo})" class="btn-eliminar bg-red-50 hover:bg-red-100 text-red-600 font-bold text-xs px-2.5 py-1 rounded transition ml-2">🗑️ Eliminar</button>
+                  <button onclick="borrarSeguro(${s.id_seguro}, ${data.id_vehiculo})" class="btn-eliminar bg-red-50 hover:bg-red-100 text-red-600 font-bold text-xs px-2.5 py-1 rounded transition ml-2">🗑️ Eliminar</button>
                 </div>`).join('') 
               : '<p class="text-slate-400 italic">Sin registros de SOAT o póliza vehicular.</p>'}
           </div>
@@ -551,8 +628,8 @@
             ${data.documentos && data.documentos.length > 0 
               ? data.documentos.map(d => `
                 <div class="flex justify-between items-center py-1 border-b border-slate-100">
-                  <p>• Certificado ${d.numero_documento} (${d.entidad_emisora}) - Vence: ${d.fecha_vencimiento}${d.url_adjunto ? `<a href="${obtenerUrlCompleta(d.url_adjunto)}" target="_blank" class="text-blue-600 font-bold underline ml-2">[Ver CITV]</a>` : ''}</p>
-                  <button onclick="borrarDocumento(${d.id_documento},${data.id_vehiculo})" class="btn-eliminar bg-red-50 hover:bg-red-100 text-red-600 font-bold text-xs px-2.5 py-1 rounded transition ml-2">🗑️ Eliminar</button>
+                  <p>• Certificado ${d.numero_documento} (${d.entidad_emisora}) - Vence: ${d.fecha_vencimiento} ${d.url_adjunto ? `<a href="${obtenerUrlCompleta(d.url_adjunto)}" target="_blank" class="text-blue-600 font-bold underline ml-2">[Ver CITV]</a>` : ''}</p>
+                  <button onclick="borrarDocumento(${d.id_documento}, ${data.id_vehiculo})" class="btn-eliminar bg-red-50 hover:bg-red-100 text-red-600 font-bold text-xs px-2.5 py-1 rounded transition ml-2">🗑️ Eliminar</button>
                 </div>`).join('') 
               : '<p class="text-slate-400 italic">Sin registros de CITV.</p>'}
           </div>
@@ -561,16 +638,102 @@
             ${data.reparaciones && data.reparaciones.length > 0 
               ? data.reparaciones.map(r => `
                 <div class="flex justify-between items-center py-1 border-b border-slate-100">
-                  <p>• [${r.fecha_ingreso}] ${r.tipo_mantenimiento} -${r.taller_servicio} (${r.responsable_reparacion}) -${r.descripcion_falla}</p>
-                  <button onclick="borrarReparacion(${r.id_reparacion},${data.id_vehiculo})" class="btn-eliminar bg-red-50 hover:bg-red-100 text-red-600 font-bold text-xs px-2.5 py-1 rounded transition ml-2">🗑️ Eliminar</button>
+                  <p>• [${r.fecha_ingreso}] ${r.tipo_mantenimiento} - ${r.taller_servicio} (${r.responsable_reparacion}) - ${r.descripcion_falla}</p>
+                  <button onclick="borrarReparacion(${r.id_reparacion}, ${data.id_vehiculo})" class="btn-eliminar bg-red-50 hover:bg-red-100 text-red-600 font-bold text-xs px-2.5 py-1 rounded transition ml-2">🗑️ Eliminar</button>
                 </div>`).join('') 
               : '<p class="text-slate-400 italic">Sin registros de repuestos o taller.</p>'}
+          </div>
+          <div>
+            <h4 class="font-bold border-b pb-1 mb-2 text-amber-800 uppercase">4. Control de Llantas y Posiciones (${data.llantas ? data.llantas.length : 0})</h4>
+            ${data.llantas && data.llantas.length > 0 
+              ? data.llantas.map(l => `
+                <div class="flex justify-between items-center py-1 border-b border-slate-100">
+                  <p>• <strong>Posición:</strong> ${l.posicion} - <strong>Marca/Modelo:</strong> ${l.marca} ${l.modelo} - Inst: ${l.fecha_instalacion}</p>
+                  <button onclick="borrarLlanta(${l.id_llanta}, ${data.id_vehiculo})" class="btn-eliminar bg-red-50 hover:bg-red-100 text-red-600 font-bold text-xs px-2.5 py-1 rounded transition ml-2">🗑️ Eliminar</button>
+                </div>`).join('') 
+              : '<p class="text-slate-400 italic">Sin registros de llantas instaladas.</p>'}
           </div>
         `;
         aplicarPermisosDeRol();
       } catch (e) {
         contenedor.innerHTML = "<p class='text-red-500 font-bold'>No se pudo cargar el expediente detallado. Verifique la conexión.</p>";
       }
+    }
+
+    async function cargarListaLlantas() {
+      try {
+        const res = await fetch(`${API_URL}/llantas/`);
+        const llantas = await res.json();
+        
+        const mapVehiculos = {};
+        listaVehiculosGlobal.forEach(v => mapVehiculos[v.id_vehiculo] = v.placa);
+
+        const tbody = document.getElementById("tabla-llantas-lista");
+        tbody.innerHTML = llantas.map(l => `
+          <tr class="border-b hover:bg-slate-50">
+            <td class="p-3 text-slate-400">#${l.id_llanta}</td>
+            <td class="p-3 font-bold text-blue-600">${mapVehiculos[l.id_vehiculo] || 'Vehículo #' + l.id_vehiculo}</td>
+            <td class="p-3 font-semibold text-slate-800">${l.marca}</td>
+            <td class="p-3">${l.modelo}</td>
+            <td class="p-3 font-medium text-amber-700">${l.posicion}</td>
+            <td class="p-3">${l.fecha_instalacion}</td>
+            <td class="p-3">
+              <button onclick="borrarLlantaDirecto(${l.id_llanta})" class="btn-eliminar bg-red-50 hover:bg-red-100 text-red-600 font-bold text-xs px-2.5 py-1 rounded transition">🗑️ Eliminar</button>
+            </td>
+          </tr>
+        `).join('') || `<tr><td colspan="7" class="p-4 text-center text-slate-400">No hay llantas registradas en el sistema.</td></tr>`;
+      } catch (e) { console.error("Error cargando llantas:", e); }
+    }
+
+    async function registrarLlanta(e) {
+      e.preventDefault();
+      const btn = e.target.querySelector("button[type='submit']");
+      const textoOriginal = btn.innerHTML;
+      btn.disabled = true;
+      btn.innerHTML = `<span class="inline-block animate-spin mr-1">🔄</span> Guardando neumático...`;
+
+      const formData = new FormData();
+      formData.append("id_vehiculo", document.getElementById("ll-vehiculo").value);
+      formData.append("marca", document.getElementById("ll-marca").value.trim());
+      formData.append("modelo", document.getElementById("ll-modelo").value.trim());
+      formData.append("posicion", document.getElementById("ll-posicion").value);
+      formData.append("fecha_instalacion", document.getElementById("ll-fecha").value);
+
+      try {
+        const res = await fetch(`${API_URL}/llantas/`, { method: "POST", body: formData });
+        if (res.ok) {
+          alert("Llanta guardada y asignada exitosamente al vehículo.");
+          document.getElementById("form-llanta").reset();
+          cargarListaLlantas();
+        } else { alert("Error al registrar la llanta."); }
+      } catch (err) { alert("Error de conexión al servidor."); }
+      finally {
+        btn.disabled = false;
+        btn.innerHTML = textoOriginal;
+      }
+    }
+
+    async function borrarLlanta(idLlanta, idVehiculo) {
+      if (!confirm("¿Está seguro de eliminar esta llanta del registro?")) return;
+      try {
+        const res = await fetch(`${API_URL}/llantas/${idLlanta}/`, { method: "DELETE" });
+        if (res.ok) {
+          alert("Llanta eliminada con éxito.");
+          verHojaVida(idVehiculo);
+          cargarListaLlantas();
+        } else { alert("Error al eliminar."); }
+      } catch (e) { alert("Error de conexión al servidor."); }
+    }
+
+    async function borrarLlantaDirecto(idLlanta) {
+      if (!confirm("¿Está seguro de eliminar esta llanta del catálogo?")) return;
+      try {
+        const res = await fetch(`${API_URL}/llantas/${idLlanta}/`, { method: "DELETE" });
+        if (res.ok) {
+          alert("Llanta eliminada con éxito.");
+          cargarListaLlantas();
+        } else { alert("Error al eliminar."); }
+      } catch (e) { alert("Error de conexión al servidor."); }
     }
 
     async function borrarSeguro(idSeguro, idVehiculo) {
@@ -877,6 +1040,7 @@
         document.getElementById("pantalla-dashboard").classList.remove("hidden");
         cargarMétricasResumen();
         cargarListaVehiculos();
+        cargarListaLlantas();
       }
     });
   </script>

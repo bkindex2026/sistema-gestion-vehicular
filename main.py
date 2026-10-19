@@ -166,6 +166,7 @@ def obtener_hoja_vida(id_vehiculo: int, db: Session = Depends(get_db)):
     seguros = db.query(models.Seguro).filter(models.Seguro.id_vehiculo == id_vehiculo).all()
     documentos = db.query(models.Documento).filter(models.Documento.id_vehiculo == id_vehiculo).all()
     reparaciones = db.query(models.Reparacion).filter(models.Reparacion.id_vehiculo == id_vehiculo).all()
+    llantas = db.query(models.Llanta).filter(models.Llanta.id_vehiculo == id_vehiculo).all()
     
     return {
         "id_vehiculo": v.id_vehiculo,
@@ -179,10 +180,11 @@ def obtener_hoja_vida(id_vehiculo: int, db: Session = Depends(get_db)):
         "url_tive": v.url_tive,
         "seguros": seguros,
         "documentos": documentos,
-        "reparaciones": reparaciones
+        "reparaciones": reparaciones,
+        "llantas": llantas
     }
 
-# --- MÓDULO 3: SEGUROS Y SOAT (CON LÓGICA DE REEMPLAZO Y ELIMINACIÓN) ---
+# --- MÓDULO 3: SEGUROS Y SOAT ---
 @app.post("/seguros/")
 async def crear_o_actualizar_seguro(
     id_vehiculo: int = Form(...),
@@ -360,7 +362,42 @@ def eliminar_reparacion(id_reparacion: int, db: Session = Depends(get_db)):
     db.commit()
     return {"mensaje": "Registro eliminado con éxito"}
 
-# --- MÓDULO 7: INICIALIZADOR PROTEGIDO ---
+# --- MÓDULO 7: CONTROL DE LLANTAS Y NEUMÁTICOS ---
+@app.post("/llantas/")
+def crear_llanta(
+    id_vehiculo: int = Form(...),
+    marca: str = Form(...),
+    modelo: str = Form(...),
+    posicion: str = Form(...),
+    fecha_instalacion: date = Form(...),
+    db: Session = Depends(get_db)
+):
+    nueva_llanta = models.Llanta(
+        id_vehiculo=id_vehiculo,
+        marca=marca,
+        modelo=modelo,
+        posicion=posicion,
+        fecha_instalacion=fecha_instalacion
+    )
+    db.add(nueva_llanta)
+    db.commit()
+    db.refresh(nueva_llanta)
+    return nueva_llanta
+
+@app.get("/llantas/")
+def listar_llantas(db: Session = Depends(get_db)):
+    return db.query(models.Llanta).all()
+
+@app.delete("/llantas/{id_llanta}/")
+def eliminar_llanta(id_llanta: int, db: Session = Depends(get_db)):
+    llanta = db.query(models.Llanta).filter(models.Llanta.id_llanta == id_llanta).first()
+    if not llanta:
+        raise HTTPException(status_code=404, detail="Neumático no encontrado")
+    db.delete(llanta)
+    db.commit()
+    return {"mensaje": "Registro de neumático eliminado con éxito"}
+
+# --- MÓDULO 8: INICIALIZADOR PROTEGIDO ---
 @app.get("/init-db/")
 def inicializar_base_de_datos(db: Session = Depends(get_db)):
     models.Base.metadata.create_all(bind=engine)
