@@ -51,13 +51,14 @@ def subir_a_cloudinary(archivo: UploadFile, folder: str = "ponderosa_flota") -> 
         resultado = cloudinary.uploader.upload(
             archivo.file,
             folder=folder,
-            resource_type="auto"
+            resource_type="auto",
+            access_mode="public"
         )
         return resultado.get("secure_url")
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error al subir archivo a la nube: {str(e)}")
 
-# --- MÓDULO 1: AUTENTICACIÓN Y USUARIOS (CORREGIDO hashed_password) ---
+# --- MÓDULO 1: AUTENTICACIÓN Y USUARIOS ---
 @app.post("/login/")
 def login(payload: LoginSchema, db: Session = Depends(get_db)):
     try:
@@ -254,7 +255,7 @@ async def crear_documento(
 def listar_documentos_vencimientos(db: Session = Depends(get_db)):
     return db.query(models.Documento).all()
 
-# --- MÓDULO 5: RASTREO GPS (CORREGIDO ServicioGPS) ---
+# --- MÓDULO 5: RASTREO GPS ---
 @app.post("/gps/")
 def crear_gps(
     id_vehiculo: int = Form(...),
