@@ -24,7 +24,7 @@ models.Base.metadata.create_all(bind=engine)
 
 app = FastAPI(title="API Ponderosa Flota - Backend Integrado Cloudinary", version="1.0.4")
 
-# Configuración explícita de CORS sin comodines
+# Configuración explícita de CORS
 origins = [
     "https://bkindex2026.github.io",
     "http://localhost",
@@ -40,7 +40,6 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Esquema Pydantic para Autenticación JSON
 class LoginSchema(BaseModel):
     email: Optional[str] = None
     password: Optional[str] = None
@@ -183,9 +182,9 @@ def obtener_hoja_vida(id_vehiculo: int, db: Session = Depends(get_db)):
         "reparaciones": reparaciones
     }
 
-# --- MÓDULO 3: SEGUROS Y SOAT ---
+# --- MÓDULO 3: SEGUROS Y SOAT (CON LÓGICA DE REEMPLAZO Y ELIMINACIÓN) ---
 @app.post("/seguros/")
-async def crear_seguro(
+async def crear_o_actualizar_seguro(
     id_vehiculo: int = Form(...),
     tipo_seguro: str = Form(...),
     compania_seguros: str = Form(...),
@@ -195,11 +194,36 @@ async def crear_seguro(
     fecha_inicio: date = Form(...),
     fecha_vencimiento: date = Form(...),
     archivo_adjunto: Optional[UploadFile] = File(None),
+    reemplazar: Optional[bool] = Form(False),
     db: Session = Depends(get_db)
 ):
+    seguro_existente = db.query(models.Seguro).filter(
+        models.Seguro.id_vehiculo == id_vehiculo,
+        models.Seguro.tipo_seguro == tipo_seguro
+    ).first()
+
+    if seguro_existente and not reemplazar:
+        return {
+            "requiere_confirmacion": True,
+            "mensaje": f"Esta unidad ya cuenta con un {tipo_seguro} registrado (Póliza {seguro_existente.numero_poliza}). ¿Desea reemplazarlo con el nuevo certificado?"
+        }
+
     url_adj = None
     if archivo_adjunto and archivo_adjunto.filename:
         url_adj = subir_a_cloudinary(archivo_adjunto, folder="seguros")
+
+    if seguro_existente and reemplazar:
+        seguro_existente.compania_seguros = compania_seguros
+        seguro_existente.broker = broker
+        seguro_existente.costo_prima = costo_prima
+        seguro_existente.numero_poliza = numero_poliza
+        seguro_existente.fecha_inicio = fecha_inicio
+        seguro_existente.fecha_vencimiento = fecha_vencimiento
+        if url_adj:
+            seguro_existente.url_adjunto = url_adj
+        db.commit()
+        db.refresh(seguro_existente)
+        return {"requiere_confirmacion": False, "mensaje": f"{tipo_seguro} actualizado exitosamente con la nueva póliza."}
 
     nuevo_s = models.Seguro(
         id_vehiculo=id_vehiculo,
@@ -215,11 +239,20 @@ async def crear_seguro(
     db.add(nuevo_s)
     db.commit()
     db.refresh(nuevo_s)
-    return nuevo_s
+    return {"requiere_confirmacion": False, "mensaje": f"{tipo_seguro} guardado exitosamente."}
 
 @app.get("/seguros/vencimientos/")
 def listar_seguros_vencimientos(db: Session = Depends(get_db)):
     return db.query(models.Seguro).all()
+
+@app.delete("/seguros/{id_seguro}/")
+def eliminar_seguro(id_seguro: int, db: Session = Depends(get_db)):
+    seguro = db.query(models.Seguro).filter(models.Seguro.id_seguro == id_seguro).first()
+    if not seguro:
+        raise HTTPException(status_code=404, detail="Registro no encontrado")
+    db.delete(seguro)
+    db.commit()
+    return {"mensaje": "Registro de seguro/SOAT eliminado con éxito"}
 
 # --- MÓDULO 4: REVISIONES TÉCNICAS (CITV) ---
 @app.post("/documentos/")
@@ -255,6 +288,15 @@ async def crear_documento(
 def listar_documentos_vencimientos(db: Session = Depends(get_db)):
     return db.query(models.Documento).all()
 
+@app.delete("/documentos/{id_documento}/")
+def eliminar_documento(id_documento: int, db: Session = Depends(get_db)):
+    doc = db.query(models.Documento).filter(models.Documento.id_documento == id_documento).first()
+    if not doc:
+        raise HTTPException(status_code=404, detail="Documento no encontrado")
+    db.delete(doc)
+    db.commit()
+    return {"mensaje": "Documento eliminado con éxito"}
+
 # --- MÓDULO 5: RASTREO GPS ---
 @app.post("/gps/")
 def crear_gps(
@@ -279,7 +321,7 @@ def crear_gps(
 def listar_gps_vencimientos(db: Session = Depends(get_db)):
     return db.query(models.ServicioGPS).all()
 
-# --- MÓDULO 6: TALLER, MANTENIMIENTO Y REPUESTOS ---
+# --- MÓDULO 6: TALLER Y REPUESTOS ---
 @app.post("/reparaciones/")
 async def crear_reparacion(
     id_vehiculo: int = Form(...),
@@ -309,7 +351,16 @@ async def crear_reparacion(
     db.refresh(nueva_rep)
     return nueva_rep
 
-# --- MÓDULO 7: INICIALIZADOR PROTEGIDO Y SINCRONIZADOR DE CLAVE ---
+@app.delete("/reparaciones/{id_reparacion}/")
+def eliminar_reparacion(id_reparacion: int, db: Session = Depends(get_db)):
+    rep = db.query(models.Reparacion).filter(models.Reparacion.id_reparacion == id_reparacion).first()
+    if not rep:
+        raise HTTPException(status_code=404, detail="Registro de taller no encontrado")
+    db.delete(rep)
+    db.commit()
+    return {"mensaje": "Registro eliminado con éxito"}
+
+# --- MÓDULO 7: INICIALIZADOR PROTEGIDO ---
 @app.get("/init-db/")
 def inicializar_base_de_datos(db: Session = Depends(get_db)):
     models.Base.metadata.create_all(bind=engine)

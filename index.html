@@ -466,7 +466,7 @@
     function aplicarPermisosDeRol(rol) {
       const userRole = rol || localStorage.getItem("user_role");
       if (userRole === "Lectura") {
-        document.querySelectorAll(".btn-crear, form:not(#form-login)").forEach(el => el.style.display = "none");
+        document.querySelectorAll(".btn-crear, .btn-eliminar, form:not(#form-login)").forEach(el => el.style.display = "none");
       } else if (userRole === "Edicion") {
         document.querySelectorAll(".seccion-usuarios").forEach(el => el.style.display = "none");
       }
@@ -518,30 +518,6 @@
       }
     }
 
-    async function subirTivePosterior(idVehiculo, inputElement) {
-      if (!inputElement.files || !inputElement.files[0]) return;
-      
-      const formData = new FormData();
-      formData.append("archivo_tive", inputElement.files[0]);
-
-      try {
-        const res = await fetch(`${API_URL}/vehiculos/${idVehiculo}/tive/`, { 
-          method: "POST", 
-          body: formData 
-        });
-        
-        if (res.ok) {
-          alert("Tarjeta TIVE subida a Cloudinary permanentemente.");
-          cargarListaVehiculos();
-        } else {
-          const err = await res.json();
-          alert("Error al subir TIVE: " + (err.detail || "Verifique el archivo."));
-        }
-      } catch (err) {
-        alert("Error de conexión al servidor en Render.");
-      }
-    }
-
     async function verHojaVida(idVehiculo) {
       document.getElementById("modal-hoja-vida").classList.remove("hidden");
       const contenedor = document.getElementById("hv-contenido");
@@ -563,35 +539,279 @@
           <div>
             <h4 class="font-bold border-b pb-1 mb-2 text-slate-800 uppercase">1. Cobertura de Seguros / SOAT (${data.seguros ? data.seguros.length : 0})</h4>
             ${data.seguros && data.seguros.length > 0 
-              ? data.seguros.map(s => `<p class="py-1">• <strong>${s.tipo_seguro}:</strong> ${s.compania_seguros} (Póliza ${s.numero_poliza}) - Vence: ${s.fecha_vencimiento}${s.url_adjunto ? `<a href="${obtenerUrlCompleta(s.url_adjunto)}" target="_blank" class="text-blue-600 font-bold underline ml-2">[Ver Póliza]</a>` : ''}</p>`).join('') 
+              ? data.seguros.map(s => `
+                <div class="flex justify-between items-center py-1 border-b border-slate-100">
+                  <p>• <strong>${s.tipo_seguro}:</strong> ${s.compania_seguros} (Póliza ${s.numero_poliza}) - Vence: ${s.fecha_vencimiento}${s.url_adjunto ? `<a href="${obtenerUrlCompleta(s.url_adjunto)}" target="_blank" class="text-blue-600 font-bold underline ml-2">[Ver Póliza]</a>` : ''}</p>
+                  <button onclick="borrarSeguro(${s.id_seguro},${data.id_vehiculo})" class="btn-eliminar bg-red-50 hover:bg-red-100 text-red-600 font-bold text-xs px-2.5 py-1 rounded transition ml-2">🗑️ Eliminar</button>
+                </div>`).join('') 
               : '<p class="text-slate-400 italic">Sin registros de SOAT o póliza vehicular.</p>'}
           </div>
           <div>
             <h4 class="font-bold border-b pb-1 mb-2 text-slate-800 uppercase">2. Revisiones Técnicas CITV (${data.documentos ? data.documentos.length : 0})</h4>
             ${data.documentos && data.documentos.length > 0 
-              ? data.documentos.map(d => `<p class="py-1">• Certificado ${d.numero_documento} (${d.entidad_emisora}) - Vence: ${d.fecha_vencimiento}${d.url_adjunto ? `<a href="${obtenerUrlCompleta(d.url_adjunto)}" target="_blank" class="text-blue-600 font-bold underline ml-2">[Ver CITV]</a>` : ''}</p>`).join('') 
+              ? data.documentos.map(d => `
+                <div class="flex justify-between items-center py-1 border-b border-slate-100">
+                  <p>• Certificado ${d.numero_documento} (${d.entidad_emisora}) - Vence: ${d.fecha_vencimiento}${d.url_adjunto ? `<a href="${obtenerUrlCompleta(d.url_adjunto)}" target="_blank" class="text-blue-600 font-bold underline ml-2">[Ver CITV]</a>` : ''}</p>
+                  <button onclick="borrarDocumento(${d.id_documento},${data.id_vehiculo})" class="btn-eliminar bg-red-50 hover:bg-red-100 text-red-600 font-bold text-xs px-2.5 py-1 rounded transition ml-2">🗑️ Eliminar</button>
+                </div>`).join('') 
               : '<p class="text-slate-400 italic">Sin registros de CITV.</p>'}
           </div>
           <div>
             <h4 class="font-bold border-b pb-1 mb-2 text-slate-800 uppercase">3. Taller y Repuestos Instalados (${data.reparaciones ? data.reparaciones.length : 0})</h4>
             ${data.reparaciones && data.reparaciones.length > 0 
-              ? data.reparaciones.map(r => `<p class="py-1">• [${r.fecha_ingreso}] ${r.tipo_mantenimiento} -${r.taller_servicio} (${r.responsable_reparacion}) -${r.descripcion_falla}</p>`).join('') 
+              ? data.reparaciones.map(r => `
+                <div class="flex justify-between items-center py-1 border-b border-slate-100">
+                  <p>• [${r.fecha_ingreso}] ${r.tipo_mantenimiento} -${r.taller_servicio} (${r.responsable_reparacion}) -${r.descripcion_falla}</p>
+                  <button onclick="borrarReparacion(${r.id_reparacion},${data.id_vehiculo})" class="btn-eliminar bg-red-50 hover:bg-red-100 text-red-600 font-bold text-xs px-2.5 py-1 rounded transition ml-2">🗑️ Eliminar</button>
+                </div>`).join('') 
               : '<p class="text-slate-400 italic">Sin registros de repuestos o taller.</p>'}
           </div>
         `;
+        aplicarPermisosDeRol();
       } catch (e) {
         contenedor.innerHTML = "<p class='text-red-500 font-bold'>No se pudo cargar el expediente detallado. Verifique la conexión.</p>";
       }
+    }
+
+    async function borrarSeguro(idSeguro, idVehiculo) {
+      if (!confirm("¿Está seguro de eliminar este registro de seguro/SOAT?")) return;
+      try {
+        const res = await fetch(`${API_URL}/seguros/${idSeguro}/`, { method: "DELETE" });
+        if (res.ok) {
+          alert("Registro eliminado con éxito.");
+          verHojaVida(idVehiculo);
+          cargarMétricasResumen();
+        } else { alert("Error al eliminar el registro."); }
+      } catch (e) { alert("Error de conexión al servidor."); }
+    }
+
+    async function borrarDocumento(idDocumento, idVehiculo) {
+      if (!confirm("¿Está seguro de eliminar este certificado CITV?")) return;
+      try {
+        const res = await fetch(`${API_URL}/documentos/${idDocumento}/`, { method: "DELETE" });
+        if (res.ok) {
+          alert("Documento eliminado con éxito.");
+          verHojaVida(idVehiculo);
+          cargarMétricasResumen();
+        } else { alert("Error al eliminar."); }
+      } catch (e) { alert("Error de conexión al servidor."); }
+    }
+
+    async function borrarReparacion(idReparacion, idVehiculo) {
+      if (!confirm("¿Está seguro de eliminar este registro de taller/repuesto?")) return;
+      try {
+        const res = await fetch(`${API_URL}/reparaciones/${idReparacion}/`, { method: "DELETE" });
+        if (res.ok) {
+          alert("Registro de taller eliminado con éxito.");
+          verHojaVida(idVehiculo);
+        } else { alert("Error al eliminar."); }
+      } catch (e) { alert("Error de conexión al servidor."); }
     }
 
     function cerrarHojaVida() {
       document.getElementById("modal-hoja-vida").classList.add("hidden");
     }
 
+    async function registrarSOAT(e, forzarReemplazo = false) {
+      if (e) e.preventDefault();
+      const btn = document.querySelector("#form-soat button[type='submit']");
+      const textoOriginal = btn.innerHTML;
+      btn.disabled = true;
+      btn.innerHTML = `<span class="inline-block animate-spin mr-1">🔄</span> Guardando en Cloudinary...`;
+
+      const formData = new FormData();
+      formData.append("id_vehiculo", document.getElementById("soat-vehiculo").value);
+      formData.append("tipo_seguro", "SOAT");
+      formData.append("compania_seguros", document.getElementById("soat-compania").value);
+      formData.append("broker", "N/A");
+      formData.append("costo_prima", 0);
+      formData.append("numero_poliza", document.getElementById("soat-poliza").value);
+      formData.append("fecha_inicio", document.getElementById("soat-inicio").value);
+      formData.append("fecha_vencimiento", document.getElementById("soat-vencimiento").value);
+      if (forzarReemplazo) {
+        formData.append("reemplazar", "true");
+      }
+
+      const fileInput = document.getElementById("soat-archivo");
+      if (fileInput && fileInput.files && fileInput.files[0]) {
+        formData.append("archivo_adjunto", fileInput.files[0]);
+      }
+
+      try {
+        const res = await fetch(`${API_URL}/seguros/`, { method: "POST", body: formData });
+        const data = await res.json();
+
+        if (data.requiere_confirmacion) {
+          if (confirm(data.mensaje)) {
+            registrarSOAT(null, true);
+            return;
+          } else {
+            btn.disabled = false;
+            btn.innerHTML = textoOriginal;
+            return;
+          }
+        }
+
+        if (res.ok) {
+          alert(data.mensaje || "SOAT procesado exitosamente.");
+          document.getElementById("form-soat").reset();
+          cargarMétricasResumen();
+        } else {
+          alert("Error al guardar SOAT: " + (data.detail || "Verifique los datos."));
+        }
+      } catch (err) { alert("Error de conexión al servidor."); }
+      finally {
+        btn.disabled = false;
+        btn.innerHTML = textoOriginal;
+      }
+    }
+
+    async function registrarSeguroVehicular(e, forzarReemplazo = false) {
+      if (e) e.preventDefault();
+      const btn = document.querySelector("#form-seguro-vehicular button[type='submit']");
+      const textoOriginal = btn.innerHTML;
+      btn.disabled = true;
+      btn.innerHTML = `<span class="inline-block animate-spin mr-1">🔄</span> Guardando en Cloudinary...`;
+
+      const formData = new FormData();
+      formData.append("id_vehiculo", document.getElementById("sv-vehiculo").value);
+      formData.append("tipo_seguro", "Seguro Vehicular Todo Riesgo");
+      formData.append("compania_seguros", document.getElementById("sv-compania").value);
+      formData.append("broker", "Directo");
+      formData.append("costo_prima", 0);
+      formData.append("numero_poliza", document.getElementById("sv-poliza").value.trim() || "S/N");
+      formData.append("fecha_inicio", "2024-01-01");
+      formData.append("fecha_vencimiento", document.getElementById("sv-vencimiento").value);
+      if (forzarReemplazo) {
+        formData.append("reemplazar", "true");
+      }
+
+      const fileInput = document.getElementById("sv-archivo");
+      if (fileInput && fileInput.files && fileInput.files[0]) {
+        formData.append("archivo_adjunto", fileInput.files[0]);
+      }
+
+      try {
+        const res = await fetch(`${API_URL}/seguros/`, { method: "POST", body: formData });
+        const data = await res.json();
+
+        if (data.requiere_confirmacion) {
+          if (confirm(data.mensaje)) {
+            registrarSeguroVehicular(null, true);
+            return;
+          } else {
+            btn.disabled = false;
+            btn.innerHTML = textoOriginal;
+            return;
+          }
+        }
+
+        if (res.ok) {
+          alert(data.mensaje || "Póliza procesada exitosamente.");
+          document.getElementById("form-seguro-vehicular").reset();
+          cargarMétricasResumen();
+        }
+      } catch (err) { alert("Error de conexión."); }
+      finally {
+        btn.disabled = false;
+        btn.innerHTML = textoOriginal;
+      }
+    }
+
+    async function registrarCITV(e) {
+      e.preventDefault();
+      const btn = e.target.querySelector("button[type='submit']");
+      const textoOriginal = btn.innerHTML;
+      btn.disabled = true;
+      btn.innerHTML = `<span class="inline-block animate-spin mr-1">🔄</span> Guardando CITV...`;
+
+      const formData = new FormData();
+      formData.append("id_vehiculo", document.getElementById("c-vehiculo").value);
+      formData.append("tipo_documento", "Revision Tecnica CITV");
+      formData.append("entidad_emisora", document.getElementById("c-entidad").value);
+      formData.append("numero_documento", document.getElementById("c-numero").value);
+      formData.append("fecha_emision", document.getElementById("c-emision").value);
+      formData.append("fecha_vencimiento", document.getElementById("c-vencimiento").value);
+
+      try {
+        const res = await fetch(`${API_URL}/documentos/`, { method: "POST", body: formData });
+        if (res.ok) {
+          alert("Revisión Técnica CITV guardada exitosamente.");
+          document.getElementById("form-citv").reset();
+          cargarMétricasResumen();
+        }
+      } catch (err) { alert("Error de conexión."); }
+      finally {
+        btn.disabled = false;
+        btn.innerHTML = textoOriginal;
+      }
+    }
+
+    async function registrarTaller(e) {
+      e.preventDefault();
+      const btn = e.target.querySelector("button[type='submit']");
+      const textoOriginal = btn.innerHTML;
+      btn.disabled = true;
+      btn.innerHTML = `<span class="inline-block animate-spin mr-1">🔄</span> Guardando...`;
+
+      const formData = new FormData();
+      formData.append("id_vehiculo", document.getElementById("t-vehiculo").value);
+      formData.append("tipo_mantenimiento", document.getElementById("t-tipo").value);
+      formData.append("taller_servicio", document.getElementById("t-taller").value);
+      formData.append("responsable_reparacion", document.getElementById("t-responsable").value);
+      formData.append("fecha_ingreso", document.getElementById("t-fecha").value);
+      formData.append("descripcion_falla", document.getElementById("t-descripcion").value);
+
+      try {
+        const res = await fetch(`${API_URL}/reparaciones/`, { method: "POST", body: formData });
+        if (res.ok) {
+          alert("Registro de mantenimiento guardado exitosamente.");
+          document.getElementById("form-taller").reset();
+        }
+      } catch (err) { alert("Error de conexión."); }
+      finally {
+        btn.disabled = false;
+        btn.innerHTML = textoOriginal;
+      }
+    }
+
+    async function registrarRepuesto(e) {
+      e.preventDefault();
+      const btn = e.target.querySelector("button[type='submit']");
+      const textoOriginal = btn.innerHTML;
+      btn.disabled = true;
+      btn.innerHTML = `<span class="inline-block animate-spin mr-1">🔄</span> Guardando repuesto...`;
+
+      const formData = new FormData();
+      formData.append("id_vehiculo", document.getElementById("rep-vehiculo").value);
+      formData.append("tipo_mantenimiento", `Repuesto: ${document.getElementById("rep-nombre").value}`);
+      formData.append("taller_servicio", `Instalado por: ${document.getElementById("rep-instalador").value}`);
+      formData.append("responsable_reparacion", `Solicitado por: ${document.getElementById("rep-solicitante").value}`);
+      formData.append("fecha_ingreso", document.getElementById("rep-fecha").value);
+      formData.append("descripcion_falla", `Precio Total: S/ ${document.getElementById("rep-precio").value}`);
+
+      try {
+        const res = await fetch(`${API_URL}/reparaciones/`, { method: "POST", body: formData });
+        if (res.ok) {
+          alert("Repuesto guardado y asignado exitosamente a la unidad.");
+          document.getElementById("form-repuesto").reset();
+        } else { alert("Error al guardar repuesto."); }
+      } catch (err) { alert("Error de conexión."); }
+      finally {
+        btn.disabled = false;
+        btn.innerHTML = textoOriginal;
+      }
+    }
+
     async function registrarVehiculo(e) {
       e.preventDefault();
       const placa = document.getElementById("v-placa").value.trim();
       if (!placa) { alert("El número de placa es obligatorio."); return; }
+
+      const btn = e.target.querySelector("button[type='submit']");
+      const textoOriginal = btn.innerHTML;
+      btn.disabled = true;
+      btn.innerHTML = `<span class="inline-block animate-spin mr-1">🔄</span> Registrando vehículo...`;
 
       const formData = new FormData();
       formData.append("placa", placa);
@@ -619,79 +839,10 @@
           alert("Error al registrar: " + (err.detail || "Verifique los datos."));
         }
       } catch (err) { alert("Error de conexión al servidor en Render."); }
-    }
-
-    async function registrarSOAT(e) {
-      e.preventDefault();
-      const formData = new FormData();
-      formData.append("id_vehiculo", document.getElementById("soat-vehiculo").value);
-      formData.append("tipo_seguro", "SOAT");
-      formData.append("compania_seguros", document.getElementById("soat-compania").value);
-      formData.append("broker", "N/A");
-      formData.append("costo_prima", 0);
-      formData.append("numero_poliza", document.getElementById("soat-poliza").value);
-      formData.append("fecha_inicio", document.getElementById("soat-inicio").value);
-      formData.append("fecha_vencimiento", document.getElementById("soat-vencimiento").value);
-
-      const fileInput = document.getElementById("soat-archivo");
-      if (fileInput && fileInput.files && fileInput.files[0]) {
-        formData.append("archivo_adjunto", fileInput.files[0]);
+      finally {
+        btn.disabled = false;
+        btn.innerHTML = textoOriginal;
       }
-
-      try {
-        const res = await fetch(`${API_URL}/seguros/`, { method: "POST", body: formData });
-        if (res.ok) {
-          alert("Certificado SOAT guardado exitosamente en Cloudinary.");
-          document.getElementById("form-soat").reset();
-          cargarMétricasResumen();
-        }
-      } catch (err) { alert("Error de conexión."); }
-    }
-
-    async function registrarSeguroVehicular(e) {
-      e.preventDefault();
-      const formData = new FormData();
-      formData.append("id_vehiculo", document.getElementById("sv-vehiculo").value);
-      formData.append("tipo_seguro", "Seguro Vehicular Todo Riesgo");
-      formData.append("compania_seguros", document.getElementById("sv-compania").value);
-      formData.append("broker", "Directo");
-      formData.append("costo_prima", 0);
-      formData.append("numero_poliza", document.getElementById("sv-poliza").value.trim() || "S/N");
-      formData.append("fecha_inicio", "2024-01-01");
-      formData.append("fecha_vencimiento", document.getElementById("sv-vencimiento").value);
-
-      const fileInput = document.getElementById("sv-archivo");
-      if (fileInput && fileInput.files && fileInput.files[0]) {
-        formData.append("archivo_adjunto", fileInput.files[0]);
-      }
-
-      try {
-        const res = await fetch(`${API_URL}/seguros/`, { method: "POST", body: formData });
-        if (res.ok) {
-          alert("Póliza de Seguro Vehicular guardada exitosamente.");
-          document.getElementById("form-seguro-vehicular").reset();
-          cargarMétricasResumen();
-        }
-      } catch (err) { alert("Error de conexión."); }
-    }
-
-    async function registrarRepuesto(e) {
-      e.preventDefault();
-      const formData = new FormData();
-      formData.append("id_vehiculo", document.getElementById("rep-vehiculo").value);
-      formData.append("tipo_mantenimiento", `Repuesto: ${document.getElementById("rep-nombre").value}`);
-      formData.append("taller_servicio", `Instalado por: ${document.getElementById("rep-instalador").value}`);
-      formData.append("responsable_reparacion", `Solicitado por: ${document.getElementById("rep-solicitante").value}`);
-      formData.append("fecha_ingreso", document.getElementById("rep-fecha").value);
-      formData.append("descripcion_falla", `Precio Total: S/ ${document.getElementById("rep-precio").value}`);
-
-      try {
-        const res = await fetch(`${API_URL}/reparaciones/`, { method: "POST", body: formData });
-        if (res.ok) {
-          alert("Repuesto guardado y asignado exitosamente a la unidad.");
-          document.getElementById("form-repuesto").reset();
-        } else { alert("Error al guardar repuesto."); }
-      } catch (err) { alert("Error de conexión."); }
     }
 
     async function cargarMétricasResumen() {
