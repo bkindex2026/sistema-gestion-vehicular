@@ -22,7 +22,7 @@ cloudinary.config(
 
 models.Base.metadata.create_all(bind=engine)
 
-app = FastAPI(title="API Ponderosa Flota - Backend Integrado Cloudinary", version="1.0.5")
+app = FastAPI(title="API Ponderosa Flota - Backend Integrado Cloudinary", version="1.0.6")
 
 # Configuración explícita de CORS
 origins = [
@@ -105,7 +105,27 @@ def crear_usuario(usuario: dict, db: Session = Depends(get_db)):
 # --- MÓDULO 2: GESTIÓN DE VEHÍCULOS Y HOJA DE VIDA ---
 @app.get("/vehiculos/")
 def listar_vehiculos(db: Session = Depends(get_db)):
-    return db.query(models.Vehiculo).all()
+    vehiculos = db.query(models.Vehiculo).all()
+    resultado = []
+    for v in vehiculos:
+        gps_reg = db.query(models.ServicioGPS).filter(models.ServicioGPS.id_vehiculo == v.id_vehiculo).first()
+        resultado.append({
+            "id_vehiculo": v.id_vehiculo,
+            "placa": v.placa,
+            "sede_asignada": v.sede_asignada,
+            "marca": v.marca,
+            "modelo": v.modelo,
+            "anio": v.anio,
+            "numero_vin": v.numero_vin,
+            "kilometraje_actual": v.kilometraje_actual,
+            "estado": v.estado,
+            "descripcion": v.descripcion,
+            "url_tive": v.url_tive,
+            "tiene_gps": True if gps_reg else False,
+            "empresa_gps": gps_reg.empresa_gps if gps_reg else "Sin GPS",
+            "vencimiento_gps": str(gps_reg.fecha_vencimiento) if gps_reg else "N/A"
+        })
+    return resultado
 
 @app.post("/vehiculos/")
 async def crear_vehiculo(
@@ -167,6 +187,7 @@ def obtener_hoja_vida(id_vehiculo: int, db: Session = Depends(get_db)):
     documentos = db.query(models.Documento).filter(models.Documento.id_vehiculo == id_vehiculo).all()
     reparaciones = db.query(models.Reparacion).filter(models.Reparacion.id_vehiculo == id_vehiculo).all()
     llantas = db.query(models.Llanta).filter(models.Llanta.id_vehiculo == id_vehiculo).all()
+    gps = db.query(models.ServicioGPS).filter(models.ServicioGPS.id_vehiculo == id_vehiculo).all()
     
     return {
         "id_vehiculo": v.id_vehiculo,
@@ -181,7 +202,8 @@ def obtener_hoja_vida(id_vehiculo: int, db: Session = Depends(get_db)):
         "seguros": seguros,
         "documentos": documentos,
         "reparaciones": reparaciones,
-        "llantas": llantas
+        "llantas": llantas,
+        "gps": gps
     }
 
 # --- MÓDULO 3: SEGUROS Y SOAT ---
@@ -362,7 +384,7 @@ def eliminar_reparacion(id_reparacion: int, db: Session = Depends(get_db)):
     db.commit()
     return {"mensaje": "Registro eliminado con éxito"}
 
-# --- MÓDULO 7: CONTROL DE LLANTAS Y NEUMÁTICOS (INCLUYE CÓDIGO) ---
+# --- MÓDULO 7: CONTROL DE LLANTAS Y NEUMÁTICOS ---
 @app.post("/llantas/")
 def crear_llanta(
     id_vehiculo: int = Form(...),

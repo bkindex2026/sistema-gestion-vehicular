@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Ponderosa Flota v1.0.5 - Gestión Vehicular Integrada</title>
+  <title>Ponderosa Flota v1.0.6 - Gestión Vehicular Integrada</title>
   <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="bg-slate-100 min-h-screen text-slate-800">
@@ -13,7 +13,7 @@
     <div class="bg-white p-6 md:p-8 rounded-xl shadow-lg w-full max-w-md border border-slate-200">
       <div class="text-center mb-6">
         <h1 class="text-2xl font-bold text-slate-900">PONDEROSA FLOTA</h1>
-        <p class="text-xs text-blue-600 font-bold uppercase tracking-widest mt-1">Versión v1.0.5 - Cloudinary</p>
+        <p class="text-xs text-blue-600 font-bold uppercase tracking-widest mt-1">Versión v1.0.6 - Cloudinary</p>
       </div>
       <form id="form-login" onsubmit="iniciarSesion(event)" class="space-y-4">
         <div>
@@ -44,7 +44,7 @@
     <nav class="bg-slate-900 text-white p-4 shadow-md">
       <div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4">
         <div class="flex items-center space-x-3">
-          <span class="bg-blue-600 text-white text-xs font-bold px-2.5 py-1 rounded">v1.0.5</span>
+          <span class="bg-blue-600 text-white text-xs font-bold px-2.5 py-1 rounded">v1.0.6</span>
           <h1 class="text-lg font-bold tracking-wide">Ponderosa Minerals S.A.C.</h1>
         </div>
         
@@ -151,7 +151,12 @@
         </div>
 
         <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
-          <h3 class="text-base font-bold text-slate-800 mb-4">Catálogo de Flota Activa</h3>
+          <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-4 gap-2">
+            <h3 class="text-base font-bold text-slate-800">Catálogo de Flota Activa</h3>
+            <button onclick="exportarReporteVehiculos()" class="bg-emerald-700 hover:bg-emerald-800 text-white font-bold px-4 py-2 rounded-lg text-xs transition flex items-center gap-1.5 shadow-sm">
+              📊 Exportar Reporte de Vehículos (Excel)
+            </button>
+          </div>
           <div class="overflow-x-auto">
             <table class="w-full text-left border-collapse text-xs md:text-sm">
               <thead>
@@ -161,12 +166,13 @@
                   <th class="p-3">Sede</th>
                   <th class="p-3">Marca / Modelo</th>
                   <th class="p-3">Año</th>
+                  <th class="p-3">GPS Active</th>
                   <th class="p-3">TIVE Adjunta</th>
                   <th class="p-3">Acciones</th>
                 </tr>
               </thead>
               <tbody id="tabla-vehiculos-lista">
-                <tr><td colspan="7" class="p-4 text-center text-slate-400">Cargando catálogo...</td></tr>
+                <tr><td colspan="8" class="p-4 text-center text-slate-400">Cargando catálogo...</td></tr>
               </tbody>
             </table>
           </div>
@@ -175,6 +181,12 @@
 
       <!-- MÓDULO 3: VENCIMIENTOS -->
       <div id="modulo-vencimientos" class="hidden space-y-6">
+        <div class="flex justify-end">
+          <button onclick="exportarReporteVencimientos()" class="bg-emerald-700 hover:bg-emerald-800 text-white font-bold px-4 py-2 rounded-lg text-xs transition flex items-center gap-1.5 shadow-sm">
+            📊 Exportar Reporte General de Vencimientos (Excel)
+          </button>
+        </div>
+
         <div class="bg-white p-6 rounded-xl shadow-sm border-l-4 border-blue-600 space-y-4">
           <div class="flex justify-between items-center border-b pb-2">
             <h2 class="text-lg font-bold text-slate-800">1. Control de SOAT (Reglamentario)</h2>
@@ -324,7 +336,12 @@
         </div>
 
         <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
-          <h3 class="text-base font-bold text-slate-800 mb-4">Inventario General de Neumáticos Instalados</h3>
+          <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-4 gap-2">
+            <h3 class="text-base font-bold text-slate-800">Inventario General de Neumáticos Instalados</h3>
+            <button onclick="exportarReporteLlantas()" class="bg-emerald-700 hover:bg-emerald-800 text-white font-bold px-4 py-2 rounded-lg text-xs transition flex items-center gap-1.5 shadow-sm">
+              📊 Exportar Reporte de Llantas (Excel)
+            </button>
+          </div>
           <div class="overflow-x-auto">
             <table class="w-full text-left border-collapse text-xs md:text-sm">
               <thead>
@@ -349,6 +366,12 @@
 
       <!-- MÓDULO 4: TALLER Y REPUESTOS -->
       <div id="modulo-taller" class="hidden space-y-6">
+        <div class="flex justify-end">
+          <button onclick="exportarReporteTaller()" class="bg-emerald-700 hover:bg-emerald-800 text-white font-bold px-4 py-2 rounded-lg text-xs transition flex items-center gap-1.5 shadow-sm">
+            📊 Exportar Reporte Taller y Repuestos (Excel)
+          </button>
+        </div>
+
         <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
           <h2 class="text-lg font-bold text-slate-800 mb-4">1. Registrar Ingreso a Taller / Mantenimiento</h2>
           <form id="form-taller" onsubmit="registrarTaller(event)" class="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -473,6 +496,7 @@
   <script>
     const API_URL = "https://ponderosa-flota-v1.onrender.com";
     let listaVehiculosGlobal = [];
+    let listaLlantasGlobal = [];
 
     function alternarVerPassword() {
       const passInput = document.getElementById("password");
@@ -489,6 +513,130 @@
     function obtenerUrlCompleta(url) {
       if (!url) return "#";
       return url.startsWith("http") ? url : `${API_URL}${url}`;
+    }
+
+    // --- FUNCIÓN MOTOR PARA DESCARGAR REPORTES CSV/EXCEL CON UTF-8 BOM ---
+    function descargarCSV(nombreArchivo, encabezados, filas) {
+      if (!filas || filas.length === 0) {
+        alert("No hay datos disponibles para exportar en esta página.");
+        return;
+      }
+      let contenido = "\uFEFF"; // Para compatibilidad total con tildes y eñes en Excel
+      contenido += encabezados.map(e => `"${e}"`).join(",") + "\n";
+      filas.forEach(fila => {
+        contenido += fila.map(campo => `"${String(campo).replace(/"/g, '""')}"`).join(",") + "\n";
+      });
+
+      const blob = new Blob([contenido], { type: "text/csv;charset=utf-8;" });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.setAttribute("href", url);
+      link.setAttribute("download", `${nombreArchivo}_${new Date().toISOString().split('T')[0]}.csv`);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    }
+
+    async function exportarReporteVehiculos() {
+      const encabezados = ["ID", "Placa", "Sede Asignada", "Marca", "Modelo", "Año", "VIN/Chasis", "Tiene GPS", "Empresa GPS", "Vencimiento GPS", "Tiene TIVE"];
+      const filas = listaVehiculosGlobal.map(v => [
+        v.id_vehiculo,
+        v.placa,
+        v.sede_asignada || "Por Asignar",
+        v.marca || "N/A",
+        v.modelo || "N/A",
+        v.anio || "N/A",
+        v.numero_vin || "S/N",
+        v.tiene_gps ? "SI" : "NO",
+        v.empresa_gps || "Sin GPS",
+        v.vencimiento_gps || "N/A",
+        v.url_registrada ? "SI" : (v.url_tive ? "SI" : "NO")
+      ]);
+      descargarCSV("Reporte_Flota_Vehiculos", encabezados, filas);
+    }
+
+    async function exportarReporteVencimientos() {
+      try {
+        const [seguros, documentos, gps] = await Promise.all([
+          fetch(`${API_URL}/seguros/vencimientos/`).then(r => r.json()),
+          fetch(`${API_URL}/documentos/vencimientos/`).then(r => r.json()),
+          fetch(`${API_URL}/gps/vencimientos/`).then(r => r.json())
+        ]);
+
+        const mapVehiculos = {};
+        listaVehiculosGlobal.forEach(v => mapVehiculos[v.id_vehiculo] = v.placa);
+
+        const encabezados = ["ID Vehículo", "Placa", "Tipo Documento/Servicio", "Entidad/Aseguradora", "N° Póliza/Certificado", "Fecha Vencimiento"];
+        const filas = [];
+
+        seguros.forEach(s => {
+          filas.push([s.id_vehiculo, mapVehiculos[s.id_vehiculo] || `ID #${s.id_vehiculo}`, s.tipo_seguro, s.compania_seguros, s.numero_poliza, s.fecha_vencimiento]);
+        });
+        documentos.forEach(d => {
+          filas.push([d.id_vehiculo, mapVehiculos[d.id_vehiculo] || `ID #${d.id_vehiculo}`, "CITV / Revisión Técnica", d.entidad_emisora, d.numero_documento, d.fecha_vencimiento]);
+        });
+        gps.forEach(g => {
+          filas.push([g.id_vehiculo, mapVehiculos[g.id_vehiculo] || `ID #${g.id_vehiculo}`, "Servicio GPS", g.empresa_gps, "GPS-SRV", g.fecha_vencimiento]);
+        });
+
+        descargarCSV("Reporte_Vencimientos_Consolidado", encabezados, filas);
+      } catch (e) {
+        alert("Error al recopilar datos de vencimientos.");
+      }
+    }
+
+    async function exportarReporteLlantas() {
+      const mapVehiculos = {};
+      listaVehiculosGlobal.forEach(v => mapVehiculos[v.id_vehiculo] = v.placa);
+
+      const encabezados = ["ID Llanta", "ID Vehículo", "Placa", "Código/N° Serie", "Marca", "Modelo", "Posición/Eje", "Fecha Instalación"];
+      const filas = listaLlantasGlobal.map(l => [
+        l.id_llanta,
+        l.id_vehiculo,
+        mapVehiculos[l.id_vehiculo] || `ID #${l.id_vehiculo}`,
+        l.codigo || "S/C",
+        l.marca,
+        l.modelo,
+        l.posicion,
+        l.fecha_instalacion
+      ]);
+
+      descargarCSV("Reporte_Inventario_Llantas", encabezados, filas);
+    }
+
+    async function exportarReporteTaller() {
+      try {
+        const mapVehiculos = {};
+        listaVehiculosGlobal.forEach(v => mapVehiculos[v.id_vehiculo] = v.placa);
+
+        const res = await fetch(`${API_URL}/vehiculos/`);
+        const vehiculos = await res.json();
+        
+        const encabezados = ["ID Vehículo", "Placa", "Tipo Mantenimiento", "Taller/Proveedor", "Responsable/Solicitante", "Fecha Ingreso", "Detalle/Precio"];
+        const filas = [];
+
+        for (const v of vehiculos) {
+          const resHv = await fetch(`${API_URL}/vehiculos/${v.id_vehiculo}/hoja_vida/`);
+          const dataHv = await resHv.json();
+          if (dataHv.reparaciones && dataHv.reparaciones.length > 0) {
+            dataHv.reparaciones.forEach(r => {
+              filas.push([
+                v.id_vehiculo,
+                v.placa,
+                r.tipo_mantenimiento,
+                r.taller_servicio,
+                r.responsable_reparacion,
+                r.fecha_ingreso,
+                r.descripcion_falla
+              ]);
+            });
+          }
+        }
+
+        descargarCSV("Reporte_Mantenimiento_Taller_Repuestos", encabezados, filas);
+      } catch (e) {
+        alert("Error al recopilar informe de mantenimiento.");
+      }
     }
 
     async function iniciarSesion(event) {
@@ -577,6 +725,12 @@
             <td class="p-3">${v.marca} / ${v.modelo}</td>
             <td class="p-3">${v.anio}</td>
             <td class="p-3">
+              ${v.tiene_gps 
+                ? `<span class="bg-emerald-100 text-emerald-800 font-bold px-2 py-1 rounded text-xs">📡 ${v.empresa_gps}</span>` 
+                : `<span class="bg-slate-100 text-slate-500 font-semibold px-2 py-1 rounded text-xs">❌ Sin GPS</span>`
+              }
+            </td>
+            <td class="p-3">
               ${v.url_tive 
                 ? `<a href="${obtenerUrlCompleta(v.url_tive)}" target="_blank" class="bg-blue-100 text-blue-700 font-bold px-2 py-1 rounded text-xs hover:bg-blue-200">Ver TIVE</a>` 
                 : `<label class="bg-yellow-100 text-yellow-800 font-bold px-2 py-1 rounded text-xs cursor-pointer hover:bg-yellow-200">
@@ -587,7 +741,7 @@
             </td>
             <td class="p-3"><button onclick="verHojaVida(${v.id_vehiculo})" class="bg-slate-800 text-white px-2.5 py-1 rounded text-xs hover:bg-slate-700 font-semibold">Hoja de Vida</button></td>
           </tr>
-        `).join('') || `<tr><td colspan="7" class="p-4 text-center text-slate-400">No hay vehículos registrados.</td></tr>`;
+        `).join('') || `<tr><td colspan="8" class="p-4 text-center text-slate-400">No hay vehículos registrados.</td></tr>`;
 
         const selects = document.querySelectorAll(".select-vehiculos-dinamico");
         selects.forEach(s => {
@@ -617,6 +771,12 @@
             <div><strong>N° VIN / Chasis:</strong> ${data.numero_vin || 'S/N'}</div>
             <div><strong>Año Fabricación:</strong> ${data.anio || 'N/A'}</div>
             <div><strong>Kilometraje:</strong> ${data.kilometraje_actual || 0} km</div>
+          </div>
+          <div>
+            <h4 class="font-bold border-b pb-1 mb-2 text-emerald-800 uppercase">📡 Monitoreo GPS</h4>
+            ${data.gps && data.gps.length > 0 
+              ? data.gps.map(g => `<p class="text-xs">• <strong>Empresa:</strong> ${g.empresa_gps} | Vence: ${g.fecha_vencimiento}</p>`).join('')
+              : '<p class="text-slate-400 italic">Sin servicio GPS activo registrado.</p>'}
           </div>
           <div>
             <h4 class="font-bold border-b pb-1 mb-2 text-slate-800 uppercase">1. Cobertura de Seguros / SOAT (${data.seguros ? data.seguros.length : 0})</h4>
@@ -669,6 +829,7 @@
       try {
         const res = await fetch(`${API_URL}/llantas/`);
         const llantas = await res.json();
+        listaLlantasGlobal = llantas;
         
         const mapVehiculos = {};
         listaVehiculosGlobal.forEach(v => mapVehiculos[v.id_vehiculo] = v.placa);
