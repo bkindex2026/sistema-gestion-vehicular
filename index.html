@@ -842,7 +842,7 @@
     async function verHojaVida(idVehiculo) {
   document.getElementById("modal-hoja-vida").classList.remove("hidden");
   const contenedor = document.getElementById("hv-contenido");
-  contenedor.innerHTML = "<p class='text-slate-400'>Consultando historial técnico en Neon.tech y Cloudinary...</p>";
+  contenedor.innerHTML = "<p class='text-slate-400'><span class='inline-block animate-spin mr-2'>🔄</span> Consultando historial técnico en Neon.tech y Cloudinary...</p>";
 
   try {
     const res = await fetch(`${API_URL}/vehiculos/${idVehiculo}/hoja_vida/`);
@@ -910,35 +910,18 @@
     `;
     aplicarPermisosDeRol();
   } catch (e) {
-    contenedor.innerHTML = `<p class='text-red-600 font-bold'>Error detectado: ${e.message}</p>`;
+    if (e.message.includes("Failed to fetch")) {
+      contenedor.innerHTML = `
+        <div class="p-4 bg-amber-50 border border-amber-200 rounded-lg text-amber-800 text-xs">
+          <p class="font-bold mb-1">⏳ El servidor en Render se está iniciando...</p>
+          <p>Debido a la inactividad, Render está despertando el contenedor. Por favor espera 10 segundos y haz clic en reintentar.</p>
+          <button onclick="verHojaVida(${idVehiculo})" class="mt-3 bg-amber-600 hover:bg-amber-700 text-white px-3 py-1.5 rounded font-bold">🔄 Reintentar Consulta</button>
+        </div>`;
+    } else {
+      contenedor.innerHTML = `<p class='text-red-600 font-bold'>Error detectado: ${e.message}</p>`;
+    }
   }
 }
-    async function cargarListaLlantas() {
-      try {
-        const res = await fetch(`${API_URL}/llantas/`);
-        const llantas = await res.json();
-        listaLlantasGlobal = llantas;
-        
-        const mapVehiculos = {};
-        listaVehiculosGlobal.forEach(v => mapVehiculos[v.id_vehiculo] = v.placa);
-
-        const tbody = document.getElementById("tabla-llantas-lista");
-        tbody.innerHTML = llantas.map(l => `
-          <tr class="border-b hover:bg-slate-50">
-            <td class="p-3 text-slate-400">#${l.id_llanta}</td>
-            <td class="p-3 font-bold text-blue-600">${mapVehiculos[l.id_vehiculo] || 'Vehículo #' + l.id_vehiculo}</td>
-            <td class="p-3 font-mono font-bold text-slate-800">${l.codigo || 'S/C'}</td>
-            <td class="p-3 font-semibold text-slate-800">${l.marca}</td>
-            <td class="p-3">${l.modelo}</td>
-            <td class="p-3 font-medium text-amber-700">${l.posicion}</td>
-            <td class="p-3">${l.fecha_instalacion}</td>
-            <td class="p-3">
-              <button onclick="borrarLlantaDirecto(${l.id_llanta})" class="btn-eliminar bg-red-50 hover:bg-red-100 text-red-600 font-bold text-xs px-2.5 py-1 rounded transition">🗑️ Eliminar</button>
-            </td>
-          </tr>
-        `).join('') || `<tr><td colspan="8" class="p-4 text-center text-slate-400">No hay llantas registradas en el sistema.</td></tr>`;
-      } catch (e) { console.error("Error cargando llantas:", e); }
-    }
 
     async function registrarLlanta(e) {
       e.preventDefault();
