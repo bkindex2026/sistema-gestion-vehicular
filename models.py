@@ -110,12 +110,13 @@ class RepuestoReparacion(Base):
 
     reparacion = relationship("Reparacion", back_populates="repuestos")
 
-# 8. NUEVA TABLA LLANTAS
+# 8. TABLA LLANTAS (CON CÓDIGO INCLUIDO)
 class Llanta(Base):
     __tablename__ = "llantas"
 
     id_llanta = Column(Integer, primary_key=True, index=True)
     id_vehiculo = Column(Integer, ForeignKey("vehiculos.id_vehiculo"))
+    codigo = Column(String(50), nullable=False)
     marca = Column(String(50), nullable=False)
     modelo = Column(String(50), nullable=False)
     posicion = Column(String(50), nullable=False)

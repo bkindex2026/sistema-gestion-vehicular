@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Ponderosa Flota v1.0.4 - Gestión Vehicular Integrada</title>
+  <title>Ponderosa Flota v1.0.5 - Gestión Vehicular Integrada</title>
   <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="bg-slate-100 min-h-screen text-slate-800">
@@ -13,7 +13,7 @@
     <div class="bg-white p-6 md:p-8 rounded-xl shadow-lg w-full max-w-md border border-slate-200">
       <div class="text-center mb-6">
         <h1 class="text-2xl font-bold text-slate-900">PONDEROSA FLOTA</h1>
-        <p class="text-xs text-blue-600 font-bold uppercase tracking-widest mt-1">Versión v1.0.4 - Cloudinary</p>
+        <p class="text-xs text-blue-600 font-bold uppercase tracking-widest mt-1">Versión v1.0.5 - Cloudinary</p>
       </div>
       <form id="form-login" onsubmit="iniciarSesion(event)" class="space-y-4">
         <div>
@@ -44,7 +44,7 @@
     <nav class="bg-slate-900 text-white p-4 shadow-md">
       <div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4">
         <div class="flex items-center space-x-3">
-          <span class="bg-blue-600 text-white text-xs font-bold px-2.5 py-1 rounded">v1.0.4</span>
+          <span class="bg-blue-600 text-white text-xs font-bold px-2.5 py-1 rounded">v1.0.5</span>
           <h1 class="text-lg font-bold tracking-wide">Ponderosa Minerals S.A.C.</h1>
         </div>
         
@@ -273,7 +273,7 @@
         </div>
       </div>
 
-      <!-- MÓDULO NUEVO: CONTROL DE LLANTAS Y NEUMÁTICOS -->
+      <!-- MÓDULO CONTROL DE LLANTAS Y NEUMÁTICOS -->
       <div id="modulo-llantas" class="hidden space-y-6">
         <div class="bg-white p-6 rounded-xl shadow-sm border-l-4 border-amber-500 space-y-4">
           <div class="flex justify-between items-center border-b pb-2">
@@ -284,6 +284,10 @@
             <div>
               <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Vehículo Asignado (*)</label>
               <select id="ll-vehiculo" required class="select-vehiculos-dinamico w-full p-2.5 border rounded-lg text-sm"><option value="">Cargando vehículos...</option></select>
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-amber-700 uppercase mb-1">Código / N° Serie (*)</label>
+              <input type="text" id="ll-codigo" required placeholder="Ej. LLA-2024-001 / DOT 1223" class="w-full p-2.5 border rounded-lg text-sm border-amber-300 focus:ring-2 focus:ring-amber-500">
             </div>
             <div>
               <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Marca de Llanta (*)</label>
@@ -313,8 +317,8 @@
               <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Fecha de Instalación / Registro (*)</label>
               <input type="date" id="ll-fecha" required class="w-full p-2.5 border rounded-lg text-sm">
             </div>
-            <div class="flex items-end">
-              <button type="submit" class="btn-crear w-full bg-amber-600 hover:bg-amber-700 text-white font-bold py-2.5 rounded-lg text-sm transition">Guardar Neumático</button>
+            <div class="md:col-span-3 flex justify-end">
+              <button type="submit" class="btn-crear bg-amber-600 hover:bg-amber-700 text-white font-bold px-6 py-2.5 rounded-lg text-sm transition">Guardar Neumático</button>
             </div>
           </form>
         </div>
@@ -327,6 +331,7 @@
                 <tr class="border-b bg-slate-50 text-slate-600 font-semibold uppercase">
                   <th class="p-3">ID</th>
                   <th class="p-3">Placa Vehículo</th>
+                  <th class="p-3 text-amber-700">Código / N° Serie</th>
                   <th class="p-3">Marca</th>
                   <th class="p-3">Modelo</th>
                   <th class="p-3">Posición / Eje</th>
@@ -335,7 +340,7 @@
                 </tr>
               </thead>
               <tbody id="tabla-llantas-lista">
-                <tr><td colspan="7" class="p-4 text-center text-slate-400">Cargando inventario de llantas...</td></tr>
+                <tr><td colspan="8" class="p-4 text-center text-slate-400">Cargando inventario de llantas...</td></tr>
               </tbody>
             </table>
           </div>
@@ -618,7 +623,7 @@
             ${data.seguros && data.seguros.length > 0 
               ? data.seguros.map(s => `
                 <div class="flex justify-between items-center py-1 border-b border-slate-100">
-                  <p>• <strong>${s.tipo_seguro}:</strong> ${s.compania_seguros} (Póliza ${s.numero_poliza}) - Vence: ${s.fecha_vencimiento}${s.url_adjunto ? `<a href="${obtenerUrlCompleta(s.url_adjunto)}" target="_blank" class="text-blue-600 font-bold underline ml-2">[Ver Póliza]</a>` : ''}</p>
+                  <p>• <strong>${s.tipo_seguro}:</strong> ${s.compania_seguros} (Póliza ${s.numero_poliza}) - Vence: ${s.fecha_vencimiento} ${s.url_adjunto ? `<a href="${obtenerUrlCompleta(s.url_adjunto)}" target="_blank" class="text-blue-600 font-bold underline ml-2">[Ver Póliza]</a>` : ''}</p>
                   <button onclick="borrarSeguro(${s.id_seguro}, ${data.id_vehiculo})" class="btn-eliminar bg-red-50 hover:bg-red-100 text-red-600 font-bold text-xs px-2.5 py-1 rounded transition ml-2">🗑️ Eliminar</button>
                 </div>`).join('') 
               : '<p class="text-slate-400 italic">Sin registros de SOAT o póliza vehicular.</p>'}
@@ -648,7 +653,7 @@
             ${data.llantas && data.llantas.length > 0 
               ? data.llantas.map(l => `
                 <div class="flex justify-between items-center py-1 border-b border-slate-100">
-                  <p>• <strong>Posición:</strong> ${l.posicion} - <strong>Marca/Modelo:</strong> ${l.marca} ${l.modelo} - Inst: ${l.fecha_instalacion}</p>
+                  <p>• <strong>Código:</strong> <span class="font-mono font-bold text-slate-800">${l.codigo || 'S/C'}</span> - <strong>Posición:</strong> ${l.posicion} - <strong>Marca/Modelo:</strong> ${l.marca} ${l.modelo} - Inst: ${l.fecha_instalacion}</p>
                   <button onclick="borrarLlanta(${l.id_llanta}, ${data.id_vehiculo})" class="btn-eliminar bg-red-50 hover:bg-red-100 text-red-600 font-bold text-xs px-2.5 py-1 rounded transition ml-2">🗑️ Eliminar</button>
                 </div>`).join('') 
               : '<p class="text-slate-400 italic">Sin registros de llantas instaladas.</p>'}
@@ -673,6 +678,7 @@
           <tr class="border-b hover:bg-slate-50">
             <td class="p-3 text-slate-400">#${l.id_llanta}</td>
             <td class="p-3 font-bold text-blue-600">${mapVehiculos[l.id_vehiculo] || 'Vehículo #' + l.id_vehiculo}</td>
+            <td class="p-3 font-mono font-bold text-slate-800">${l.codigo || 'S/C'}</td>
             <td class="p-3 font-semibold text-slate-800">${l.marca}</td>
             <td class="p-3">${l.modelo}</td>
             <td class="p-3 font-medium text-amber-700">${l.posicion}</td>
@@ -681,7 +687,7 @@
               <button onclick="borrarLlantaDirecto(${l.id_llanta})" class="btn-eliminar bg-red-50 hover:bg-red-100 text-red-600 font-bold text-xs px-2.5 py-1 rounded transition">🗑️ Eliminar</button>
             </td>
           </tr>
-        `).join('') || `<tr><td colspan="7" class="p-4 text-center text-slate-400">No hay llantas registradas en el sistema.</td></tr>`;
+        `).join('') || `<tr><td colspan="8" class="p-4 text-center text-slate-400">No hay llantas registradas en el sistema.</td></tr>`;
       } catch (e) { console.error("Error cargando llantas:", e); }
     }
 
@@ -694,6 +700,7 @@
 
       const formData = new FormData();
       formData.append("id_vehiculo", document.getElementById("ll-vehiculo").value);
+      formData.append("codigo", document.getElementById("ll-codigo").value.trim());
       formData.append("marca", document.getElementById("ll-marca").value.trim());
       formData.append("modelo", document.getElementById("ll-modelo").value.trim());
       formData.append("posicion", document.getElementById("ll-posicion").value);
@@ -768,7 +775,7 @@
           alert("Registro de taller eliminado con éxito.");
           verHojaVida(idVehiculo);
         } else { alert("Error al eliminar."); }
-      } catch (e) { alert("Error de conexión al servidor."); }
+      } catch (e) { alert("Error de conexión."); }
     }
 
     function cerrarHojaVida() {

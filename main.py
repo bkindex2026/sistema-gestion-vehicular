@@ -22,7 +22,7 @@ cloudinary.config(
 
 models.Base.metadata.create_all(bind=engine)
 
-app = FastAPI(title="API Ponderosa Flota - Backend Integrado Cloudinary", version="1.0.4")
+app = FastAPI(title="API Ponderosa Flota - Backend Integrado Cloudinary", version="1.0.5")
 
 # Configuración explícita de CORS
 origins = [
@@ -362,10 +362,11 @@ def eliminar_reparacion(id_reparacion: int, db: Session = Depends(get_db)):
     db.commit()
     return {"mensaje": "Registro eliminado con éxito"}
 
-# --- MÓDULO 7: CONTROL DE LLANTAS Y NEUMÁTICOS ---
+# --- MÓDULO 7: CONTROL DE LLANTAS Y NEUMÁTICOS (INCLUYE CÓDIGO) ---
 @app.post("/llantas/")
 def crear_llanta(
     id_vehiculo: int = Form(...),
+    codigo: str = Form(...),
     marca: str = Form(...),
     modelo: str = Form(...),
     posicion: str = Form(...),
@@ -374,6 +375,7 @@ def crear_llanta(
 ):
     nueva_llanta = models.Llanta(
         id_vehiculo=id_vehiculo,
+        codigo=codigo,
         marca=marca,
         modelo=modelo,
         posicion=posicion,
