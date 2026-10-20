@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Ponderosa Flota v1.0.6 - Gestión Vehicular Integrada</title>
+  <title>Ponderosa Flota v1.0.7 - Gestión Vehicular Integrada</title>
   <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="bg-slate-100 min-h-screen text-slate-800">
@@ -13,7 +13,7 @@
     <div class="bg-white p-6 md:p-8 rounded-xl shadow-lg w-full max-w-md border border-slate-200">
       <div class="text-center mb-6">
         <h1 class="text-2xl font-bold text-slate-900">PONDEROSA FLOTA</h1>
-        <p class="text-xs text-blue-600 font-bold uppercase tracking-widest mt-1">Versión v1.0.6 - Cloudinary</p>
+        <p class="text-xs text-blue-600 font-bold uppercase tracking-widest mt-1">Versión v1.0.7 - Cloudinary</p>
       </div>
       <form id="form-login" onsubmit="iniciarSesion(event)" class="space-y-4">
         <div>
@@ -44,7 +44,7 @@
     <nav class="bg-slate-900 text-white p-4 shadow-md">
       <div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4">
         <div class="flex items-center space-x-3">
-          <span class="bg-blue-600 text-white text-xs font-bold px-2.5 py-1 rounded">v1.0.6</span>
+          <span class="bg-blue-600 text-white text-xs font-bold px-2.5 py-1 rounded">v1.0.7</span>
           <h1 class="text-lg font-bold tracking-wide">Ponderosa Minerals S.A.C.</h1>
         </div>
         
@@ -277,6 +277,10 @@
             <div>
               <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Fecha Vencimiento</label>
               <input type="date" id="c-vencimiento" required class="w-full p-2.5 border rounded-lg text-sm">
+            </div>
+            <div class="md:col-span-2">
+              <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Adjuntar Certificado CITV (Foto o PDF - Opcional)</label>
+              <input type="file" id="c-archivo" accept="image/*,.pdf" class="w-full text-xs text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-blue-50 file:text-blue-700">
             </div>
             <div class="flex items-end">
               <button type="submit" class="btn-crear w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2.5 rounded-lg text-sm transition">Guardar CITV</button>
@@ -1054,7 +1058,7 @@
       const btn = e.target.querySelector("button[type='submit']");
       const textoOriginal = btn.innerHTML;
       btn.disabled = true;
-      btn.innerHTML = `<span class="inline-block animate-spin mr-1">🔄</span> Guardando CITV...`;
+      btn.innerHTML = `<span class="inline-block animate-spin mr-1">🔄</span> Guardando CITV en Cloudinary...`;
 
       const formData = new FormData();
       formData.append("id_vehiculo", document.getElementById("c-vehiculo").value);
@@ -1064,14 +1068,21 @@
       formData.append("fecha_emision", document.getElementById("c-emision").value);
       formData.append("fecha_vencimiento", document.getElementById("c-vencimiento").value);
 
+      const fileInput = document.getElementById("c-archivo");
+      if (fileInput && fileInput.files && fileInput.files[0]) {
+        formData.append("archivo_adjunto", fileInput.files[0]);
+      }
+
       try {
         const res = await fetch(`${API_URL}/documentos/`, { method: "POST", body: formData });
         if (res.ok) {
-          alert("Revisión Técnica CITV guardada exitosamente.");
+          alert("Revisión Técnica CITV guardada exitosamente en el sistema.");
           document.getElementById("form-citv").reset();
           cargarMétricasResumen();
+        } else {
+          alert("Error al guardar el documento CITV.");
         }
-      } catch (err) { alert("Error de conexión."); }
+      } catch (err) { alert("Error de conexión al servidor."); }
       finally {
         btn.disabled = false;
         btn.innerHTML = textoOriginal;
