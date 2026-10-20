@@ -840,76 +840,79 @@
     }
 
     async function verHojaVida(idVehiculo) {
-      document.getElementById("modal-hoja-vida").classList.remove("hidden");
-      const contenedor = document.getElementById("hv-contenido");
-      contenedor.innerHTML = "<p class='text-slate-400'>Consultando historial técnico en Neon.tech y Cloudinary...</p>";
+  document.getElementById("modal-hoja-vida").classList.remove("hidden");
+  const contenedor = document.getElementById("hv-contenido");
+  contenedor.innerHTML = "<p class='text-slate-400'>Consultando historial técnico en Neon.tech y Cloudinary...</p>";
 
-      try {
-        const res = await fetch(`${API_URL}/vehiculos/${idVehiculo}/hoja_vida/`);
-        const data = await res.json();
-
-        document.getElementById("hv-titulo").innerText = `Hoja de Vida: Placa ${data.placa} (${data.marca} ${data.modelo})`;
-        
-        contenedor.innerHTML = `
-          <div class="bg-slate-50 p-4 rounded-lg border grid grid-cols-2 gap-3 text-slate-700 font-medium">
-            <div><strong>Sede Asignada:</strong> ${data.sede_asignada || 'Por Asignar'}</div>
-            <div><strong>N° VIN / Chasis:</strong> ${data.numero_vin || 'S/N'}</div>
-            <div><strong>Año Fabricación:</strong> ${data.anio || 'N/A'}</div>
-            <div><strong>Kilometraje:</strong> ${data.kilometraje_actual || 0} km</div>
-          </div>
-          <div>
-            <h4 class="font-bold border-b pb-1 mb-2 text-emerald-800 uppercase">📡 Monitoreo GPS</h4>
-            ${data.gps && data.gps.length > 0 
-              ? data.gps.map(g => `<p class="text-xs">• <strong>Empresa:</strong> ${g.empresa_gps} | Vence: ${g.fecha_vencimiento}</p>`).join('')
-              : '<p class="text-slate-400 italic">Sin servicio GPS activo registrado.</p>'}
-          </div>
-          <div>
-            <h4 class="font-bold border-b pb-1 mb-2 text-slate-800 uppercase">1. Cobertura de Seguros / SOAT (${data.seguros ? data.seguros.length : 0})</h4>
-            ${data.seguros && data.seguros.length > 0 
-              ? data.seguros.map(s => `
-                <div class="flex justify-between items-center py-1 border-b border-slate-100">
-                  <p>• <strong>${s.tipo_seguro}:</strong> ${s.compania_seguros} (Póliza ${s.numero_poliza}) - Vence: ${s.fecha_vencimiento} ${s.url_adjunto ? `<a href="${obtenerUrlCompleta(s.url_adjunto)}" target="_blank" class="text-blue-600 font-bold underline ml-2">[Ver Póliza]</a>` : ''}</p>
-                  <button onclick="borrarSeguro(${s.id_seguro}, ${data.id_vehiculo})" class="btn-eliminar bg-red-50 hover:bg-red-100 text-red-600 font-bold text-xs px-2.5 py-1 rounded transition ml-2">🗑️ Eliminar</button>
-                </div>`).join('') 
-              : '<p class="text-slate-400 italic">Sin registros de SOAT o póliza vehicular.</p>'}
-          </div>
-          <div>
-            <h4 class="font-bold border-b pb-1 mb-2 text-slate-800 uppercase">2. Revisiones Técnicas CITV (${data.documentos ? data.documentos.length : 0})</h4>
-            ${data.documentos && data.documentos.length > 0 
-              ? data.documentos.map(d => `
-                <div class="flex justify-between items-center py-1 border-b border-slate-100">
-                  <p>• Certificado ${d.numero_documento} (${d.entidad_emisora}) - Vence: ${d.fecha_vencimiento} ${d.url_adjunto ? `<a href="${obtenerUrlCompleta(d.url_adjunto)}" target="_blank" class="text-blue-600 font-bold underline ml-2">[Ver CITV]</a>` : ''}</p>
-                  <button onclick="borrarDocumento(${d.id_documento}, ${data.id_vehiculo})" class="btn-eliminar bg-red-50 hover:bg-red-100 text-red-600 font-bold text-xs px-2.5 py-1 rounded transition ml-2">🗑️ Eliminar</button>
-                </div>`).join('') 
-              : '<p class="text-slate-400 italic">Sin registros de CITV.</p>'}
-          </div>
-          <div>
-            <h4 class="font-bold border-b pb-1 mb-2 text-slate-800 uppercase">3. Taller y Repuestos Instalados (${data.reparaciones ? data.reparaciones.length : 0})</h4>
-            ${data.reparaciones && data.reparaciones.length > 0 
-              ? data.reparaciones.map(r => `
-                <div class="flex justify-between items-center py-1 border-b border-slate-100">
-                  <p>• [${r.fecha_ingreso}] ${r.tipo_mantenimiento} - ${r.taller_servicio} (${r.responsable_reparacion}) - ${r.descripcion_falla}</p>
-                  <button onclick="borrarReparacion(${r.id_reparacion}, ${data.id_vehiculo})" class="btn-eliminar bg-red-50 hover:bg-red-100 text-red-600 font-bold text-xs px-2.5 py-1 rounded transition ml-2">🗑️ Eliminar</button>
-                </div>`).join('') 
-              : '<p class="text-slate-400 italic">Sin registros de repuestos o taller.</p>'}
-          </div>
-          <div>
-            <h4 class="font-bold border-b pb-1 mb-2 text-amber-800 uppercase">4. Control de Llantas y Posiciones (${data.llantas ? data.llantas.length : 0})</h4>
-            ${data.llantas && data.llantas.length > 0 
-              ? data.llantas.map(l => `
-                <div class="flex justify-between items-center py-1 border-b border-slate-100">
-                  <p>• <strong>Código:</strong> <span class="font-mono font-bold text-slate-800">${l.codigo || 'S/C'}</span> - <strong>Posición:</strong> ${l.posicion} - <strong>Marca/Modelo:</strong> ${l.marca} ${l.modelo} - Inst: ${l.fecha_instalacion}</p>
-                  <button onclick="borrarLlanta(${l.id_llanta}, ${data.id_vehiculo})" class="btn-eliminar bg-red-50 hover:bg-red-100 text-red-600 font-bold text-xs px-2.5 py-1 rounded transition ml-2">🗑️ Eliminar</button>
-                </div>`).join('') 
-              : '<p class="text-slate-400 italic">Sin registros de llantas instaladas.</p>'}
-          </div>
-        `;
-        aplicarPermisosDeRol();
-      } catch (e) {
-        contenedor.innerHTML = "<p class='text-red-500 font-bold'>No se pudo cargar el expediente detallado. Verifique la conexión.</p>";
-      }
+  try {
+    const res = await fetch(`${API_URL}/vehiculos/${idVehiculo}/hoja_vida/`);
+    if (!res.ok) {
+      const errData = await res.json().catch(() => null);
+      throw new Error(errData && errData.detail ? errData.detail : `Error ${res.status} en servidor backend`);
     }
 
+    const data = await res.json();
+    document.getElementById("hv-titulo").innerText = `Hoja de Vida: Placa ${data.placa} (${data.marca} ${data.modelo})`;
+    
+    contenedor.innerHTML = `
+      <div class="bg-slate-50 p-4 rounded-lg border grid grid-cols-2 gap-3 text-slate-700 font-medium">
+        <div><strong>Sede Asignada:</strong> ${data.sede_asignada || 'Por Asignar'}</div>
+        <div><strong>N° VIN / Chasis:</strong> ${data.numero_vin || 'S/N'}</div>
+        <div><strong>Año Fabricación:</strong> ${data.anio || 'N/A'}</div>
+        <div><strong>Kilometraje:</strong> ${data.kilometraje_actual || 0} km</div>
+      </div>
+      <div>
+        <h4 class="font-bold border-b pb-1 mb-2 text-emerald-800 uppercase">📡 Monitoreo GPS</h4>
+        ${data.gps && data.gps.length > 0 
+          ? data.gps.map(g => `<p class="text-xs">• <strong>Empresa:</strong> ${g.empresa_gps} \vert{} Vence:${g.fecha_vencimiento}</p>`).join('')
+          : '<p class="text-slate-400 italic">Sin servicio GPS activo registrado.</p>'}
+      </div>
+      <div>
+        <h4 class="font-bold border-b pb-1 mb-2 text-slate-800 uppercase">1. Cobertura de Seguros / SOAT (${data.seguros ? data.seguros.length : 0})</h4>
+        ${data.seguros && data.seguros.length > 0 
+          ? data.seguros.map(s => `
+            <div class="flex justify-between items-center py-1 border-b border-slate-100">
+              <p>• <strong>${s.tipo_seguro}:</strong> ${s.compania_seguros} (Póliza ${s.numero_poliza}) - Vence: ${s.fecha_vencimiento}${s.url_adjunto ? `<a href="${obtenerUrlCompleta(s.url_adjunto)}" target="_blank" class="text-blue-600 font-bold underline ml-2">[Ver Póliza]</a>` : ''}</p>
+              <button onclick="borrarSeguro(${s.id_seguro},${data.id_vehiculo})" class="btn-eliminar bg-red-50 hover:bg-red-100 text-red-600 font-bold text-xs px-2.5 py-1 rounded transition ml-2">🗑️ Eliminar</button>
+            </div>`).join('') 
+          : '<p class="text-slate-400 italic">Sin registros de SOAT o póliza vehicular.</p>'}
+      </div>
+      <div>
+        <h4 class="font-bold border-b pb-1 mb-2 text-slate-800 uppercase">2. Revisiones Técnicas CITV (${data.documentos ? data.documentos.length : 0})</h4>
+        ${data.documentos && data.documentos.length > 0 
+          ? data.documentos.map(d => `
+            <div class="flex justify-between items-center py-1 border-b border-slate-100">
+              <p>• Certificado ${d.numero_documento} (${d.entidad_emisora}) - Vence: ${d.fecha_vencimiento}${d.url_adjunto ? `<a href="${obtenerUrlCompleta(d.url_adjunto)}" target="_blank" class="text-blue-600 font-bold underline ml-2">[Ver CITV]</a>` : ''}</p>
+              <button onclick="borrarDocumento(${d.id_documento},${data.id_vehiculo})" class="btn-eliminar bg-red-50 hover:bg-red-100 text-red-600 font-bold text-xs px-2.5 py-1 rounded transition ml-2">🗑️ Eliminar</button>
+            </div>`).join('') 
+          : '<p class="text-slate-400 italic">Sin registros de CITV.</p>'}
+      </div>
+      <div>
+        <h4 class="font-bold border-b pb-1 mb-2 text-slate-800 uppercase">3. Taller y Repuestos Instalados (${data.reparaciones ? data.reparaciones.length : 0})</h4>
+        ${data.reparaciones && data.reparaciones.length > 0 
+          ? data.reparaciones.map(r => `
+            <div class="flex justify-between items-center py-1 border-b border-slate-100">
+              <p>• [${r.fecha_ingreso}] ${r.tipo_mantenimiento} -${r.taller_servicio} (${r.responsable_reparacion}) -${r.descripcion_falla}</p>
+              <button onclick="borrarReparacion(${r.id_reparacion},${data.id_vehiculo})" class="btn-eliminar bg-red-50 hover:bg-red-100 text-red-600 font-bold text-xs px-2.5 py-1 rounded transition ml-2">🗑️ Eliminar</button>
+            </div>`).join('') 
+          : '<p class="text-slate-400 italic">Sin registros de repuestos o taller.</p>'}
+      </div>
+      <div>
+        <h4 class="font-bold border-b pb-1 mb-2 text-amber-800 uppercase">4. Control de Llantas y Posiciones (${data.llantas ? data.llantas.length : 0})</h4>
+        ${data.llantas && data.llantas.length > 0 
+          ? data.llantas.map(l => `
+            <div class="flex justify-between items-center py-1 border-b border-slate-100">
+              <p>• <strong>Código:</strong> <span class="font-mono font-bold text-slate-800">${l.codigo || 'S/C'}</span> - <strong>Posición:</strong> ${l.posicion} - <strong>Marca/Modelo:</strong>${l.marca} ${l.modelo} - Inst:${l.fecha_instalacion}</p>
+              <button onclick="borrarLlanta(${l.id_llanta},${data.id_vehiculo})" class="btn-eliminar bg-red-50 hover:bg-red-100 text-red-600 font-bold text-xs px-2.5 py-1 rounded transition ml-2">🗑️ Eliminar</button>
+            </div>`).join('') 
+          : '<p class="text-slate-400 italic">Sin registros de llantas instaladas.</p>'}
+      </div>
+    `;
+    aplicarPermisosDeRol();
+  } catch (e) {
+    contenedor.innerHTML = `<p class='text-red-600 font-bold'>Error detectado: ${e.message}</p>`;
+  }
+}
     async function cargarListaLlantas() {
       try {
         const res = await fetch(`${API_URL}/llantas/`);
