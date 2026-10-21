@@ -8,11 +8,9 @@ from sqlalchemy import func
 from sqlalchemy.orm import Session
 import cloudinary
 import cloudinary.uploader
-
 import models
 from database import engine, get_db
 
-# Configuración de Cloudinary para almacenamiento permanente
 cloudinary.config(
     cloud_name="waeqxw9d",
     api_key="843623439288624",
@@ -22,136 +20,81 @@ cloudinary.config(
 
 models.Base.metadata.create_all(bind=engine)
 
-app = FastAPI(title="API Ponderosa Flota - Backend Integrado Cloudinary", version="1.0.6")
-
-# Configuración explícita de CORS
-origins = [
-    "https://bkindex2026.github.io",
-    "http://localhost",
-    "http://localhost:8000",
-    "http://127.0.0.1:8000",
-]
+app = FastAPI(title="Ponderosa Flota API", version="1.1.0")
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=origins,
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-class LoginSchema(BaseModel):
-    email: Optional[str] = None
-    password: Optional[str] = None
-    username: Optional[str] = None
-
-def subir_a_cloudinary(archivo: UploadFile, folder: str = "ponderosa_flota") -> str:
+def subir_a_cloudinary(archivo: UploadFile, carpeta: str) -> str:
     try:
         resultado = cloudinary.uploader.upload(
             archivo.file,
-            folder=folder,
-            resource_type="auto",
-            access_mode="public"
+            folder=f"ponderosa_flota/{carpeta}",
+            resource_type="auto"
         )
-        return resultado.get("secure_url")
+        return resultado.get("secure_url", "")
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Error al subir archivo a la nube: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Error al subir archivo a Cloudinary: {str(e)}")
 
-# --- MÓDULO 1: AUTENTICACIÓN Y USUARIOS ---
+# --- ENDPOINT DE SALUD ---
+@app.get("/health")
+def health_check():
+    return {"status": "ok", "message": "Servidor backend activo."}
+
+# --- LOGIN ---
 @app.post("/login/")
-def login(payload: LoginSchema, db: Session = Depends(get_db)):
-    try:
-        raw_email = payload.email or payload.username or ""
-        raw_password = payload.password or ""
-        
-        email_usuario = raw_email.strip().lower()
-        clave_usuario = raw_password.strip()
+def login(data: dict, db: Session = Depends(get_db)):
+    email = data.get("email")
+    password = data.get("password")
+    user = db.query(models.Usuario).filter(models.Usuario.email == email).first()
+    if not user or user.password != password:
+        raise HTTPException(status_code=401, detail="Credenciales incorrectas")
+    return {
+        "access_token": user.email,
+        "token_type": "bearer",
+        "rol": user.rol,
+        "nombre": user.nombre
+    }
 
-        if not email_usuario or not clave_usuario:
-            raise HTTPException(status_code=400, detail="Debe proporcionar correo electrónico y contraseña.")
-
-        usuario = db.query(models.Usuario).filter(func.lower(models.Usuario.email) == email_usuario).first()
-        
-        if not usuario:
-            raise HTTPException(status_code=400, detail="El correo ingresado no está registrado en la base de datos.")
-        
-        clave_db = (usuario.hashed_password or "").strip()
-        if clave_db != clave_usuario:
-            raise HTTPException(status_code=400, detail="La contraseña ingresada es incorrecta.")
-
-        return {
-            "access_token": usuario.email,
-            "token_type": "bearer",
-            "rol": usuario.rol or "Lectura"
-        }
-    except HTTPException:
-        raise
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Error en servidor backend: {str(e)}")
-
-@app.post("/usuarios/")
-def crear_usuario(usuario: dict, db: Session = Depends(get_db)):
-    nuevo = models.Usuario(
-        nombre=usuario.get("nombre"),
-        email=usuario.get("email"),
-        hashed_password=usuario.get("password"),
-        rol=usuario.get("rol", "Lectura")
-    )
-    db.add(nuevo)
-    db.commit()
-    db.refresh(nuevo)
-    return {"mensaje": "Usuario creado exitosamente", "id_usuario": nuevo.id_usuario}
-
-# --- MÓDULO 2: GESTIÓN DE VEHÍCULOS Y HOJA DE VIDA ---
+# --- VEHÍCULOS ---
 @app.get("/vehiculos/")
 def listar_vehiculos(db: Session = Depends(get_db)):
-    vehiculos = db.query(models.Vehiculo).all()
-    resultado = []
-    for v in vehiculos:
-        gps_reg = db.query(models.ServicioGPS).filter(models.ServicioGPS.id_vehiculo == v.id_vehiculo).first()
-        resultado.append({
-            "id_vehiculo": v.id_vehiculo,
-            "placa": v.placa,
-            "sede_asignada": v.sede_asignada,
-            "marca": v.marca,
-            "modelo": v.modelo,
-            "anio": v.anio,
-            "numero_vin": v.numero_vin,
-            "kilometraje_actual": v.kilometraje_actual,
-            "estado": v.estado,
-            "descripcion": v.descripcion,
-            "url_tive": v.url_tive,
-            "tiene_gps": True if gps_reg else False,
-            "empresa_gps": gps_reg.empresa_gps if gps_reg else "Sin GPS",
-            "vencimiento_gps": str(gps_reg.fecha_vencimiento) if gps_reg else "N/A"
-        })
-    return resultado
+    return db.query(models.Vehiculo).order_by(models.Vehiculo.id_vehiculo.asc()).all()
 
 @app.post("/vehiculos/")
-async def crear_vehiculo(
+def crear_vehiculo(
     placa: str = Form(...),
-    sede_asignada: Optional[str] = Form("Por Asignar"),
-    marca: Optional[str] = Form("Por Especificar"),
-    modelo: Optional[str] = Form("Por Especificar"),
-    anio: Optional[int] = Form(2024),
-    numero_vin: Optional[str] = Form("S/N"),
-    descripcion: Optional[str] = Form("Registrado por placa"),
-    archivo_tive: Optional[UploadFile] = File(None),
+    sede_asignada: str = Form("Por Asignar"),
+    marca: str = Form("Por Especificar"),
+    modelo: str = Form("Por Especificar"),
+    anio: int = Form(2024),
+    numero_vin: str = Form("S/N"),
+    descripcion: str = Form(""),
+    archivo_tive: UploadFile = File(None),
     db: Session = Depends(get_db)
 ):
-    url_tive_val = None
-    if archivo_tive and archivo_tive.filename:
-        url_tive_val = subir_a_cloudinary(archivo_tive, folder="tives")
+    existente = db.query(models.Vehiculo).filter(models.Vehiculo.placa == placa.upper().strip()).first()
+    if existente:
+        raise HTTPException(status_code=400, detail="La placa ya está registrada")
+
+    url_tive = ""
+    if archivo_tive:
+        url_tive = subir_a_cloudinary(archivo_tive, "tive")
 
     nuevo_v = models.Vehiculo(
-        placa=placa,
+        placa=placa.upper().strip(),
         sede_asignada=sede_asignada,
         marca=marca,
         modelo=modelo,
         anio=anio,
         numero_vin=numero_vin,
         descripcion=descripcion,
-        url_tive=url_tive_val
+        url_tive=url_tive
     )
     db.add(nuevo_v)
     db.commit()
@@ -159,95 +102,87 @@ async def crear_vehiculo(
     return nuevo_v
 
 @app.post("/vehiculos/{id_vehiculo}/tive/")
-async def subir_tive_vehiculo(
-    id_vehiculo: int,
-    archivo_tive: UploadFile = File(...),
-    db: Session = Depends(get_db)
-):
-    vehiculo = db.query(models.Vehiculo).filter(models.Vehiculo.id_vehiculo == id_vehiculo).first()
-    if not vehiculo:
-        raise HTTPException(status_code=404, detail="Vehículo no encontrado")
-    
-    if archivo_tive and archivo_tive.filename:
-        url_cloud = subir_a_cloudinary(archivo_tive, folder="tives")
-        vehiculo.url_tive = url_cloud
-        db.commit()
-        db.refresh(vehiculo)
-        return {"mensaje": "TIVE subida a Cloudinary exitosamente", "url_tive": vehiculo.url_tive}
-    
-    raise HTTPException(status_code=400, detail="Archivo no válido")
-
-@app.get("/vehiculos/{id_vehiculo}/hoja_vida/")
-def obtener_hoja_vida(id_vehiculo: int, db: Session = Depends(get_db)):
+def subir_tive_vehiculo(id_vehiculo: int, archivo_tive: UploadFile = File(...), db: Session = Depends(get_db)):
     v = db.query(models.Vehiculo).filter(models.Vehiculo.id_vehiculo == id_vehiculo).first()
     if not v:
         raise HTTPException(status_code=404, detail="Vehículo no encontrado")
     
-    seguros = db.query(models.Seguro).filter(models.Seguro.id_vehiculo == id_vehiculo).all()
-    documentos = db.query(models.Documento).filter(models.Documento.id_vehiculo == id_vehiculo).all()
-    reparaciones = db.query(models.Reparacion).filter(models.Reparacion.id_vehiculo == id_vehiculo).all()
-    llantas = db.query(models.Llanta).filter(models.Llanta.id_vehiculo == id_vehiculo).all()
-    gps = db.query(models.ServicioGPS).filter(models.ServicioGPS.id_vehiculo == id_vehiculo).all()
-    
+    url_cloud = subir_a_cloudinary(archivo_tive, "tive")
+    v.url_tive = url_cloud
+    db.commit()
+    return {"mensaje": "Tarjeta TIVE subida a Cloudinary exitosamente", "url": url_cloud}
+
+@app.get("/vehiculos/{id_vehiculo}/hoja_vida/")
+def obtener_hoja_vida(id_vehiculo: int, db: Session = Depends(get_db)):
+    vehiculo = db.query(models.Vehiculo).filter(models.Vehiculo.id_vehiculo == id_vehiculo).first()
+    if not vehiculo:
+        raise HTTPException(status_code=404, detail="Vehículo no encontrado")
+
+    try: seguros = db.query(models.Seguro).filter(models.Seguro.id_vehiculo == id_vehiculo).all()
+    except Exception: seguros = []
+
+    try: documentos = db.query(models.Documento).filter(models.Documento.id_vehiculo == id_vehiculo).all()
+    except Exception: documentos = []
+
+    try: reparaciones = db.query(models.Reparacion).filter(models.Reparacion.id_vehiculo == id_vehiculo).all()
+    except Exception: reparaciones = []
+
+    try: gps = db.query(models.ServicioGPS).filter(models.ServicioGPS.id_vehiculo == id_vehiculo).all()
+    except Exception: gps = []
+
+    try: llantas = db.query(models.Llanta).filter(models.Llanta.id_vehiculo == id_vehiculo).all()
+    except Exception: llantas = []
+
+    try: operaciones = db.query(models.OperacionDiaria).filter(models.OperacionDiaria.id_vehiculo == id_vehiculo).all()
+    except Exception: operaciones = []
+
     return {
-        "id_vehiculo": v.id_vehiculo,
-        "placa": v.placa,
-        "sede_asignada": v.sede_asignada,
-        "marca": v.marca,
-        "modelo": v.modelo,
-        "anio": v.anio,
-        "numero_vin": v.numero_vin,
-        "kilometraje_actual": v.kilometraje_actual,
-        "url_tive": v.url_tive,
+        "id_vehiculo": vehiculo.id_vehiculo,
+        "placa": vehiculo.placa,
+        "sede_asignada": getattr(vehiculo, 'sede_asignada', 'Por Asignar'),
+        "marca": getattr(vehiculo, 'marca', 'N/A'),
+        "modelo": getattr(vehiculo, 'modelo', 'N/A'),
+        "anio": getattr(vehiculo, 'anio', 2024),
+        "numero_vin": getattr(vehiculo, 'numero_vin', 'S/N'),
+        "kilometraje_actual": getattr(vehiculo, 'kilometraje_actual', 0.0),
         "seguros": seguros,
         "documentos": documentos,
         "reparaciones": reparaciones,
+        "gps": gps,
         "llantas": llantas,
-        "gps": gps
+        "operaciones": operaciones
     }
 
-# --- MÓDULO 3: SEGUROS Y SOAT ---
+# --- SEGUROS ---
+@app.get("/seguros/vencimientos/")
+def listar_seguros_vencimientos(db: Session = Depends(get_db)):
+    return db.query(models.Seguro).order_by(models.Seguro.fecha_vencimiento.asc()).all()
+
 @app.post("/seguros/")
-async def crear_o_actualizar_seguro(
+def registrar_seguro(
     id_vehiculo: int = Form(...),
     tipo_seguro: str = Form(...),
     compania_seguros: str = Form(...),
-    broker: Optional[str] = Form("N/A"),
-    costo_prima: Optional[float] = Form(0.0),
+    broker: str = Form("N/A"),
+    costo_prima: float = Form(0.0),
     numero_poliza: str = Form(...),
-    fecha_inicio: date = Form(...),
-    fecha_vencimiento: date = Form(...),
-    archivo_adjunto: Optional[UploadFile] = File(None),
-    reemplazar: Optional[bool] = Form(False),
+    fecha_inicio: str = Form(...),
+    fecha_vencimiento: str = Form(...),
+    reemplazar: str = Form("false"),
+    archivo_adjunto: UploadFile = File(None),
     db: Session = Depends(get_db)
 ):
-    seguro_existente = db.query(models.Seguro).filter(
-        models.Seguro.id_vehiculo == id_vehiculo,
-        models.Seguro.tipo_seguro == tipo_seguro
-    ).first()
+    if reemplazar != "true":
+        existente = db.query(models.Seguro).filter(models.Seguro.id_vehiculo == id_vehiculo, models.Seguro.tipo_seguro == tipo_seguro).first()
+        if existente:
+            return {"requiere_confirmacion": True, "mensaje": f"Ya existe un {tipo_seguro} activo. ¿Desea reemplazarlo?"}
 
-    if seguro_existente and not reemplazar:
-        return {
-            "requiere_confirmacion": True,
-            "mensaje": f"Esta unidad ya cuenta con un {tipo_seguro} registrado (Póliza {seguro_existente.numero_poliza}). ¿Desea reemplazarlo con el nuevo certificado?"
-        }
+    if reemplazar == "true":
+        db.query(models.Seguro).filter(models.Seguro.id_vehiculo == id_vehiculo, models.Seguro.tipo_seguro == tipo_seguro).delete()
 
-    url_adj = None
-    if archivo_adjunto and archivo_adjunto.filename:
-        url_adj = subir_a_cloudinary(archivo_adjunto, folder="seguros")
-
-    if seguro_existente and reemplazar:
-        seguro_existente.compania_seguros = compania_seguros
-        seguro_existente.broker = broker
-        seguro_existente.costo_prima = costo_prima
-        seguro_existente.numero_poliza = numero_poliza
-        seguro_existente.fecha_inicio = fecha_inicio
-        seguro_existente.fecha_vencimiento = fecha_vencimiento
-        if url_adj:
-            seguro_existente.url_adjunto = url_adj
-        db.commit()
-        db.refresh(seguro_existente)
-        return {"requiere_confirmacion": False, "mensaje": f"{tipo_seguro} actualizado exitosamente con la nueva póliza."}
+    url_adjunto = ""
+    if archivo_adjunto:
+        url_adjunto = subir_a_cloudinary(archivo_adjunto, "seguros")
 
     nuevo_s = models.Seguro(
         id_vehiculo=id_vehiculo,
@@ -258,144 +193,108 @@ async def crear_o_actualizar_seguro(
         numero_poliza=numero_poliza,
         fecha_inicio=fecha_inicio,
         fecha_vencimiento=fecha_vencimiento,
-        url_adjunto=url_adj
+        url_adjunto=url_adjunto
     )
     db.add(nuevo_s)
     db.commit()
-    db.refresh(nuevo_s)
-    return {"requiere_confirmacion": False, "mensaje": f"{tipo_seguro} guardado exitosamente."}
-
-@app.get("/seguros/vencimientos/")
-def listar_seguros_vencimientos(db: Session = Depends(get_db)):
-    return db.query(models.Seguro).all()
+    return {"mensaje": "Seguro registrado correctamente"}
 
 @app.delete("/seguros/{id_seguro}/")
 def eliminar_seguro(id_seguro: int, db: Session = Depends(get_db)):
-    seguro = db.query(models.Seguro).filter(models.Seguro.id_seguro == id_seguro).first()
-    if not seguro:
-        raise HTTPException(status_code=404, detail="Registro no encontrado")
-    db.delete(seguro)
+    s = db.query(models.Seguro).filter(models.Seguro.id_seguro == id_seguro).first()
+    if not s:
+        raise HTTPException(status_code=404, detail="Seguro no encontrado")
+    db.delete(s)
     db.commit()
-    return {"mensaje": "Registro de seguro/SOAT eliminado con éxito"}
+    return {"mensaje": "Seguro eliminado"}
 
-# --- MÓDULO 4: REVISIONES TÉCNICAS (CITV) ---
+# --- DOCUMENTOS ---
+@app.get("/documentos/vencimientos/")
+def listar_documentos_vencimientos(db: Session = Depends(get_db)):
+    return db.query(models.Documento).order_by(models.Documento.fecha_vencimiento.asc()).all()
+
 @app.post("/documentos/")
-async def crear_documento(
+def registrar_documento(
     id_vehiculo: int = Form(...),
     tipo_documento: str = Form(...),
     entidad_emisora: str = Form(...),
     numero_documento: str = Form(...),
-    fecha_emision: date = Form(...),
-    fecha_vencimiento: date = Form(...),
-    archivo_adjunto: Optional[UploadFile] = File(None),
+    fecha_emision: str = Form(...),
+    fecha_vencimiento: str = Form(...),
+    archivo_adjunto: UploadFile = File(None),
     db: Session = Depends(get_db)
 ):
-    url_adj = None
-    if archivo_adjunto and archivo_adjunto.filename:
-        url_adj = subir_a_cloudinary(archivo_adjunto, folder="citv")
+    url_adjunto = ""
+    if archivo_adjunto:
+        url_adjunto = subir_a_cloudinary(archivo_adjunto, "documentos")
 
-    nuevo_doc = models.Documento(
+    nuevo_d = models.Documento(
         id_vehiculo=id_vehiculo,
         tipo_documento=tipo_documento,
         entidad_emisora=entidad_emisora,
         numero_documento=numero_documento,
         fecha_emision=fecha_emision,
         fecha_vencimiento=fecha_vencimiento,
-        url_adjunto=url_adj
+        url_adjunto=url_adjunto
     )
-    db.add(nuevo_doc)
+    db.add(nuevo_d)
     db.commit()
-    db.refresh(nuevo_doc)
-    return nuevo_doc
-
-@app.get("/documentos/vencimientos/")
-def listar_documentos_vencimientos(db: Session = Depends(get_db)):
-    return db.query(models.Documento).all()
+    return {"mensaje": "Documento registrado correctamente"}
 
 @app.delete("/documentos/{id_documento}/")
 def eliminar_documento(id_documento: int, db: Session = Depends(get_db)):
-    doc = db.query(models.Documento).filter(models.Documento.id_documento == id_documento).first()
-    if not doc:
+    d = db.query(models.Documento).filter(models.Documento.id_documento == id_documento).first()
+    if not d:
         raise HTTPException(status_code=404, detail="Documento no encontrado")
-    db.delete(doc)
+    db.delete(d)
     db.commit()
-    return {"mensaje": "Documento eliminado con éxito"}
+    return {"mensaje": "Documento eliminado"}
 
-# --- MÓDULO 5: RASTREO GPS ---
+# --- GPS ---
+@app.get("/gps/vencimientos/")
+def listar_gps_vencimientos(db: Session = Depends(get_db)):
+    return db.query(models.ServicioGPS).order_by(models.ServicioGPS.fecha_vencimiento.asc()).all()
+
 @app.post("/gps/")
-def crear_gps(
+def registrar_gps(
     id_vehiculo: int = Form(...),
     empresa_gps: str = Form(...),
-    fecha_inicio: date = Form(...),
-    fecha_vencimiento: date = Form(...),
+    fecha_inicio: str = Form(...),
+    fecha_vencimiento: str = Form(...),
     db: Session = Depends(get_db)
 ):
-    nuevo_gps = models.ServicioGPS(
+    v = db.query(models.Vehiculo).filter(models.Vehiculo.id_vehiculo == id_vehiculo).first()
+    if v:
+        v.tiene_gps = True
+        v.empresa_gps = empresa_gps
+        v.vencimiento_gps = fecha_vencimiento
+
+    nuevo_g = models.ServicioGPS(
         id_vehiculo=id_vehiculo,
         empresa_gps=empresa_gps,
         fecha_inicio=fecha_inicio,
         fecha_vencimiento=fecha_vencimiento
     )
-    db.add(nuevo_gps)
+    db.add(nuevo_g)
     db.commit()
-    db.refresh(nuevo_gps)
-    return nuevo_gps
+    return {"mensaje": "GPS registrado correctamente"}
 
-@app.get("/gps/vencimientos/")
-def listar_gps_vencimientos(db: Session = Depends(get_db)):
-    return db.query(models.ServicioGPS).all()
+# --- LLANTAS ---
+@app.get("/llantas/")
+def listar_llantas(db: Session = Depends(get_db)):
+    return db.query(models.Llanta).order_by(models.Llanta.id_llanta.desc()).all()
 
-# --- MÓDULO 6: TALLER Y REPUESTOS ---
-@app.post("/reparaciones/")
-async def crear_reparacion(
-    id_vehiculo: int = Form(...),
-    tipo_mantenimiento: str = Form(...),
-    taller_servicio: str = Form(...),
-    responsable_reparacion: str = Form(...),
-    fecha_ingreso: date = Form(...),
-    descripcion_falla: Optional[str] = Form(""),
-    archivo_adjunto: Optional[UploadFile] = File(None),
-    db: Session = Depends(get_db)
-):
-    url_adj = None
-    if archivo_adjunto and archivo_adjunto.filename:
-        url_adj = subir_a_cloudinary(archivo_adjunto, folder="taller")
-
-    nueva_rep = models.Reparacion(
-        id_vehiculo=id_vehiculo,
-        tipo_mantenimiento=tipo_mantenimiento,
-        taller_servicio=taller_servicio,
-        responsable_reparacion=responsable_reparacion,
-        fecha_ingreso=fecha_ingreso,
-        descripcion_falla=descripcion_falla,
-        url_adjunto=url_adj
-    )
-    db.add(nueva_rep)
-    db.commit()
-    db.refresh(nueva_rep)
-    return nueva_rep
-
-@app.delete("/reparaciones/{id_reparacion}/")
-def eliminar_reparacion(id_reparacion: int, db: Session = Depends(get_db)):
-    rep = db.query(models.Reparacion).filter(models.Reparacion.id_reparacion == id_reparacion).first()
-    if not rep:
-        raise HTTPException(status_code=404, detail="Registro de taller no encontrado")
-    db.delete(rep)
-    db.commit()
-    return {"mensaje": "Registro eliminado con éxito"}
-
-# --- MÓDULO 7: CONTROL DE LLANTAS Y NEUMÁTICOS ---
 @app.post("/llantas/")
-def crear_llanta(
+def registrar_llanta(
     id_vehiculo: int = Form(...),
-    codigo: str = Form(...),
+    codigo: str = Form("S/C"),
     marca: str = Form(...),
     modelo: str = Form(...),
     posicion: str = Form(...),
-    fecha_instalacion: date = Form(...),
+    fecha_instalacion: str = Form(...),
     db: Session = Depends(get_db)
 ):
-    nueva_llanta = models.Llanta(
+    nueva_l = models.Llanta(
         id_vehiculo=id_vehiculo,
         codigo=codigo,
         marca=marca,
@@ -403,49 +302,52 @@ def crear_llanta(
         posicion=posicion,
         fecha_instalacion=fecha_instalacion
     )
-    db.add(nueva_llanta)
+    db.add(nueva_l)
     db.commit()
-    db.refresh(nueva_llanta)
-    return nueva_llanta
-
-@app.get("/llantas/")
-def listar_llantas(db: Session = Depends(get_db)):
-    return db.query(models.Llanta).all()
+    return {"mensaje": "Llanta registrada exitosamente"}
 
 @app.delete("/llantas/{id_llanta}/")
 def eliminar_llanta(id_llanta: int, db: Session = Depends(get_db)):
-    llanta = db.query(models.Llanta).filter(models.Llanta.id_llanta == id_llanta).first()
-    if not llanta:
-        raise HTTPException(status_code=404, detail="Neumático no encontrado")
-    db.delete(llanta)
+    l = db.query(models.Llanta).filter(models.Llanta.id_llanta == id_llanta).first()
+    if not l:
+        raise HTTPException(status_code=404, detail="Llanta no encontrada")
+    db.delete(l)
     db.commit()
-    return {"mensaje": "Registro de neumático eliminado con éxito"}
+    return {"mensaje": "Llanta eliminada"}
 
-# --- MÓDULO 8: INICIALIZADOR PROTEGIDO ---
-@app.get("/init-db/")
-def inicializar_base_de_datos(db: Session = Depends(get_db)):
-    models.Base.metadata.create_all(bind=engine)
-    admin_exist = db.query(models.Usuario).filter(func.lower(models.Usuario.email) == "vtiburcioaliaga@gmail.com").first()
-    if not admin_exist:
-        admin = models.Usuario(
-            nombre="Víctor Tiburcio",
-            email="vtiburcioaliaga@gmail.com",
-            hashed_password="Bkindex123$%&",
-            rol="Administrador"
-        )
-        db.add(admin)
-        db.commit()
-        return {"mensaje": "Base de datos inicializada y usuario Administrador creado."}
-    else:
-        admin_exist.hashed_password = "Bkindex123$%&"
-        db.commit()
-        return {"mensaje": "Base de datos verificada y clave de Administrador sincronizada."}
-        # --- ENDPOINT DE SALUD (HEALTH CHECK) ---
-@app.get("/health")
-def health_check():
-    return {"status": "ok", "message": "Servidor backend activo."}
+# --- REPARACIONES ---
+@app.post("/reparaciones/")
+def registrar_reparacion(
+    id_vehiculo: int = Form(...),
+    tipo_mantenimiento: str = Form(...),
+    taller_servicio: str = Form(...),
+    responsable_reparacion: str = Form(...),
+    fecha_ingreso: str = Form(...),
+    descripcion_falla: str = Form(""),
+    db: Session = Depends(get_db)
+):
+    nueva_r = models.Reparacion(
+        id_vehiculo=id_vehiculo,
+        tipo_mantenimiento=tipo_mantenimiento,
+        taller_servicio=taller_servicio,
+        responsable_reparacion=responsable_reparacion,
+        fecha_ingreso=fecha_ingreso,
+        descripcion_falla=descripcion_falla
+    )
+    db.add(nueva_r)
+    db.commit()
+    return {"mensaje": "Registro de taller guardado correctamente"}
 
-# --- RUTAS DE OPERACIONES Y CARGA DIARIA ---
+@app.delete("/reparaciones/{id_reparacion}/")
+def eliminar_reparacion(id_reparacion: int, db: Session = Depends(get_db)):
+    r = db.query(models.Reparacion).filter(models.Reparacion.id_reparacion == id_reparacion).first()
+    if not r:
+        raise HTTPException(status_code=404, detail="Registro no encontrado")
+    db.delete(r)
+    db.commit()
+    return {"mensaje": "Registro de taller eliminado"}
+
+# --- OPERACIONES Y CARGA DIARIA ---
 @app.get("/operaciones/")
 def listar_operaciones(db: Session = Depends(get_db)):
     return db.query(models.OperacionDiaria).order_by(models.OperacionDiaria.fecha_operacion.desc()).all()
@@ -483,7 +385,7 @@ def registrar_operacion(
         observaciones=observaciones
     )
     db.add(nueva_op)
-    
+
     vehiculo = db.query(models.Vehiculo).filter(models.Vehiculo.id_vehiculo == id_vehiculo).first()
     if vehiculo and km_horometro_final > 0:
         vehiculo.kilometraje_actual = km_horometro_final
