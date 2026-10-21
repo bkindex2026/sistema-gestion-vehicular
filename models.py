@@ -124,3 +124,20 @@ class Llanta(Base):
     estado = Column(String(20), default="Instalada")
 
     vehiculo = relationship("Vehiculo", back_populates="llantas")
+    class OperacionDiaria(Base):
+    __tablename__ = "operaciones_diarias"
+
+    id_operacion = Column(Integer, primary_key=True, index=True)
+    id_vehiculo = Column(Integer, ForeignKey("vehiculos.id_vehiculo"), nullable=False)
+    chofer = Column(String(150), nullable=False)
+    fecha_operacion = Column(String(10), nullable=False)
+    tipo_trabajo = Column(String(150), nullable=False)
+    ruta_origen_destino = Column(String(200), default="")
+    carga_toneladas = Column(Float, default=0.0)
+    numero_viajes = Column(Integer, default=0)
+    km_horometro_inicial = Column(Float, default=0.0)
+    km_horometro_final = Column(Float, default=0.0)
+    galones_combustible = Column(Float, default=0.0)
+    costo_combustible = Column(Float, default=0.0)
+    grifo_surtidor = Column(String(100), default="")
+    observaciones = Column(String(255), default="")

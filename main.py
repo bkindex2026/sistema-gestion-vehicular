@@ -440,3 +440,63 @@ def inicializar_base_de_datos(db: Session = Depends(get_db)):
         admin_exist.hashed_password = "Bkindex123$%&"
         db.commit()
         return {"mensaje": "Base de datos verificada y clave de Administrador sincronizada."}
+        # --- ENDPOINT DE SALUD (HEALTH CHECK) ---
+@app.get("/health")
+def health_check():
+    return {"status": "ok", "message": "Servidor backend activo."}
+
+# --- RUTAS DE OPERACIONES Y CARGA DIARIA ---
+@app.get("/operaciones/")
+def listar_operaciones(db: Session = Depends(get_db)):
+    return db.query(models.OperacionDiaria).order_by(models.OperacionDiaria.fecha_operacion.desc()).all()
+
+@app.post("/operaciones/")
+def registrar_operacion(
+    id_vehiculo: int = Form(...),
+    chofer: str = Form(...),
+    fecha_operacion: str = Form(...),
+    tipo_trabajo: str = Form(...),
+    ruta_origen_destino: str = Form(""),
+    carga_toneladas: float = Form(0.0),
+    numero_viajes: int = Form(0),
+    km_horometro_inicial: float = Form(0.0),
+    km_horometro_final: float = Form(0.0),
+    galones_combustible: float = Form(0.0),
+    costo_combustible: float = Form(0.0),
+    grifo_surtidor: str = Form(""),
+    observaciones: str = Form(""),
+    db: Session = Depends(get_db)
+):
+    nueva_op = models.OperacionDiaria(
+        id_vehiculo=id_vehiculo,
+        chofer=chofer,
+        fecha_operacion=fecha_operacion,
+        tipo_trabajo=tipo_trabajo,
+        ruta_origen_destino=ruta_origen_destino,
+        carga_toneladas=carga_toneladas,
+        numero_viajes=numero_viajes,
+        km_horometro_inicial=km_horometro_inicial,
+        km_horometro_final=km_horometro_final,
+        galones_combustible=galones_combustible,
+        costo_combustible=costo_combustible,
+        grifo_surtidor=grifo_surtidor,
+        observaciones=observaciones
+    )
+    db.add(nueva_op)
+    
+    vehiculo = db.query(models.Vehiculo).filter(models.Vehiculo.id_vehiculo == id_vehiculo).first()
+    if vehiculo and km_horometro_final > 0:
+        vehiculo.kilometraje_actual = km_horometro_final
+
+    db.commit()
+    db.refresh(nueva_op)
+    return {"mensaje": "Parte diario registrado exitosamente", "id_operacion": nueva_op.id_operacion}
+
+@app.delete("/operaciones/{id_operacion}/")
+def eliminar_operacion(id_operacion: int, db: Session = Depends(get_db)):
+    op = db.query(models.OperacionDiaria).filter(models.OperacionDiaria.id_operacion == id_operacion).first()
+    if not op:
+        raise HTTPException(status_code=404, detail="Operación no encontrada")
+    db.delete(op)
+    db.commit()
+    return {"mensaje": "Operación eliminada"}
