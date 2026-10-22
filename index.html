@@ -926,27 +926,27 @@
     }
 
     function cambiarPestaña(nombreModulo) {
-      ["resumen", "vehiculos", "vencimientos", "llantas", "taller", "usuarios"].forEach(m => {
+    ["resumen", "vehiculos", "vencimientos", "llantas", "taller", "operaciones", "usuarios"].forEach(m => {
         const el = document.getElementById(`modulo-${m}`);
         if (el) el.classList.add("hidden");
-      });
-      const objetivo = document.getElementById(`modulo-${nombreModulo}`);
-      if (objetivo) objetivo.classList.remove("hidden");
-      
-      if (nombreModulo === 'llantas') {
+    });
+    
+    const objetivo = document.getElementById(`modulo-${nombreModulo}`);
+    if (objetivo) objetivo.classList.remove("hidden");
+
+    if (nombreModulo === 'llantas') {
         cargarListaLlantas();
-      } else if (nombreModulo === 'resumen') {
+    } else if (nombreModulo === 'resumen') {
         cargarMétricasResumen();
-      }
-      if (pestana === 'operaciones') {
+    } else if (nombreModulo === 'operaciones') {
         cargarVehiculosEnSelectOperaciones();
         cargarOperaciones();
         const campoFecha = document.getElementById("op_fecha_operacion");
         if (campoFecha && !campoFecha.value) {
             campoFecha.valueAsDate = new Date();
         }
-      }
     }
+}
 
     async function cargarListaVehiculos() {
       try {
