@@ -54,6 +54,7 @@
           <button onclick="cambiarPestaña('vencimientos')" class="px-3 py-1.5 rounded hover:bg-slate-800 transition">Vencimientos</button>
           <button onclick="cambiarPestaña('llantas')" class="px-3 py-1.5 rounded hover:bg-slate-800 transition text-amber-300 font-bold">🛞 Llantas</button>
           <button onclick="cambiarPestaña('taller')" class="px-3 py-1.5 rounded hover:bg-slate-800 transition">Taller y Repuestos</button>
+          <button onclick="cambiarPestaña('operaciones')" class="px-3 py-1.5 rounded-lg font-medium transition-colors bg-slate-800 text-slate-300 hover:bg-slate-700 hover:text-white">🚚 Operaciones y Carga</button>
           <button onclick="cambiarPestaña('usuarios')" class="seccion-usuarios px-3 py-1.5 rounded hover:bg-slate-800 transition">Usuarios</button>
         </div>
 
@@ -485,6 +486,126 @@
           </form>
         </div>
       </div>
+      <!-- PESTAÑA: OPERACIONES Y CARGA DIARIA -->
+<div id="pestana-operaciones" class="hidden space-y-6">
+  <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 bg-white p-4 rounded-xl shadow-sm border border-slate-200">
+    <div>
+      <h2 class="text-xl font-bold text-slate-800">🚚 Partes Diarios de Operaciones y Carga</h2>
+      <p class="text-xs text-slate-500">Registro diario de rutas, tonelaje, viajes y consumo de combustible</p>
+    </div>
+    <button onclick="exportarOperacionesCSV()" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg font-medium text-sm transition-colors shadow-sm flex items-center justify-center gap-2">
+      📊 Exportar a Excel (.CSV)
+    </button>
+  </div>
+
+  <!-- Formulario de Registro -->
+  <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+    <div class="bg-slate-800 px-6 py-3 border-b border-slate-700">
+      <h3 class="text-sm font-semibold text-white">Registrar Nuevo Parte Diario</h3>
+    </div>
+    <form id="form-operaciones" onsubmit="registrarOperacion(event)" class="p-6 space-y-4">
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div>
+          <label class="block text-xs font-semibold text-slate-700 uppercase mb-1">Vehículo / Placa *</label>
+          <select id="op_id_vehiculo" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-slate-500 focus:outline-none" required>
+            <option value="">Seleccione un vehículo...</option>
+          </select>
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-slate-700 uppercase mb-1">Chofer / Conductor *</label>
+          <input type="text" id="op_chofer" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-slate-500 focus:outline-none" placeholder="Nombre completo" required>
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-slate-700 uppercase mb-1">Fecha de Operación *</label>
+          <input type="date" id="op_fecha_operacion" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-slate-500 focus:outline-none" required>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div>
+          <label class="block text-xs font-semibold text-slate-700 uppercase mb-1">Tipo de Trabajo *</label>
+          <input type="text" id="op_tipo_trabajo" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-slate-500 focus:outline-none" placeholder="Ej: Transporte de Mineral" required>
+        </div>
+        <div class="md:col-span-2">
+          <label class="block text-xs font-semibold text-slate-700 uppercase mb-1">Ruta Origen - Destino</label>
+          <input type="text" id="op_ruta" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-slate-500 focus:outline-none" placeholder="Ej: Mina Áncash - Planta Chacas">
+        </div>
+      </div>
+
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div>
+          <label class="block text-xs font-semibold text-slate-700 uppercase mb-1">Carga (Toneladas)</label>
+          <input type="number" step="0.01" id="op_carga_toneladas" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-slate-500 focus:outline-none" value="0.0">
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-slate-700 uppercase mb-1">N° de Viajes</label>
+          <input type="number" id="op_numero_viajes" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-slate-500 focus:outline-none" value="0">
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-slate-700 uppercase mb-1">Km / Horómetro Inicial</label>
+          <input type="number" step="0.1" id="op_km_inicial" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-slate-500 focus:outline-none" value="0.0">
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-slate-700 uppercase mb-1">Km / Horómetro Final</label>
+          <input type="number" step="0.1" id="op_km_final" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-slate-500 focus:outline-none" value="0.0">
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div>
+          <label class="block text-xs font-semibold text-slate-700 uppercase mb-1">Combustible (Galones)</label>
+          <input type="number" step="0.01" id="op_galones" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-slate-500 focus:outline-none" value="0.0">
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-slate-700 uppercase mb-1">Costo Combustible (S/)</label>
+          <input type="number" step="0.01" id="op_costo_combustible" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-slate-500 focus:outline-none" value="0.0">
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-slate-700 uppercase mb-1">Grifo / Surtidor</label>
+          <input type="text" id="op_grifo" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-slate-500 focus:outline-none" placeholder="Ej: Primax Chacas">
+        </div>
+      </div>
+
+      <div>
+        <label class="block text-xs font-semibold text-slate-700 uppercase mb-1">Observaciones</label>
+        <input type="text" id="op_observaciones" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-slate-500 focus:outline-none" placeholder="Detalles u observaciones relevantes">
+      </div>
+
+      <div class="pt-2">
+        <button type="submit" class="w-full md:w-auto px-6 py-2.5 bg-slate-900 hover:bg-slate-800 text-white rounded-lg font-medium text-sm transition-colors shadow-sm">
+          💾 Guardar Parte Diario
+        </button>
+      </div>
+    </form>
+  </div>
+
+  <!-- Tabla de Historial -->
+  <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+    <div class="overflow-x-auto">
+      <table class="w-full text-left border-collapse text-xs md:text-sm">
+        <thead>
+          <tr class="bg-slate-800 text-slate-200 font-semibold border-b border-slate-700">
+            <th class="p-3">Fecha</th>
+            <th class="p-3">Placa</th>
+            <th class="p-3">Chofer</th>
+            <th class="p-3">Trabajo / Ruta</th>
+            <th class="p-3">Carga</th>
+            <th class="p-3">Viajes</th>
+            <th class="p-3">Km Final</th>
+            <th class="p-3">Galones</th>
+            <th class="p-3">Costo</th>
+            <th class="p-3 text-center">Acciones</th>
+          </tr>
+        </thead>
+        <tbody id="tabla-operaciones-body" class="divide-y divide-slate-200">
+          <tr>
+            <td colspan="10" class="p-4 text-center text-slate-500">Cargando registros de operaciones...</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
 
       <!-- MÓDULO 5: USUARIOS -->
       <div id="modulo-usuarios" class="hidden space-y-6">
@@ -816,6 +937,14 @@
         cargarListaLlantas();
       } else if (nombreModulo === 'resumen') {
         cargarMétricasResumen();
+      }
+      if (pestana === 'operaciones') {
+        cargarVehiculosEnSelectOperaciones();
+        cargarOperaciones();
+        const campoFecha = document.getElementById("op_fecha_operacion");
+        if (campoFecha && !campoFecha.value) {
+            campoFecha.valueAsDate = new Date();
+        }
       }
     }
 
@@ -1433,6 +1562,154 @@
       window.location.reload();
     }
 
+    let listaOperacionesCache = [];
+
+async function cargarVehiculosEnSelectOperaciones() {
+  try {
+    const resp = await fetch(`${API_URL}/vehiculos/`);
+    if (!resp.ok) return;
+    const vehiculos = await resp.json();
+    const select = document.getElementById("op_id_vehiculo");
+    select.innerHTML = '<option value="">Seleccione un vehículo...</option>';
+    vehiculos.forEach(v => {
+      select.innerHTML += `<option value="${v.id_vehiculo}">${v.placa} - ${v.marca} ${v.modelo}</option>`;
+    });
+  } catch (err) {
+    console.error("Error al cargar selector de vehículos:", err);
+  }
+}
+
+async function cargarOperaciones() {
+  const tbody = document.getElementById("tabla-operaciones-body");
+  try {
+    const [respOps, respVeh] = await Promise.all([
+      fetch(`${API_URL}/operaciones/`),
+      fetch(`${API_URL}/vehiculos/`)
+    ]);
+
+    if (!respOps.ok) throw new Error("Error API Operaciones");
+    const operaciones = await respOps.json();
+    const vehiculos = await respVeh.json();
+
+    const mapaVeh = {};
+    vehiculos.forEach(v => { mapaVeh[v.id_vehiculo] = v.placa; });
+
+    listaOperacionesCache = operaciones;
+
+    if (operaciones.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="10" class="p-4 text-center text-slate-500">No hay partes diarios registrados.</td></tr>';
+      return;
+    }
+
+    tbody.innerHTML = operaciones.map(op => `
+      <tr class="hover:bg-slate-50 transition-colors">
+        <td class="p-3 font-semibold text-slate-800">${op.fecha_operacion}</td>
+        <td class="p-3"><span class="px-2 py-0.5 bg-slate-100 text-slate-800 rounded font-bold border border-slate-300">${mapaVeh[op.id_vehiculo] || op.id_vehiculo}</span></td>
+        <td class="p-3 text-slate-700">${op.chofer}</td>
+        <td class="p-3 text-slate-700">${op.tipo_trabajo} <span class="text-xs text-slate-400">(${op.ruta_origen_destino || 'S/R'})</span></td>
+        <td class="p-3 font-medium text-slate-800">${op.carga_toneladas} t</td>
+        <td class="p-3 text-slate-700">${op.numero_viajes}</td>
+        <td class="p-3 text-slate-700">${op.km_horometro_final}</td>
+        <td class="p-3 text-slate-700">${op.galones_combustible} gal</td>
+        <td class="p-3 font-medium text-emerald-700">S/ ${op.costo_combustible.toFixed(2)}</td>
+        <td class="p-3 text-center">
+          <button onclick="eliminarOperacion(${op.id_operacion})" class="p-1 text-red-600 hover:text-red-800 hover:bg-red-50 rounded transition-colors" title="Eliminar registro">
+            🗑️
+          </button>
+        </td>
+      </tr>
+    `).join('');
+  } catch (err) {
+    console.error(err);
+    tbody.innerHTML = '<tr><td colspan="10" class="p-4 text-center text-red-500">Error al consultar el servidor.</td></tr>';
+  }
+}
+
+async function registrarOperacion(event) {
+  event.preventDefault();
+  const formData = new FormData();
+  formData.append("id_vehiculo", document.getElementById("op_id_vehiculo").value);
+  formData.append("chofer", document.getElementById("op_chofer").value);
+  formData.append("fecha_operacion", document.getElementById("op_fecha_operacion").value);
+  formData.append("tipo_trabajo", document.getElementById("op_tipo_trabajo").value);
+  formData.append("ruta_origen_destino", document.getElementById("op_ruta").value);
+  formData.append("carga_toneladas", document.getElementById("op_carga_toneladas").value || "0.0");
+  formData.append("numero_viajes", document.getElementById("op_numero_viajes").value || "0");
+  formData.append("km_horometro_inicial", document.getElementById("op_km_inicial").value || "0.0");
+  formData.append("km_horometro_final", document.getElementById("op_km_final").value || "0.0");
+  formData.append("galones_combustible", document.getElementById("op_galones").value || "0.0");
+  formData.append("costo_combustible", document.getElementById("op_costo_combustible").value || "0.0");
+  formData.append("grifo_surtidor", document.getElementById("op_grifo").value);
+  formData.append("observaciones", document.getElementById("op_observaciones").value);
+
+  try {
+    const resp = await fetch(`${API_URL}/operaciones/`, {
+      method: "POST",
+      body: formData
+    });
+
+    if (!resp.ok) {
+      const err = await resp.json();
+      alert("Error: " + (err.detail || "No se pudo registrar"));
+      return;
+    }
+
+    alert("✅ Parte diario registrado correctamente");
+    document.getElementById("form-operaciones").reset();
+    document.getElementById("op_fecha_operacion").valueAsDate = new Date();
+    cargarOperaciones();
+  } catch (err) {
+    alert("Error de conexión con el servidor");
+  }
+}
+
+async function eliminarOperacion(id) {
+  if (!confirm("¿Desea eliminar este parte diario?")) return;
+  try {
+    const resp = await fetch(`${API_URL}/operaciones/${id}/`, { method: "DELETE" });
+    if (resp.ok) {
+      alert("Registro eliminado");
+      cargarOperaciones();
+    }
+  } catch (err) {
+    alert("Error al intentar eliminar");
+  }
+}
+
+function exportarOperacionesCSV() {
+  if (!listaOperacionesCache || listaOperacionesCache.length === 0) {
+    alert("No hay registros para exportar");
+    return;
+  }
+  let csv = "ID,ID Vehiculo,Chofer,Fecha,Tipo Trabajo,Ruta,Carga Tons,N Viajes,Km Inicial,Km Final,Galones,Costo Combustible,Grifo,Observaciones\n";
+  listaOperacionesCache.forEach(op => {
+    csv += [
+      op.id_operacion,
+      op.id_vehiculo,
+      `"${(op.chofer || '').replace(/"/g, '""')}"`,
+      op.fecha_operacion,
+      `"${(op.tipo_trabajo || '').replace(/"/g, '""')}"`,
+      `"${(op.ruta_origen_destino || '').replace(/"/g, '""')}"`,
+      op.carga_toneladas,
+      op.numero_viajes,
+      op.km_horometro_inicial,
+      op.km_horometro_final,
+      op.galones_combustible,
+      op.costo_combustible,
+      `"${(op.grifo_surtidor || '').replace(/"/g, '""')}"`,
+      `"${(op.observaciones || '').replace(/"/g, '""')}"`
+    ].join(",") + "\n";
+  });
+
+  const blob = new Blob(["\uFEFF" + csv], { type: "text/csv;charset=utf-8;" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `operaciones_${new Date().toISOString().split('T')[0]}.csv`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+}
     document.addEventListener("DOMContentLoaded", () => {
       const savedRole = localStorage.getItem("user_role");
       if (savedRole) {
@@ -1442,6 +1719,7 @@
         cargarMétricasResumen();
         cargarListaVehiculos();
         cargarListaLlantas();
+        cargarOperaciones();
       }
     });
   </script>
