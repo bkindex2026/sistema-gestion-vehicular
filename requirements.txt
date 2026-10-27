@@ -5,3 +5,5 @@ psycopg2-binary
 python-multipart
 cloudinary
 pydantic
+passlib[bcrypt]
+bcrypt
