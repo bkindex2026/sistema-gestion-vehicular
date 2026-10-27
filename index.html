@@ -877,54 +877,55 @@
     }
 
     async function iniciarSesion(event) {
-      event.preventDefault();
-      const email = document.getElementById("email").value.trim();
-      const password = document.getElementById("password").value.trim();
-      const errorElem = document.getElementById("error-login");
-      const btnSubmit = document.getElementById("btn-login-submit");
+  event.preventDefault();
+  // Convierte el texto del correo a minúsculas y elimina espacios
+  const email = document.getElementById("email").value.trim().toLowerCase();
+  const password = document.getElementById("password").value.trim();
+  const errorElem = document.getElementById("error-login");
+  const btnSubmit = document.getElementById("btn-login-submit");
 
-      errorElem.classList.add("hidden");
-      btnSubmit.disabled = true;
-      btnSubmit.innerHTML = `<span class="inline-block animate-spin mr-2">🔄</span> Conectando con servidor Render...`;
+  errorElem.classList.add("hidden");
+  btnSubmit.disabled = true;
+  btnSubmit.innerHTML = `<span class="inline-block animate-spin mr-2">🔄</span> Conectando con servidor Render...`;
 
-      try {
-        const response = await fetch(`${API_URL}/login/`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ email: email, password: password })
-        });
+  try {
+    const response = await fetch(`${API_URL}/login/`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email: email, password: password })
+    });
 
-        if (!response.ok) {
-          const errData = await response.json().catch(() => null);
-          const mensajeDetallado = errData && errData.detail ? errData.detail : `Error de servidor (${response.status})`;
-          throw new Error(mensajeDetallado);
-        }
-
-        const data = await response.json();
-        localStorage.setItem("user_role", data.rol);
-        localStorage.setItem("user_email", data.access_token);
-        
-        aplicarPermisosDeRol(data.rol);
-        document.getElementById("pantalla-login").classList.add("hidden");
-        document.getElementById("pantalla-dashboard").classList.remove("hidden");
-        
-        cargarMétricasResumen();
-        cargarListaVehiculos();
-        cargarListaLlantas();
-        cargarOperaciones();
-
-      } catch (error) {
-        if (error.message === "Failed to fetch" || error.name === "TypeError") {
-          errorElem.innerText = "El servidor en Render se está iniciando. Por favor, espera 15 segundos e intenta de nuevo.";
-        } else {
-          errorElem.innerText = error.message;
-        }
-        errorElem.classList.remove("hidden");
-      } finally {
-        btnSubmit.disabled = false;
-        btnSubmit.innerHTML = "Ingresar al Sistema";
-      }
+    if (!response.ok) {
+      const errData = await response.json().catch(() => null);
+      const mensajeDetallado = errData && errData.detail ? errData.detail : `Error de servidor (${response.status})`;
+      throw new Error(mensajeDetallado);
     }
+
+    const data = await response.json();
+    localStorage.setItem("user_role", data.rol);
+    localStorage.setItem("user_email", data.access_token);
+    
+    aplicarPermisosDeRol(data.rol);
+    document.getElementById("pantalla-login").classList.add("hidden");
+    document.getElementById("pantalla-dashboard").classList.remove("hidden");
+    
+    cargarMétricasResumen();
+    cargarListaVehiculos();
+    cargarListaLlantas();
+    cargarOperaciones();
+
+  } catch (error) {
+    if (error.message === "Failed to fetch" || error.name === "TypeError") {
+      errorElem.innerText = "Error de conexión o el servidor en Render se está iniciando. Por favor, reintente en 15 segundos.";
+    } else {
+      errorElem.innerText = error.message;
+    }
+    errorElem.classList.remove("hidden");
+  } finally {
+    btnSubmit.disabled = false;
+    btnSubmit.innerHTML = "Ingresar al Sistema";
+  }
+}
 
     function aplicarPermisosDeRol(rol) {
       const userRole = rol || localStorage.getItem("user_role");
