@@ -10,6 +10,8 @@ import cloudinary
 import cloudinary.uploader
 import models
 from database import engine, get_db
+from passlib.context import CryptContext
+pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 # --- CONFIGURACIÓN DE CLOUDINARY ---
 cloudinary.config(
@@ -73,7 +75,7 @@ def health_check():
     return {"status": "ok", "message": "Servidor backend activo."}
 
 
-# --- LOGIN (TOLERANTE A MAYÚSCULAS/MINÚSCULAS) ---
+# --- LOGIN CON VERIFICACIÓN BCRYPT Y SEGURIDAD ---
 @app.post("/login/")
 def login(data: dict, db: Session = Depends(get_db)):
     raw_email = data.get("email")
@@ -82,20 +84,29 @@ def login(data: dict, db: Session = Depends(get_db)):
     if not raw_email or not password:
         raise HTTPException(status_code=400, detail="Debe ingresar correo y contraseña.")
     
-    # Normalización del correo a minúsculas
     email_clean = str(raw_email).strip().lower()
     
-    # Búsqueda insensible a mayúsculas/minúsculas en PostgreSQL
+    # Búsqueda de usuario en la base de datos (insensible a mayúsculas)
     user = db.query(models.Usuario).filter(func.lower(models.Usuario.email) == email_clean).first()
     
-    if not user or user.password != password:
+    if not user:
+        raise HTTPException(status_code=401, detail="Credenciales incorrectas")
+    
+    # Verificación de contraseña (soporta cifrado bcrypt y texto plano de respaldo)
+    es_valida = False
+    try:
+        es_valida = pwd_context.verify(password, user.password)
+    except Exception:
+        es_valida = (user.password == password)
+        
+    if not es_valida:
         raise HTTPException(status_code=401, detail="Credenciales incorrectas")
         
     return {
         "access_token": user.email,
         "token_type": "bearer",
         "rol": user.rol,
-        "nombre": user.nombre
+        "nombre": getattr(user, 'nombre', user.email)
     }
 
 
