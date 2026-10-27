@@ -4,7 +4,7 @@ from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 
 # 1. Enlace directo de respaldo a Neon.tech (Tus credenciales exactas)
-NEON_URL = "postgresql+psycopg2://neondb_owner:npg_x7kQ1LZbXW9A@ep-rough-math-a54l5h48-pooler.us-east-2.aws.neon.tech/neondb?sslmode=require"
+NEON_URL = "postgresql+psycopg2://postgresql://neondb_owner:npg_IpuMRvOFr0X2@ep-autumn-haze-b57je6if-pooler.c-7.us-east-2.aws.neon.tech/neondb?sslmode=require&channel_binding=require"
 
 # 2. Lectura estricta: Si la variable de entorno no existe o está vacía (""), fuerza NEON_URL
 env_value = os.getenv("DATABASE_URL", "").strip()

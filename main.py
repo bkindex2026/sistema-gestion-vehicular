@@ -1,4 +1,5 @@
 import os
+import bcrypt
 from typing import List, Optional
 from datetime import date
 from fastapi import FastAPI, Depends, HTTPException, status, File, UploadFile, Form
@@ -86,18 +87,24 @@ def login(data: dict, db: Session = Depends(get_db)):
     
     email_clean = str(raw_email).strip().lower()
     
-    # Búsqueda de usuario en la base de datos (insensible a mayúsculas)
+    # 1. Búsqueda de usuario (insensible a mayúsculas)
     user = db.query(models.Usuario).filter(func.lower(models.Usuario.email) == email_clean).first()
     
     if not user:
         raise HTTPException(status_code=401, detail="Credenciales incorrectas")
     
-    # Verificación de contraseña (soporta cifrado bcrypt y texto plano de respaldo)
+    # 2. Verificación nativa con bcrypt (sin pasar por passlib)
     es_valida = False
+    stored_pw = user.password or ""
+    
     try:
-        es_valida = pwd_context.verify(password, user.password)
+        if stored_pw.startswith("$2b$") or stored_pw.startswith("$2a$"):
+            # Compara directamente con la librería bcrypt oficial
+            es_valida = bcrypt.checkpw(password.encode('utf-8'), stored_pw.encode('utf-8'))
+        else:
+            es_valida = (stored_pw == password)
     except Exception:
-        es_valida = (user.password == password)
+        es_valida = False
         
     if not es_valida:
         raise HTTPException(status_code=401, detail="Credenciales incorrectas")
