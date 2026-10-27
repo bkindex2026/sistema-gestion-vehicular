@@ -25,18 +25,14 @@ models.Base.metadata.create_all(bind=engine)
 # --- INICIALIZACIÓN DE FASTAPI Y CORS ---
 app = FastAPI(title="Ponderosa Flota API", version="1.1.0")
 
-# Orígenes explícitos permitidos para autorizar a GitHub Pages y pruebas locales
-origins = [
-    "https://bkindex2026.github.io",
-    "http://localhost:5500",
-    "http://127.0.0.1:5500",
-]
-
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=origins,
-    allow_origin_regex=r"https://.*\.github\.io",
-    allow_credentials=True,
+    allow_origins=[
+        "https://bkindex2026.github.io",
+        "http://localhost:5500",
+        "http://127.0.0.1:5500"
+    ],
+    allow_credentials=False,  # Desactivado para evitar bloqueos de cabecera en navegadores móviles y desktop
     allow_methods=["*"],
     allow_headers=["*"],
 )
