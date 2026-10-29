@@ -78,6 +78,9 @@ class Llanta(Base):
     modelo = Column(String(100), nullable=False)
     posicion = Column(String(100), nullable=False)
     fecha_instalacion = Column(String(10), nullable=False)
+    km_instalacion = Column(Float, default=0.0)
+    horometro_instalacion = Column(Float, default=0.0)
+    estado_llanta = Column(String(50), default="INSTALADA")
 
 
 class Reparacion(Base):
@@ -111,3 +114,29 @@ class OperacionDiaria(Base):
     observaciones = Column(String(255), default="")
     galones_urea = Column(Float, default=0.0)
     costo_urea = Column(Float, default=0.0)
+    class MovimientoLlanta(Base):
+    __tablename__ = "movimientos_llantas"
+
+    id_movimiento = Column(Integer, primary_key=True, index=True)
+    id_llanta = Column(Integer, ForeignKey("llantas.id_llanta"), nullable=False)
+    id_vehiculo_origen = Column(Integer, nullable=True)
+    posicion_origen = Column(String(100), nullable=True)
+    id_vehiculo_destino = Column(Integer, ForeignKey("vehiculos.id_vehiculo"), nullable=False)
+    posicion_destino = Column(String(100), nullable=False)
+    fecha_movimiento = Column(String(10), nullable=False)
+    km_evento = Column(Float, default=0.0)
+    horometro_evento = Column(Float, default=0.0)
+    motivo_cambio = Column(String(255), default="Rotación preventiva")
+
+
+class ReparacionLlanta(Base):
+    __tablename__ = "reparaciones_llantas"
+
+    id_reparacion_llanta = Column(Integer, primary_key=True, index=True)
+    id_llanta = Column(Integer, ForeignKey("llantas.id_llanta"), nullable=False)
+    tipo_actividad = Column(String(100), nullable=False)
+    taller_proveedor = Column(String(150), nullable=False)
+    costo_reparacion = Column(Float, default=0.0)
+    fecha_actividad = Column(String(10), nullable=False)
+    km_evento = Column(Float, default=0.0)
+    observaciones = Column(String(255), default="")

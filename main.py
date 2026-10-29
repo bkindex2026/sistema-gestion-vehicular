@@ -349,6 +349,8 @@ def registrar_llanta(
     modelo: str = Form(...),
     posicion: str = Form(...),
     fecha_instalacion: str = Form(...),
+    km_instalacion: float = Form(0.0),
+    horometro_instalacion: float = Form(0.0),
     db: Session = Depends(get_db)
 ):
     nueva_l = models.Llanta(
@@ -357,11 +359,15 @@ def registrar_llanta(
         marca=marca,
         modelo=modelo,
         posicion=posicion,
-        fecha_instalacion=fecha_instalacion
+        fecha_instalacion=fecha_instalacion,
+        km_instalacion=km_instalacion,
+        horometro_instalacion=horometro_instalacion,
+        estado_llanta="INSTALADA"
     )
     db.add(nueva_l)
     db.commit()
-    return {"mensaje": "Llanta registrada exitosamente"}
+    db.refresh(nueva_l)
+    return {"mensaje": "Llanta registrada exitosamente", "id_llanta": nueva_l.id_llanta}
 
 
 @app.delete("/llantas/{id_llanta}/")
@@ -463,3 +469,79 @@ def eliminar_operacion(id_operacion: int, db: Session = Depends(get_db)):
     db.delete(op)
     db.commit()
     return {"mensaje": "Operación eliminada"}
+    # --- ROTACIÓN Y MOVIMIENTO DE LLANTAS ---
+@app.post("/llantas/rotar/")
+def rotar_llanta(
+    id_llanta: int = Form(...),
+    id_vehiculo_destino: int = Form(...),
+    posicion_destino: str = Form(...),
+    fecha_movimiento: str = Form(...),
+    km_evento: float = Form(0.0),
+    horometro_evento: float = Form(0.0),
+    motivo_cambio: str = Form("Rotación preventiva"),
+    db: Session = Depends(get_db)
+):
+    llanta = db.query(models.Llanta).filter(models.Llanta.id_llanta == id_llanta).first()
+    if not llanta:
+        raise HTTPException(status_code=404, detail="Llanta no encontrada")
+
+    movimiento = models.MovimientoLlanta(
+        id_llanta=id_llanta,
+        id_vehiculo_origen=llanta.id_vehiculo,
+        posicion_origen=llanta.posicion,
+        id_vehiculo_destino=id_vehiculo_destino,
+        posicion_destino=posicion_destino,
+        fecha_movimiento=fecha_movimiento,
+        km_evento=km_evento,
+        horometro_evento=horometro_evento,
+        motivo_cambio=motivo_cambio
+    )
+    db.add(movimiento)
+
+    # Actualizar ubicación actual de la llanta
+    llanta.id_vehiculo = id_vehiculo_destino
+    llanta.posicion = posicion_destino
+    db.commit()
+    return {"mensaje": "Rotación de llanta efectuada correctamente"}
+
+
+# --- REPARACIÓN Y REENCAUCHE DE LLANTAS ---
+@app.post("/llantas/reparaciones/")
+def registrar_reparacion_llanta(
+    id_llanta: int = Form(...),
+    tipo_actividad: str = Form(...),
+    taller_proveedor: str = Form(...),
+    costo_reparacion: float = Form(0.0),
+    fecha_actividad: str = Form(...),
+    km_evento: float = Form(0.0),
+    observaciones: str = Form(""),
+    db: Session = Depends(get_db)
+):
+    reparacion = models.ReparacionLlanta(
+        id_llanta=id_llanta,
+        tipo_actividad=tipo_actividad,
+        taller_proveedor=taller_proveedor,
+        costo_reparacion=costo_reparacion,
+        fecha_actividad=fecha_actividad,
+        km_evento=km_evento,
+        observaciones=observaciones
+    )
+    db.add(reparacion)
+    db.commit()
+    return {"mensaje": "Mantenimiento de llanta registrado exitosamente"}
+
+
+@app.get("/llantas/{id_llanta}/historial/")
+def historial_llanta(id_llanta: int, db: Session = Depends(get_db)):
+    llanta = db.query(models.Llanta).filter(models.Llanta.id_llanta == id_llanta).first()
+    if not llanta:
+        raise HTTPException(status_code=404, detail="Llanta no encontrada")
+
+    movimientos = db.query(models.MovimientoLlanta).filter(models.MovimientoLlanta.id_llanta == id_llanta).order_by(models.MovimientoLlanta.id_movimiento.desc()).all()
+    reparaciones = db.query(models.ReparacionLlanta).filter(models.ReparacionLlanta.id_llanta == id_llanta).order_by(models.ReparacionLlanta.id_reparacion_llanta.desc()).all()
+
+    return {
+        "llanta": llanta,
+        "movimientos": movimientos,
+        "reparaciones": reparaciones
+    }
