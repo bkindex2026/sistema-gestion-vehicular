@@ -3,26 +3,21 @@ from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 
-# 1. Enlace directo de respaldo a Neon.tech (Tus credenciales exactas)
-NEON_URL = "postgresql+psycopg2://postgresql://neondb_owner:npg_IpuMRvOFr0X2@ep-autumn-haze-b57je6if-pooler.c-7.us-east-2.aws.neon.tech/neondb?sslmode=require&channel_binding=require"
+# 1. Lectura estricta de la variable de entorno configurada en Render / Local
+DATABASE_URL = os.getenv("DATABASE_URL", "").strip()
 
-# 2. Lectura estricta: Si la variable de entorno no existe o está vacía (""), fuerza NEON_URL
-env_value = os.getenv("DATABASE_URL", "").strip()
+if not DATABASE_URL:
+    raise ValueError("CRÍTICO: La variable de entorno 'DATABASE_URL' no está configurada.")
 
-if env_value and ("postgres://" in env_value or "postgresql://" in env_value):
-    DATABASE_URL = env_value
-else:
-    DATABASE_URL = NEON_URL
-
-# 3. Corrección de protocolo para SQLAlchemy
+# 2. Corrección de protocolo para SQLAlchemy (psycopg2)
 if DATABASE_URL.startswith("postgres://"):
     DATABASE_URL = DATABASE_URL.replace("postgres://", "postgresql+psycopg2://", 1)
 elif DATABASE_URL.startswith("postgresql://") and not DATABASE_URL.startswith("postgresql+psycopg2://"):
     DATABASE_URL = DATABASE_URL.replace("postgresql://", "postgresql+psycopg2://", 1)
 
-print(f"--> Conectando a PostgreSQL Neon: {DATABASE_URL[:45]}...")
+print(f"--> Conectando a PostgreSQL Neon: {DATABASE_URL[:35]}...")
 
-# 4. Inicialización del motor y sesión
+# 3. Inicialización del motor y sesión
 engine = create_engine(DATABASE_URL, pool_pre_ping=True)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 Base = declarative_base()
