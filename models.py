@@ -109,3 +109,5 @@ class OperacionDiaria(Base):
     costo_combustible = Column(Float, default=0.0)
     grifo_surtidor = Column(String(100), default="")
     observaciones = Column(String(255), default="")
+    galones_urea = Column(Float, default=0.0)
+    costo_urea = Column(Float, default=0.0)

@@ -54,6 +54,8 @@ class OperacionSchema(BaseModel):
     km_horometro_final: Optional[float] = 0.0
     galones_combustible: Optional[float] = 0.0
     costo_combustible: Optional[float] = 0.0
+    galones_urea: Optional[float] = 0.0
+    costo_urea: Optional[float] = 0.0
     grifo_surtidor: Optional[str] = None
     observaciones: Optional[str] = None
 
@@ -373,27 +375,36 @@ def eliminar_llanta(id_llanta: int, db: Session = Depends(get_db)):
 
 
 # --- REPARACIONES Y TALLER ---
-@app.post("/reparaciones/")
-def registrar_reparacion(
-    id_vehiculo: int = Form(...),
-    tipo_mantenimiento: str = Form(...),
-    taller_servicio: str = Form(...),
-    responsable_reparacion: str = Form(...),
-    fecha_ingreso: str = Form(...),
-    descripcion_falla: str = Form(""),
-    db: Session = Depends(get_db)
-):
-    nueva_r = models.Reparacion(
-        id_vehiculo=id_vehiculo,
-        tipo_mantenimiento=tipo_mantenimiento,
-        taller_servicio=taller_servicio,
-        responsable_reparacion=responsable_reparacion,
-        fecha_ingreso=fecha_ingreso,
-        descripcion_falla=descripcion_falla
+@app.post("/operaciones/")
+def registrar_operacion(payload: OperacionSchema, db: Session = Depends(get_db)):
+    toneladas = payload.toneladas_carga if payload.toneladas_carga is not None and payload.toneladas_carga > 0 else (payload.carga_toneladas or 0.0)
+    
+    nueva_op = models.OperacionDiaria(
+        id_vehiculo=payload.id_vehiculo,
+        chofer=payload.chofer,
+        fecha_operacion=payload.fecha_operacion,
+        tipo_trabajo=payload.tipo_trabajo or "",
+        ruta_origen_destino=payload.ruta_origen_destino or "",
+        carga_toneladas=toneladas,
+        numero_viajes=payload.numero_viajes or 1,
+        km_horometro_inicial=payload.km_horometro_inicial or 0.0,
+        km_horometro_final=payload.km_horometro_final or 0.0,
+        galones_combustible=payload.galones_combustible or 0.0,
+        costo_combustible=payload.costo_combustible or 0.0,
+        galones_urea=payload.galones_urea or 0.0,   # <--- AGREGAR ESTA LÍNEA
+        costo_urea=payload.costo_urea or 0.0,       # <--- AGREGAR ESTA LÍNEA
+        grifo_surtidor=payload.grifo_surtidor or "",
+        observaciones=payload.observaciones or ""
     )
-    db.add(nueva_r)
+    db.add(nueva_op)
+    
+    vehiculo = db.query(models.Vehiculo).filter(models.Vehiculo.id_vehiculo == payload.id_vehiculo).first()
+    if vehiculo and payload.km_horometro_final and payload.km_horometro_final > 0:
+        vehiculo.kilometraje_actual = payload.km_horometro_final
+        
     db.commit()
-    return {"mensaje": "Registro de taller guardado correctamente"}
+    db.refresh(nueva_op)
+    return {"mensaje": "Parte diario registrado exitosamente", "id_operacion": nueva_op.id_operacion}
 
 
 @app.delete("/reparaciones/{id_reparacion}/")
