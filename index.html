@@ -67,23 +67,23 @@
     <main class="max-w-7xl mx-auto p-4 md:p-6 space-y-6">
       
       <!-- MÓDULO 1: RESUMEN Y KPIS -->
-      <div id="modulo-resumen" class="space-y-6">
+      <!-- TARJETAS DE KPIS AJUSTADAS -->
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           <div class="bg-white p-5 rounded-xl shadow-sm border-l-4 border-blue-600">
             <p class="text-xs text-slate-500 uppercase font-bold">Total Flota Activa</p>
             <h3 id="kpi-total-vehiculos" class="text-3xl font-bold text-slate-800 mt-1">0</h3>
           </div>
           <div class="bg-white p-5 rounded-xl shadow-sm border-l-4 border-yellow-500">
-            <p class="text-xs text-slate-500 uppercase font-bold">SOAT Vencidos / Por Vencer</p>
+            <p class="text-xs text-slate-500 uppercase font-bold">SOAT Críticos (Vencidos o ≤ 7 Días)</p>
             <h3 id="kpi-soat-vencer" class="text-3xl font-bold text-yellow-600 mt-1">0</h3>
           </div>
           <div class="bg-white p-5 rounded-xl shadow-sm border-l-4 border-red-600">
-            <p class="text-xs text-slate-500 uppercase font-bold">CITV Vencidos / Por Vencer</p>
+            <p class="text-xs text-slate-500 uppercase font-bold">CITV Críticos (Vencidos o ≤ 7 Días)</p>
             <h3 id="kpi-citv-vencidos" class="text-3xl font-bold text-red-600 mt-1">0</h3>
           </div>
-          <div class="bg-white p-5 rounded-xl shadow-sm border-l-4 border-emerald-600">
-            <p class="text-xs text-slate-500 uppercase font-bold">Servicios GPS Registrados</p>
-            <h3 id="kpi-gps-activos" class="text-3xl font-bold text-emerald-700 mt-1">0</h3>
+          <div class="bg-white p-5 rounded-xl shadow-sm border-l-4 border-slate-600">
+            <p class="text-xs text-slate-500 uppercase font-bold">Vehículos SIN GPS Activo</p>
+            <h3 id="kpi-sin-gps" class="text-3xl font-bold text-slate-700 mt-1">0</h3>
           </div>
         </div>
 
@@ -1092,83 +1092,124 @@
     }
 
     async function cargarMétricasResumen() {
-      const tbodyAlertas = document.getElementById("tabla-alertas-resumen");
-      try {
-        const [resVehiculos, resSeguros, resDocumentos, resGps] = await Promise.all([
-          fetch(`${API_URL}/vehiculos/`).then(r => r.ok ? r.json() : []),
-          fetch(`${API_URL}/seguros/vencimientos/`).then(r => r.ok ? r.json() : []),
-          fetch(`${API_URL}/documentos/vencimientos/`).then(r => r.ok ? r.json() : []),
-          fetch(`${API_URL}/gps/vencimientos/`).then(r => r.ok ? r.json() : [])
-        ]);
+  const tbodyAlertas = document.getElementById("tabla-alertas-resumen");
+  if (!tbodyAlertas) return;
 
-        const mapVehiculos = {};
-        resVehiculos.forEach(v => mapVehiculos[v.id_vehiculo] = v.placa);
+  try {
+    const [resVehiculos, resSeguros, resDocumentos, resGps] = await Promise.all([
+      fetch(`${API_URL}/vehiculos/`).then(r => r.ok ? r.json() : []),
+      fetch(`${API_URL}/seguros/vencimientos/`).then(r => r.ok ? r.json() : []),
+      fetch(`${API_URL}/documentos/vencimientos/`).then(r => r.ok ? r.json() : []),
+      fetch(`${API_URL}/gps/vencimientos/`).then(r => r.ok ? r.json() : [])
+    ]);
 
-        document.getElementById("kpi-total-vehiculos").innerText = resVehiculos.length || 0;
-        document.getElementById("kpi-soat-vencer").innerText = resSeguros.filter(s => s.tipo_seguro === "SOAT").length || 0;
-        document.getElementById("kpi-citv-vencidos").innerText = resDocumentos.length || 0;
-        document.getElementById("kpi-gps-activos").innerText = resGps.length || 0;
+    const mapVehiculos = {};
+    resVehiculos.forEach(v => mapVehiculos[v.id_vehiculo] = v.placa);
 
-        let filasHTML = "";
-        const hoy = new Date();
+    const hoy = new Date();
+    hoy.setHours(0, 0, 0, 0);
 
-        resSeguros.forEach(s => {
-          const fVenc = new Date(s.fecha_vencimiento);
-          const dias = Math.ceil((fVenc - hoy) / (1000 * 60 * 60 * 24));
-          const estadoBadge = dias < 0 
-            ? `<span class="bg-red-100 text-red-800 font-bold px-2 py-1 rounded text-xs">VENCIDO (${Math.abs(dias)} días)</span>`
-            : `<span class="bg-amber-100 text-amber-800 font-bold px-2 py-1 rounded text-xs">Por Vencer (${dias} días)</span>`;
-          
-          filasHTML += `
-            <tr class="border-b hover:bg-slate-50">
-              <td class="p-3 font-bold text-blue-600">${mapVehiculos[s.id_vehiculo] || 'ID #' + s.id_vehiculo}</td>
-              <td class="p-3 font-semibold text-slate-800">${s.tipo_seguro}</td>
-              <td class="p-3">${s.compania_seguros} (Póliza ${s.numero_poliza})</td>
-              <td class="p-3 font-mono">${s.fecha_vencimiento}</td>
-              <td class="p-3">${estadoBadge}</td>
-            </tr>`;
-        });
+    // 1. KPI Total Flota
+    document.getElementById("kpi-total-vehiculos").innerText = resVehiculos.length || 0;
 
-        resDocumentos.forEach(d => {
-          const fVenc = new Date(d.fecha_vencimiento);
-          const dias = Math.ceil((fVenc - hoy) / (1000 * 60 * 60 * 24));
-          const estadoBadge = dias < 0 
-            ? `<span class="bg-red-100 text-red-800 font-bold px-2 py-1 rounded text-xs">VENCIDO (${Math.abs(dias)} días)</span>`
-            : `<span class="bg-amber-100 text-amber-800 font-bold px-2 py-1 rounded text-xs">Por Vencer (${dias} días)</span>`;
+    // 2. KPI SOAT Críticos (Vencidos o a 7 días o menos)
+    const soatCriticos = resSeguros.filter(s => {
+      if (s.tipo_seguro !== "SOAT") return false;
+      const fVenc = new Date(s.fecha_vencimiento);
+      const dias = Math.ceil((fVenc - hoy) / (1000 * 60 * 60 * 24));
+      return dias <= 7;
+    });
+    document.getElementById("kpi-soat-vencer").innerText = soatCriticos.length;
 
-          filasHTML += `
-            <tr class="border-b hover:bg-slate-50">
-              <td class="p-3 font-bold text-blue-600">${mapVehiculos[d.id_vehiculo] || 'ID #' + d.id_vehiculo}</td>
-              <td class="p-3 font-semibold text-slate-800">Revisión Técnica CITV</td>
-              <td class="p-3">${d.entidad_emisora} (Cert. ${d.numero_documento})</td>
-              <td class="p-3 font-mono">${d.fecha_vencimiento}</td>
-              <td class="p-3">${estadoBadge}</td>
-            </tr>`;
-        });
+    // 3. KPI CITV Críticos (Vencidos o a 7 días o menos)
+    const citvCriticos = resDocumentos.filter(d => {
+      const fVenc = new Date(d.fecha_vencimiento);
+      const dias = Math.ceil((fVenc - hoy) / (1000 * 60 * 60 * 24));
+      return dias <= 7;
+    });
+    document.getElementById("kpi-citv-vencidos").innerText = citvCriticos.length;
 
-        resGps.forEach(g => {
-          const fVenc = new Date(g.fecha_vencimiento);
-          const dias = Math.ceil((fVenc - hoy) / (1000 * 60 * 60 * 24));
-          const estadoBadge = dias < 0 
-            ? `<span class="bg-red-100 text-red-800 font-bold px-2 py-1 rounded text-xs">VENCIDO (${Math.abs(dias)} días)</span>`
-            : `<span class="bg-amber-100 text-amber-800 font-bold px-2 py-1 rounded text-xs">Por Vencer (${dias} días)</span>`;
+    // 4. KPI Vehículos SIN GPS
+    const sinGpsCount = resVehiculos.filter(v => !v.tiene_gps).length;
+    const elemSinGps = document.getElementById("kpi-sin-gps");
+    if (elemSinGps) elemSinGps.innerText = sinGpsCount;
 
-          filasHTML += `
-            <tr class="border-b hover:bg-slate-50">
-              <td class="p-3 font-bold text-blue-600">${mapVehiculos[g.id_vehiculo] || 'ID #' + g.id_vehiculo}</td>
-              <td class="p-3 font-semibold text-slate-800">Servicio GPS Satelital</td>
-              <td class="p-3">${g.empresa_gps}</td>
-              <td class="p-3 font-mono">${g.fecha_vencimiento}</td>
-              <td class="p-3">${estadoBadge}</td>
-            </tr>`;
-        });
+    // 5. CONSOLIDADO DE ALERTAS DE MENOR A MAYOR POR DÍAS RESTANTES
+    const listaAlertas = [];
 
-        tbodyAlertas.innerHTML = filasHTML || `<tr><td colspan="5" class="p-4 text-center text-slate-400">✅ No hay alertas de vencimiento pendientes en la flota.</td></tr>`;
+    // Mapear Seguros/SOAT
+    resSeguros.forEach(s => {
+      const fVenc = new Date(s.fecha_vencimiento);
+      const dias = Math.ceil((fVenc - hoy) / (1000 * 60 * 60 * 24));
+      listaAlertas.push({
+        placa: mapVehiculos[s.id_vehiculo] || `ID #${s.id_vehiculo}`,
+        tipo: s.tipo_seguro,
+        detalle: `${s.compania_seguros} (Póliza ${s.numero_poliza})`,
+        fecha: s.fecha_vencimiento,
+        dias: dias
+      });
+    });
 
-      } catch (error) {
-        console.error("Error cargando métricas:", error);
+    // Mapear CITV
+    resDocumentos.forEach(d => {
+      const fVenc = new Date(d.fecha_vencimiento);
+      const dias = Math.ceil((fVenc - hoy) / (1000 * 60 * 60 * 24));
+      listaAlertas.push({
+        placa: mapVehiculos[d.id_vehiculo] || `ID #${d.id_vehiculo}`,
+        tipo: "Revisión Técnica CITV",
+        detalle: `${d.entidad_emisora} (Cert. ${d.numero_documento})`,
+        fecha: d.fecha_vencimiento,
+        dias: dias
+      });
+    });
+
+    // Mapear GPS
+    resGps.forEach(g => {
+      const fVenc = new Date(g.fecha_vencimiento);
+      const dias = Math.ceil((fVenc - hoy) / (1000 * 60 * 60 * 24));
+      listaAlertas.push({
+        placa: mapVehiculos[g.id_vehiculo] || `ID #${g.id_vehiculo}`,
+        tipo: "Servicio GPS Satelital",
+        detalle: g.empresa_gps,
+        fecha: g.fecha_vencimiento,
+        dias: dias
+      });
+    });
+
+    // ORDENAR ESTRICTAMENTE DE MENOR A MAYOR POR DÍAS RESTANTES
+    listaAlertas.sort((a, b) => a.dias - b.dias);
+
+    // Renderizar tabla
+    let filasHTML = "";
+    listaAlertas.forEach(item => {
+      let estadoBadge = "";
+      if (item.dias < 0) {
+        estadoBadge = `<span class="bg-red-100 text-red-800 font-bold px-2.5 py-1 rounded-full text-xs">⚠️ VENCIDO (${Math.abs(item.dias)} días)</span>`;
+      } else if (item.dias <= 7) {
+        estadoBadge = `<span class="bg-amber-100 text-amber-800 font-bold px-2.5 py-1 rounded-full text-xs">⚡ Crítico (${item.dias} días)</span>`;
+      } else if (item.dias <= 30) {
+        estadoBadge = `<span class="bg-yellow-100 text-yellow-800 font-semibold px-2.5 py-1 rounded-full text-xs">Por Vencer (${item.dias} días)</span>`;
+      } else {
+        estadoBadge = `<span class="bg-emerald-100 text-emerald-800 font-medium px-2.5 py-1 rounded-full text-xs">Vigente (${item.dias} días)</span>`;
       }
-    }
+
+      filasHTML += `
+        <tr class="border-b hover:bg-slate-50 transition-colors">
+          <td class="p-3 font-bold text-blue-600">${item.placa}</td>
+          <td class="p-3 font-semibold text-slate-800">${item.tipo}</td>
+          <td class="p-3 text-slate-600">${item.detalle}</td>
+          <td class="p-3 font-mono font-medium">${item.fecha}</td>
+          <td class="p-3">${estadoBadge}</td>
+        </tr>`;
+    });
+
+    tbodyAlertas.innerHTML = filasHTML || `<tr><td colspan="5" class="p-4 text-center text-slate-400">✅ No hay alertas pendientes en la flota.</td></tr>`;
+
+  } catch (error) {
+    console.error("Error cargando métricas:", error);
+    tbodyAlertas.innerHTML = `<tr><td colspan="5" class="p-4 text-center text-red-500 font-semibold">Error al obtener las alertas del servidor.</td></tr>`;
+  }
+}
 
     async function cargarListaLlantas() {
       try {
