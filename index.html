@@ -49,15 +49,15 @@
         </div>
         
         <div class="flex flex-wrap justify-center gap-2 md:gap-3 text-xs md:text-sm font-semibold">
-  <button onclick="cambiarPestaña('resumen')" class="px-3 py-1.5 rounded bg-slate-800 hover:bg-slate-700 transition">📊 Resumen</button>
-  <button onclick="cambiarPestaña('vehiculos')" class="px-3 py-1.5 rounded bg-slate-800 hover:bg-slate-700 transition">🚛 Vehículos</button>
-  <button onclick="cambiarPestaña('vencimientos')" class="px-3 py-1.5 rounded bg-slate-800 hover:bg-slate-700 transition">📅 Documentos</button>
-  <button onclick="cambiarPestaña('llantas')" class="px-3 py-1.5 rounded bg-slate-800 hover:bg-slate-700 transition">🛞 Llantas</button>
-  <button onclick="cambiarPestaña('taller')" class="px-3 py-1.5 rounded bg-slate-800 hover:bg-slate-700 transition">🛠️ Taller</button>
-  <button onclick="cambiarPestaña('operaciones')" class="px-3 py-1.5 rounded bg-slate-800 hover:bg-slate-700 transition">🚚 Operaciones</button>
-  <button onclick="cambiarPestaña('checklist')" class="px-3 py-1.5 rounded bg-indigo-700 hover:bg-indigo-600 font-bold transition">📋 Checklist</button>
-  <button onclick="cambiarPestaña('usuarios')" class="seccion-usuarios px-3 py-1.5 rounded bg-slate-800 hover:bg-slate-700 transition">👥 Usuarios</button>
-</div>
+          <button onclick="cambiarPestaña('resumen')" class="px-3 py-1.5 rounded bg-slate-800 hover:bg-slate-700 transition">📊 Resumen</button>
+          <button onclick="cambiarPestaña('vehiculos')" class="px-3 py-1.5 rounded bg-slate-800 hover:bg-slate-700 transition">🚛 Vehículos</button>
+          <button onclick="cambiarPestaña('vencimientos')" class="px-3 py-1.5 rounded bg-slate-800 hover:bg-slate-700 transition">📅 Documentos</button>
+          <button onclick="cambiarPestaña('llantas')" class="px-3 py-1.5 rounded bg-slate-800 hover:bg-slate-700 transition">🛞 Llantas</button>
+          <button onclick="cambiarPestaña('taller')" class="px-3 py-1.5 rounded bg-slate-800 hover:bg-slate-700 transition">🛠️ Taller</button>
+          <button onclick="cambiarPestaña('operaciones')" class="px-3 py-1.5 rounded bg-slate-800 hover:bg-slate-700 transition">🚚 Operaciones</button>
+          <button onclick="cambiarPestaña('checklist')" class="px-3 py-1.5 rounded bg-indigo-700 hover:bg-indigo-600 font-bold transition">📋 Checklist</button>
+          <button onclick="cambiarPestaña('usuarios')" class="seccion-usuarios px-3 py-1.5 rounded bg-slate-800 hover:bg-slate-700 transition">👥 Usuarios</button>
+        </div>
 
         <button onclick="cerrarSesion()" class="bg-red-600 hover:bg-red-700 text-xs px-3 py-1.5 rounded transition">Cerrar Sesión</button>
       </div>
@@ -325,90 +325,90 @@
       </div>
 
       <!-- MÓDULO CONTROL DE LLANTAS Y NEUMÁTICOS EXTENDIDO -->
-<div id="modulo-llantas" class="hidden space-y-6">
-  <div class="bg-white p-6 rounded-xl shadow-sm border-l-4 border-amber-500 space-y-4">
-    <div class="flex justify-between items-center border-b pb-2">
-      <h2 class="text-lg font-bold text-slate-800">🛞 Registro y Control de Llantas por Vehículo</h2>
-      <span class="bg-amber-100 text-amber-800 text-xs font-bold px-2.5 py-1 rounded">Mantenimiento de Neumáticos</span>
-    </div>
-    <form id="form-llanta" onsubmit="registrarLlanta(event)" class="grid grid-cols-1 md:grid-cols-4 gap-4">
-      <div>
-        <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Vehículo Asignado (*)</label>
-        <select id="ll-vehiculo" required class="select-vehiculos-dinamico w-full p-2.5 border rounded-lg text-sm"><option value="">Cargando vehículos...</option></select>
-      </div>
-      <div>
-        <label class="block text-xs font-semibold text-amber-700 uppercase mb-1">Código / N° Serie (*)</label>
-        <input type="text" id="ll-codigo" required placeholder="Ej. LLA-2024-001 / DOT 1223" class="w-full p-2.5 border rounded-lg text-sm border-amber-300 focus:ring-2 focus:ring-amber-500">
-      </div>
-      <div>
-        <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Marca (*)</label>
-        <input type="text" id="ll-marca" required placeholder="Ej. Michelin / Goodyear" class="w-full p-2.5 border rounded-lg text-sm">
-      </div>
-      <div>
-        <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Modelo (*)</label>
-        <input type="text" id="ll-modelo" required placeholder="Ej. X Multi Z / R249" class="w-full p-2.5 border rounded-lg text-sm">
-      </div>
-      <div>
-        <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Posición / Eje (*)</label>
-        <select id="ll-posicion" required class="w-full p-2.5 border rounded-lg text-sm">
-          <option value="">Seleccione posición...</option>
-          <option value="Delantera Izquierda (1)">Delantera Izquierda (1)</option>
-          <option value="Delantera Derecha (2)">Delantera Derecha (2)</option>
-          <option value="Tracción Izq Exterior (3)">Tracción Izq Exterior (3)</option>
-          <option value="Tracción Izq Interior (4)">Tracción Izq Interior (4)</option>
-          <option value="Tracción Der Interior (5)">Tracción Der Interior (5)</option>
-          <option value="Tracción Der Exterior (6)">Tracción Der Exterior (6)</option>
-          <option value="Eje Posterior Izquierdo">Eje Posterior Izquierdo</option>
-          <option value="Eje Posterior Derecho">Eje Posterior Derecho</option>
-          <option value="Repuesto 1">Repuesto 1</option>
-          <option value="Repuesto 2">Repuesto 2</option>
-        </select>
-      </div>
-      <div>
-        <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Fecha Instalación (*)</label>
-        <input type="date" id="ll-fecha" required class="w-full p-2.5 border rounded-lg text-sm">
-      </div>
-      <div>
-        <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Km de Instalación</label>
-        <input type="number" step="0.1" id="ll-km" placeholder="0.0" class="w-full p-2.5 border rounded-lg text-sm">
-      </div>
-      <div>
-        <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Horómetro de Instalación</label>
-        <input type="number" step="0.1" id="ll-horometro" placeholder="0.0" class="w-full p-2.5 border rounded-lg text-sm">
-      </div>
-      <div class="md:col-span-4 flex justify-end">
-        <button type="submit" class="btn-crear bg-amber-600 hover:bg-amber-700 text-white font-bold px-6 py-2.5 rounded-lg text-sm transition">Guardar Neumático</button>
-      </div>
-    </form>
-  </div>
+      <div id="modulo-llantas" class="hidden space-y-6">
+        <div class="bg-white p-6 rounded-xl shadow-sm border-l-4 border-amber-500 space-y-4">
+          <div class="flex justify-between items-center border-b pb-2">
+            <h2 class="text-lg font-bold text-slate-800">🛞 Registro y Control de Llantas por Vehículo</h2>
+            <span class="bg-amber-100 text-amber-800 text-xs font-bold px-2.5 py-1 rounded">Mantenimiento de Neumáticos</span>
+          </div>
+          <form id="form-llanta" onsubmit="registrarLlanta(event)" class="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div>
+              <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Vehículo Asignado (*)</label>
+              <select id="ll-vehiculo" required class="select-vehiculos-dinamico w-full p-2.5 border rounded-lg text-sm"><option value="">Cargando vehículos...</option></select>
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-amber-700 uppercase mb-1">Código / N° Serie (*)</label>
+              <input type="text" id="ll-codigo" required placeholder="Ej. LLA-2024-001 / DOT 1223" class="w-full p-2.5 border rounded-lg text-sm border-amber-300 focus:ring-2 focus:ring-amber-500">
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Marca (*)</label>
+              <input type="text" id="ll-marca" required placeholder="Ej. Michelin / Goodyear" class="w-full p-2.5 border rounded-lg text-sm">
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Modelo (*)</label>
+              <input type="text" id="ll-modelo" required placeholder="Ej. X Multi Z / R249" class="w-full p-2.5 border rounded-lg text-sm">
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Posición / Eje (*)</label>
+              <select id="ll-posicion" required class="w-full p-2.5 border rounded-lg text-sm">
+                <option value="">Seleccione posición...</option>
+                <option value="Delantera Izquierda (1)">Delantera Izquierda (1)</option>
+                <option value="Delantera Derecha (2)">Delantera Derecha (2)</option>
+                <option value="Tracción Izq Exterior (3)">Tracción Izq Exterior (3)</option>
+                <option value="Tracción Izq Interior (4)">Tracción Izq Interior (4)</option>
+                <option value="Tracción Der Interior (5)">Tracción Der Interior (5)</option>
+                <option value="Tracción Der Exterior (6)">Tracción Der Exterior (6)</option>
+                <option value="Eje Posterior Izquierdo">Eje Posterior Izquierdo</option>
+                <option value="Eje Posterior Derecho">Eje Posterior Derecho</option>
+                <option value="Repuesto 1">Repuesto 1</option>
+                <option value="Repuesto 2">Repuesto 2</option>
+              </select>
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Fecha Instalación (*)</label>
+              <input type="date" id="ll-fecha" required class="w-full p-2.5 border rounded-lg text-sm">
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Km de Instalación</label>
+              <input type="number" step="0.1" id="ll-km" placeholder="0.0" class="w-full p-2.5 border rounded-lg text-sm">
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Horómetro de Instalación</label>
+              <input type="number" step="0.1" id="ll-horometro" placeholder="0.0" class="w-full p-2.5 border rounded-lg text-sm">
+            </div>
+            <div class="md:col-span-4 flex justify-end">
+              <button type="submit" class="btn-crear bg-amber-600 hover:bg-amber-700 text-white font-bold px-6 py-2.5 rounded-lg text-sm transition">Guardar Neumático</button>
+            </div>
+          </form>
+        </div>
 
-  <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
-    <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-4 gap-2">
-      <h3 class="text-base font-bold text-slate-800">Inventario General de Neumáticos Instalados</h3>
-      <button onclick="exportarReporteLlantas()" class="bg-emerald-700 hover:bg-emerald-800 text-white font-bold px-4 py-2 rounded-lg text-xs transition flex items-center gap-1.5 shadow-sm">
-        📊 Exportar Reporte Total de Llantas (Excel)
-      </button>
-    </div>
-    <div class="overflow-x-auto">
-      <table class="w-full text-left border-collapse text-xs md:text-sm">
-        <thead>
-          <tr class="border-b bg-slate-50 text-slate-600 font-semibold uppercase">
-            <th class="p-3">ID</th>
-            <th class="p-3">Placa Vehículo</th>
-            <th class="p-3 text-amber-700">Código / N° Serie</th>
-            <th class="p-3">Marca / Modelo</th>
-            <th class="p-3">Posición / Eje</th>
-            <th class="p-3">Km Inst.</th>
-            <th class="p-3">Acciones de Trazabilidad</th>
-          </tr>
-        </thead>
-        <tbody id="tabla-llantas-lista">
-          <tr><td colspan="7" class="p-4 text-center text-slate-400">Cargando inventario de llantas...</td></tr>
-        </tbody>
-      </table>
-    </div>
-  </div>
-</div>
+        <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
+          <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-4 gap-2">
+            <h3 class="text-base font-bold text-slate-800">Inventario General de Neumáticos Instalados</h3>
+            <button onclick="exportarReporteLlantas()" class="bg-emerald-700 hover:bg-emerald-800 text-white font-bold px-4 py-2 rounded-lg text-xs transition flex items-center gap-1.5 shadow-sm">
+              📊 Exportar Reporte Total de Llantas (Excel)
+            </button>
+          </div>
+          <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse text-xs md:text-sm">
+              <thead>
+                <tr class="border-b bg-slate-50 text-slate-600 font-semibold uppercase">
+                  <th class="p-3">ID</th>
+                  <th class="p-3">Placa Vehículo</th>
+                  <th class="p-3 text-amber-700">Código / N° Serie</th>
+                  <th class="p-3">Marca / Modelo</th>
+                  <th class="p-3">Posición / Eje</th>
+                  <th class="p-3">Km Inst.</th>
+                  <th class="p-3">Acciones de Trazabilidad</th>
+                </tr>
+              </thead>
+              <tbody id="tabla-llantas-lista">
+                <tr><td colspan="7" class="p-4 text-center text-slate-400">Cargando inventario de llantas...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
 
       <!-- MÓDULO 4: TALLER Y REPUESTOS -->
       <div id="modulo-taller" class="hidden space-y-6">
@@ -495,7 +495,7 @@
         </div>
       </div>
 
-      <!-- MÓDULO 5: OPERACIONES Y CARGA DIARIA (v1.1.0) -->
+      <!-- MÓDULO 5: OPERACIONES Y CARGA DIARIA -->
       <div id="modulo-operaciones" class="hidden space-y-6">
         <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 bg-white p-4 rounded-xl shadow-sm border border-slate-200 border-l-4 border-amber-500">
           <div>
@@ -516,7 +516,7 @@
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div>
                 <label class="block text-xs font-semibold text-slate-700 uppercase mb-1">Vehículo / Placa *</label>
-                <select id="op_id_vehiculo" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-amber-500 focus:outline-none" required>
+                <select id="op_id_vehiculo" class="select-vehiculos-dinamico w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-amber-500 focus:outline-none" required>
                   <option value="">Cargando vehículos...</option>
                 </select>
               </div>
@@ -541,137 +541,34 @@
               </div>
             </div>
 
-           <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
-  <div>
-    <label class="block text-xs font-semibold text-slate-700 uppercase mb-1">Diésel (Galones)</label>
-    <input type="number" step="0.01" id="op_galones" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-amber-500 focus:outline-none" placeholder="0.00">
-  </div>
-  <div>
-    <label class="block text-xs font-semibold text-slate-700 uppercase mb-1">Costo Diésel (S/)</label>
-    <input type="number" step="0.01" id="op_costo_combustible" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-amber-500 focus:outline-none" placeholder="0.00">
-  </div>
-  <div>
-    <label class="block text-xs font-semibold text-amber-700 uppercase mb-1">Urea (Gal / Lt)</label>
-    <input type="number" step="0.01" id="op_galones_urea" class="w-full px-3 py-2 border border-amber-300 rounded-lg text-sm focus:ring-2 focus:ring-amber-500 focus:outline-none" placeholder="0.00">
-  </div>
-  <div>
-    <label class="block text-xs font-semibold text-amber-700 uppercase mb-1">Costo Urea (S/)</label>
-    <input type="number" step="0.01" id="op_costo_urea" class="w-full px-3 py-2 border border-amber-300 rounded-lg text-sm focus:ring-2 focus:ring-amber-500 focus:outline-none" placeholder="0.00">
-  </div>
-</div>
-<!-- MÓDULO CHECKLIST VEHICULAR PRE-OPERATIVO -->
-<div id="modulo-checklist" class="hidden space-y-6">
-  <div class="bg-white p-6 rounded-xl shadow-sm border-l-4 border-indigo-600 space-y-4">
-    <div class="flex justify-between items-center border-b pb-2">
-      <h2 class="text-lg font-bold text-slate-800">📋 Inspección Pre-operativa y Checklist Vehicular</h2>
-      <span class="bg-indigo-100 text-indigo-800 text-xs font-bold px-2.5 py-1 rounded">Control Diario</span>
-    </div>
-    
-    <form id="form-checklist" onsubmit="registrarChecklist(event)" class="space-y-4">
-      <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <div>
-          <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Vehículo Inspeccionado (*)</label>
-          <select id="chk-vehiculo" required class="select-vehiculos-dinamico w-full p-2.5 border rounded-lg text-sm"><option value="">Cargando...</option></select>
-        </div>
-        <div>
-          <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Conductor / Inspector (*)</label>
-          <input type="text" id="chk-conductor" required placeholder="Nombre completo" class="w-full p-2.5 border rounded-lg text-sm">
-        </div>
-        <div>
-          <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Fecha Inspección (*)</label>
-          <input type="date" id="chk-fecha" required class="w-full p-2.5 border rounded-lg text-sm">
-        </div>
-        <div>
-          <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Kilometraje Actual</label>
-          <input type="number" step="0.1" id="chk-km" placeholder="0.0" class="w-full p-2.5 border rounded-lg text-sm">
-        </div>
-      </div>
-
-      <!-- MATRIZ DE VERIFICACIÓN -->
-      <div class="bg-slate-50 p-4 rounded-lg border space-y-3">
-        <h3 class="text-xs font-bold text-slate-700 uppercase tracking-wider">Estado de Sistemas Principales</h3>
-        <div class="grid grid-cols-1 md:grid-cols-5 gap-3 text-xs">
-          <div>
-            <label class="block font-semibold mb-1">Documentos (SOAT/CITV)</label>
-            <select id="chk-doc" class="w-full p-2 border rounded-lg"><option value="OK">✅ Conforme (OK)</option><option value="OBSERVADO">⚠️ Observado</option></select>
-          </div>
-          <div>
-            <label class="block font-semibold mb-1">Luces / Faros Exterior</label>
-            <select id="chk-luces" class="w-full p-2 border rounded-lg"><option value="OK">✅ Conforme (OK)</option><option value="OBSERVADO">⚠️ Observado</option></select>
-          </div>
-          <div>
-            <label class="block font-semibold mb-1">Neumáticos y Presión</label>
-            <select id="chk-neumaticos" class="w-full p-2 border rounded-lg"><option value="OK">✅ Conforme (OK)</option><option value="OBSERVADO">⚠️ Observado</option></select>
-          </div>
-          <div>
-            <label class="block font-semibold mb-1">Niveles (Aceite/Agua/Urea)</label>
-            <select id="chk-niveles" class="w-full p-2 border rounded-lg"><option value="OK">✅ Conforme (OK)</option><option value="OBSERVADO">⚠️ Observado</option></select>
-          </div>
-          <div>
-            <label class="block font-semibold mb-1">Equipos de Seguridad</label>
-            <select id="chk-seguridad" class="w-full p-2 border rounded-lg"><option value="OK">✅ Conforme (OK)</option><option value="OBSERVADO">⚠️ Observado</option></select>
-          </div>
-        </div>
-      </div>
-
-      <!-- ALERTA DE INCONVENIENTE -->
-      <div class="bg-amber-50 p-4 rounded-lg border border-amber-200 space-y-2">
-        <div class="flex items-center gap-2">
-          <input type="checkbox" id="chk-tiene-inc" onchange="toggleDetalleInc(this.checked)" class="w-4 h-4 text-amber-600 rounded">
-          <label for="chk-tiene-inc" class="text-xs font-bold text-amber-900 uppercase">¿El vehículo presenta alguna falla o inconveniente para enviar a Taller?</label>
-        </div>
-        <div id="contenedor-detalle-inc" class="hidden">
-          <textarea id="chk-detalle-inc" rows="2" placeholder="Describa detalladamente la falla detectada. Esto creará automáticamente un reporte pendiente en el Módulo de Taller..." class="w-full p-2.5 border rounded-lg text-sm border-amber-300 focus:ring-2 focus:ring-amber-500"></textarea>
-        </div>
-      </div>
-
-      <div class="flex justify-end">
-        <button type="submit" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-6 py-2.5 rounded-lg text-sm transition">Guardar Inspección</button>
-      </div>
-    </form>
-  </div>
-
-  <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
-    <h3 class="text-base font-bold text-slate-800 mb-4">Historial de Inspecciones Pre-operativas</h3>
-    <div class="overflow-x-auto">
-      <table class="w-full text-left border-collapse text-xs md:text-sm">
-        <thead>
-          <tr class="border-b bg-slate-50 text-slate-600 font-semibold uppercase">
-            <th class="p-3">ID</th>
-            <th class="p-3">Fecha</th>
-            <th class="p-3">Vehículo</th>
-            <th class="p-3">Conductor</th>
-            <th class="p-3">Km</th>
-            <th class="p-3">Resultado</th>
-            <th class="p-3">Observaciones de Taller</th>
-          </tr>
-        </thead>
-        <tbody id="tabla-checklists-lista">
-          <tr><td colspan="7" class="p-4 text-center text-slate-400">Cargando inspecciones...</td></tr>
-        </tbody>
-      </table>
-    </div>
-  </div>
-</div>
-
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
               <div>
-                <label class="block text-xs font-semibold text-slate-700 uppercase mb-1">Combustible (Galones)</label>
+                <label class="block text-xs font-semibold text-slate-700 uppercase mb-1">Diésel (Galones)</label>
                 <input type="number" step="0.01" id="op_galones" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-amber-500 focus:outline-none" placeholder="0.00">
               </div>
               <div>
-                <label class="block text-xs font-semibold text-slate-700 uppercase mb-1">Costo Combustible (S/)</label>
+                <label class="block text-xs font-semibold text-slate-700 uppercase mb-1">Costo Diésel (S/)</label>
                 <input type="number" step="0.01" id="op_costo_combustible" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-amber-500 focus:outline-none" placeholder="0.00">
               </div>
+              <div>
+                <label class="block text-xs font-semibold text-amber-700 uppercase mb-1">Urea (Gal / Lt)</label>
+                <input type="number" step="0.01" id="op_galones_urea" class="w-full px-3 py-2 border border-amber-300 rounded-lg text-sm focus:ring-2 focus:ring-amber-500 focus:outline-none" placeholder="0.00">
+              </div>
+              <div>
+                <label class="block text-xs font-semibold text-amber-700 uppercase mb-1">Costo Urea (S/)</label>
+                <input type="number" step="0.01" id="op_costo_urea" class="w-full px-3 py-2 border border-amber-300 rounded-lg text-sm focus:ring-2 focus:ring-amber-500 focus:outline-none" placeholder="0.00">
+              </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <label class="block text-xs font-semibold text-slate-700 uppercase mb-1">Grifo / Surtidor</label>
                 <input type="text" id="op_grifo" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-amber-500 focus:outline-none" placeholder="Ej. Primax Chacas">
               </div>
-            </div>
-
-            <div>
-              <label class="block text-xs font-semibold text-slate-700 uppercase mb-1">Observaciones</label>
-              <input type="text" id="op_observaciones" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-amber-500 focus:outline-none" placeholder="Detalles u observaciones relevantes">
+              <div>
+                <label class="block text-xs font-semibold text-slate-700 uppercase mb-1">Observaciones</label>
+                <input type="text" id="op_observaciones" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-amber-500 focus:outline-none" placeholder="Detalles u observaciones relevantes">
+              </div>
             </div>
 
             <div class="flex justify-end gap-3 pt-2">
@@ -710,6 +607,101 @@
                 <tr>
                   <td colspan="10" class="p-4 text-center text-slate-500">Cargando registros de operaciones...</td>
                 </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- MÓDULO CHECKLIST VEHICULAR PRE-OPERATIVO (UBICACIÓN CORRECTA E INDEPENDIENTE) -->
+      <div id="modulo-checklist" class="hidden space-y-6">
+        <div class="bg-white p-6 rounded-xl shadow-sm border-l-4 border-indigo-600 space-y-4">
+          <div class="flex justify-between items-center border-b pb-2">
+            <h2 class="text-lg font-bold text-slate-800">📋 Inspección Pre-operativa y Checklist Vehicular</h2>
+            <span class="bg-indigo-100 text-indigo-800 text-xs font-bold px-2.5 py-1 rounded">Control Diario</span>
+          </div>
+          
+          <form id="form-checklist" onsubmit="registrarChecklist(event)" class="space-y-4">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+              <div>
+                <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Vehículo Inspeccionado (*)</label>
+                <select id="chk-vehiculo" required class="select-vehiculos-dinamico w-full p-2.5 border rounded-lg text-sm"><option value="">Cargando...</option></select>
+              </div>
+              <div>
+                <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Conductor / Inspector (*)</label>
+                <input type="text" id="chk-conductor" required placeholder="Nombre completo" class="w-full p-2.5 border rounded-lg text-sm">
+              </div>
+              <div>
+                <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Fecha Inspección (*)</label>
+                <input type="date" id="chk-fecha" required class="w-full p-2.5 border rounded-lg text-sm">
+              </div>
+              <div>
+                <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Kilometraje Actual</label>
+                <input type="number" step="0.1" id="chk-km" placeholder="0.0" class="w-full p-2.5 border rounded-lg text-sm">
+              </div>
+            </div>
+
+            <!-- MATRIZ DE VERIFICACIÓN -->
+            <div class="bg-slate-50 p-4 rounded-lg border space-y-3">
+              <h3 class="text-xs font-bold text-slate-700 uppercase tracking-wider">Estado de Sistemas Principales</h3>
+              <div class="grid grid-cols-1 md:grid-cols-5 gap-3 text-xs">
+                <div>
+                  <label class="block font-semibold mb-1">Documentos (SOAT/CITV)</label>
+                  <select id="chk-doc" class="w-full p-2 border rounded-lg"><option value="OK">✅ Conforme (OK)</option><option value="OBSERVADO">⚠️ Observado</option></select>
+                </div>
+                <div>
+                  <label class="block font-semibold mb-1">Luces / Faros Exterior</label>
+                  <select id="chk-luces" class="w-full p-2 border rounded-lg"><option value="OK">✅ Conforme (OK)</option><option value="OBSERVADO">⚠️ Observado</option></select>
+                </div>
+                <div>
+                  <label class="block font-semibold mb-1">Neumáticos y Presión</label>
+                  <select id="chk-neumaticos" class="w-full p-2 border rounded-lg"><option value="OK">✅ Conforme (OK)</option><option value="OBSERVADO">⚠️ Observado</option></select>
+                </div>
+                <div>
+                  <label class="block font-semibold mb-1">Niveles (Aceite/Agua/Urea)</label>
+                  <select id="chk-niveles" class="w-full p-2 border rounded-lg"><option value="OK">✅ Conforme (OK)</option><option value="OBSERVADO">⚠️ Observado</option></select>
+                </div>
+                <div>
+                  <label class="block font-semibold mb-1">Equipos de Seguridad</label>
+                  <select id="chk-seguridad" class="w-full p-2 border rounded-lg"><option value="OK">✅ Conforme (OK)</option><option value="OBSERVADO">⚠️ Observado</option></select>
+                </div>
+              </div>
+            </div>
+
+            <!-- ALERTA DE INCONVENIENTE -->
+            <div class="bg-amber-50 p-4 rounded-lg border border-amber-200 space-y-2">
+              <div class="flex items-center gap-2">
+                <input type="checkbox" id="chk-tiene-inc" onchange="toggleDetalleInc(this.checked)" class="w-4 h-4 text-amber-600 rounded">
+                <label for="chk-tiene-inc" class="text-xs font-bold text-amber-900 uppercase">¿El vehículo presenta alguna falla o inconveniente para enviar a Taller?</label>
+              </div>
+              <div id="contenedor-detalle-inc" class="hidden">
+                <textarea id="chk-detalle-inc" rows="2" placeholder="Describa detalladamente la falla detectada. Esto creará automáticamente un reporte pendiente en el Módulo de Taller..." class="w-full p-2.5 border rounded-lg text-sm border-amber-300 focus:ring-2 focus:ring-amber-500"></textarea>
+              </div>
+            </div>
+
+            <div class="flex justify-end">
+              <button type="submit" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-6 py-2.5 rounded-lg text-sm transition">Guardar Inspección</button>
+            </div>
+          </form>
+        </div>
+
+        <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
+          <h3 class="text-base font-bold text-slate-800 mb-4">Historial de Inspecciones Pre-operativas</h3>
+          <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse text-xs md:text-sm">
+              <thead>
+                <tr class="border-b bg-slate-50 text-slate-600 font-semibold uppercase">
+                  <th class="p-3">ID</th>
+                  <th class="p-3">Fecha</th>
+                  <th class="p-3">Vehículo</th>
+                  <th class="p-3">Conductor</th>
+                  <th class="p-3">Km</th>
+                  <th class="p-3">Resultado</th>
+                  <th class="p-3">Observaciones de Taller</th>
+                </tr>
+              </thead>
+              <tbody id="tabla-checklists-lista">
+                <tr><td colspan="7" class="p-4 text-center text-slate-400">Cargando inspecciones...</td></tr>
               </tbody>
             </table>
           </div>
@@ -764,6 +756,70 @@
     </div>
   </div>
 
+  <!-- MODAL ROTAR LLANTA -->
+  <div id="modal-rotar-llanta" class="hidden fixed inset-0 bg-slate-900 bg-opacity-50 flex items-center justify-center p-4 z-50">
+    <div class="bg-white rounded-xl shadow-xl max-w-lg w-full p-6 space-y-4">
+      <div class="flex justify-between items-center border-b pb-3">
+        <h3 class="text-base font-bold text-slate-800">🔄 Registrar Rotación / Cambio de Posición</h3>
+        <button onclick="cerrarModalRotar()" class="text-slate-400 hover:text-slate-600 font-bold">✕</button>
+      </div>
+      <form id="form-rotar-llanta" onsubmit="ejecutarRotacionLlanta(event)" class="space-y-3 text-xs md:text-sm">
+        <input type="hidden" id="rot-id-llanta">
+        <div>
+          <label class="block font-semibold text-slate-600 uppercase mb-1">Vehículo Destino (*)</label>
+          <select id="rot-vehiculo-destino" required class="select-vehiculos-dinamico w-full p-2.5 border rounded-lg"><option value="">Cargando...</option></select>
+        </div>
+        <div>
+          <label class="block font-semibold text-slate-600 uppercase mb-1">Nueva Posición (*)</label>
+          <select id="rot-posicion-destino" required class="w-full p-2.5 border rounded-lg">
+            <option value="">Seleccione nueva posición...</option>
+            <option value="Delantera Izquierda (1)">Delantera Izquierda (1)</option>
+            <option value="Delantera Derecha (2)">Delantera Derecha (2)</option>
+            <option value="Tracción Izq Exterior (3)">Tracción Izq Exterior (3)</option>
+            <option value="Tracción Izq Interior (4)">Tracción Izq Interior (4)</option>
+            <option value="Tracción Der Interior (5)">Tracción Der Interior (5)</option>
+            <option value="Tracción Der Exterior (6)">Tracción Der Exterior (6)</option>
+            <option value="Eje Posterior Izquierdo">Eje Posterior Izquierdo</option>
+            <option value="Eje Posterior Derecho">Eje Posterior Derecho</option>
+            <option value="Repuesto 1">Repuesto 1</option>
+            <option value="Repuesto 2">Repuesto 2</option>
+          </select>
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block font-semibold text-slate-600 uppercase mb-1">Fecha Movimiento (*)</label>
+            <input type="date" id="rot-fecha" required class="w-full p-2.5 border rounded-lg">
+          </div>
+          <div>
+            <label class="block font-semibold text-slate-600 uppercase mb-1">Km Actual Evento</label>
+            <input type="number" step="0.1" id="rot-km" placeholder="0.0" class="w-full p-2.5 border rounded-lg">
+          </div>
+        </div>
+        <div>
+          <label class="block font-semibold text-slate-600 uppercase mb-1">Motivo del Cambio</label>
+          <input type="text" id="rot-motivo" placeholder="Ej. Rotación por desgaste parejo" class="w-full p-2.5 border rounded-lg">
+        </div>
+        <div class="flex justify-end gap-2 pt-2">
+          <button type="button" onclick="cerrarModalRotar()" class="px-4 py-2 bg-slate-200 rounded-lg text-slate-700 font-medium">Cancelar</button>
+          <button type="submit" class="px-5 py-2 bg-amber-600 hover:bg-amber-700 text-white rounded-lg font-bold">Guardar Rotación</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL HISTORIAL TRAZABILIDAD LLANTA -->
+  <div id="modal-historial-llanta" class="hidden fixed inset-0 bg-slate-900 bg-opacity-50 flex items-center justify-center p-4 z-50">
+    <div class="bg-white rounded-xl shadow-xl max-w-2xl w-full p-6 max-h-[85vh] overflow-y-auto space-y-4">
+      <div class="flex justify-between items-center border-b pb-3">
+        <h3 id="hist-llanta-titulo" class="text-base font-bold text-slate-800">📋 Trazabilidad de Neumático</h3>
+        <button onclick="cerrarModalHistorialLlanta()" class="text-slate-400 hover:text-slate-600 font-bold">✕</button>
+      </div>
+      <div id="hist-llanta-contenido" class="space-y-4 text-xs md:text-sm">
+        <p class="text-slate-400">Cargando trazabilidad...</p>
+      </div>
+    </div>
+  </div>
+
   <!-- LÓGICA DE PROGRAMACIÓN JAVASCRIPT -->
   <script>
     const API_URL = "https://ponderosa-flota-v1.onrender.com";
@@ -788,7 +844,6 @@
       return url.startsWith("http") ? url : `${API_URL}${url}`;
     }
 
-    // --- MOTOR UNIVERSAL DE DESCARGA EXCEL/CSV (UTF-8 CON BOM) ---
     function descargarCSV(nombreArchivo, encabezados, filas) {
       if (!filas || filas.length === 0) {
         alert("No hay registros en la base de datos para generar este reporte.");
@@ -810,224 +865,55 @@
       document.body.removeChild(link);
     }
 
-    // --- REPORTE 1: TOTAL FLOTA VEHICULAR ---
-    async function exportarReporteVehiculos() {
-      try {
-        const res = await fetch(`${API_URL}/vehiculos/`);
-        const vehiculos = await res.json();
-        const encabezados = ["ID Vehículo", "Placa", "Sede / Unidad", "Marca", "Modelo", "Año", "N° VIN / Chasis", "Tiene GPS", "Empresa GPS", "Tarjeta TIVE Adjunta"];
-        const filas = vehiculos.map(v => [
-          v.id_vehiculo,
-          v.placa,
-          v.sede_asignada || "Por Asignar",
-          v.marca || "N/A",
-          v.modelo || "N/A",
-          v.anio || "N/A",
-          v.numero_vin || "S/N",
-          v.tiene_gps ? "SI" : "NO",
-          v.empresa_gps || "Sin GPS",
-          (v.url_tive || v.url_registrada) ? "SI" : "NO"
-        ]);
-        descargarCSV("Reporte_Flota_Vehiculos", encabezados, filas);
-      } catch (e) {
-        alert("Error al recopilar el reporte de vehículos.");
-      }
-    }
+    async function iniciarSesion(event) {
+      event.preventDefault();
+      const email = document.getElementById("email").value.trim().toLowerCase();
+      const password = document.getElementById("password").value.trim();
+      const errorElem = document.getElementById("error-login");
+      const btnSubmit = document.getElementById("btn-login-submit");
 
-    // --- REPORTE 2: CONSOLIDADOS DE SEGUROS, CITV Y VENCIMIENTOS ---
-    async function exportarReporteVencimientos() {
-      try {
-        const [resVehiculos, seguros, documentos, gps] = await Promise.all([
-          fetch(`${API_URL}/vehiculos/`).then(r => r.ok ? r.json() : []),
-          fetch(`${API_URL}/seguros/vencimientos/`).then(r => r.ok ? r.json() : []),
-          fetch(`${API_URL}/documentos/vencimientos/`).then(r => r.ok ? r.json() : []),
-          fetch(`${API_URL}/gps/vencimientos/`).then(r => r.ok ? r.json() : [])
-        ]);
+      errorElem.classList.add("hidden");
+      btnSubmit.disabled = true;
+      btnSubmit.innerHTML = `<span class="inline-block animate-spin mr-2">🔄</span> Conectando con servidor Render...`;
 
-        const mapVehiculos = {};
-        const mapSedes = {};
-        resVehiculos.forEach(v => {
-          mapVehiculos[v.id_vehiculo] = v.placa;
-          mapSedes[v.id_vehiculo] = v.sede_asignada || "Por Asignar";
+      try {
+        const response = await fetch(`${API_URL}/login/`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email: email, password: password })
         });
 
-        const hoy = new Date();
-        const encabezados = ["ID Vehículo", "Placa", "Sede Asignada", "Tipo Cobertura / Documento", "Compañía / Entidad Emisora", "N° Póliza / Certificado", "Fecha Vencimiento", "Estado Vigencia"];
-        const filas = [];
-
-        seguros.forEach(s => {
-          const fVenc = new Date(s.fecha_vencimiento);
-          const dias = Math.ceil((fVenc - hoy) / (1000 * 60 * 60 * 24));
-          const estado = dias < 0 ? `VENCIDO (${Math.abs(dias)} días)` : (dias <= 30 ? `Por Vencer (${dias} días)` : `Vigente (${dias} días)`);
-          
-          filas.push([
-            s.id_vehiculo,
-            mapVehiculos[s.id_vehiculo] || `ID #${s.id_vehiculo}`,
-            mapSedes[s.id_vehiculo] || "N/A",
-            s.tipo_seguro,
-            s.compania_seguros,
-            s.numero_poliza,
-            s.fecha_vencimiento,
-            estado
-          ]);
-        });
-
-        documentos.forEach(d => {
-          const fVenc = new Date(d.fecha_vencimiento);
-          const dias = Math.ceil((fVenc - hoy) / (1000 * 60 * 60 * 24));
-          const estado = dias < 0 ? `VENCIDO (${Math.abs(dias)} días)` : (dias <= 30 ? `Por Vencer (${dias} días)` : `Vigente (${dias} días)`);
-
-          filas.push([
-            d.id_vehiculo,
-            mapVehiculos[d.id_vehiculo] || `ID #${d.id_vehiculo}`,
-            mapSedes[d.id_vehiculo] || "N/A",
-            "Revisión Técnica CITV",
-            d.entidad_emisora,
-            d.numero_documento,
-            d.fecha_vencimiento,
-            estado
-          ]);
-        });
-
-        gps.forEach(g => {
-          const fVenc = new Date(g.fecha_vencimiento);
-          const dias = Math.ceil((fVenc - hoy) / (1000 * 60 * 60 * 24));
-          const estado = dias < 0 ? `VENCIDO (${Math.abs(dias)} días)` : (dias <= 30 ? `Por Vencer (${dias} días)` : `Vigente (${dias} días)`);
-
-          filas.push([
-            g.id_vehiculo,
-            mapVehiculos[g.id_vehiculo] || `ID #${g.id_vehiculo}`,
-            mapSedes[g.id_vehiculo] || "N/A",
-            "Servicio GPS Satelital",
-            g.empresa_gps,
-            "Suscripción GPS",
-            g.fecha_vencimiento,
-            estado
-          ]);
-        });
-
-        descargarCSV("Reporte_Seguros_y_Vencimientos", encabezados, filas);
-      } catch (e) {
-        alert("Error al generar el reporte de seguros y vencimientos.");
-      }
-    }
-
-    // --- REPORTE 3: TOTAL INVENTARIO DE LLANTAS ---
-    async function exportarReporteLlantas() {
-      try {
-        const [resVehiculos, resLlantas] = await Promise.all([
-          fetch(`${API_URL}/vehiculos/`).then(r => r.ok ? r.json() : []),
-          fetch(`${API_URL}/llantas/`).then(r => r.ok ? r.json() : [])
-        ]);
-
-        const mapVehiculos = {};
-        resVehiculos.forEach(v => mapVehiculos[v.id_vehiculo] = v.placa);
-
-        const encabezados = ["ID Llanta", "ID Vehículo", "Placa Vehículo", "Código / N° Serie (DOT)", "Marca", "Modelo", "Posición / Eje", "Fecha Instalación"];
-        const filas = resLlantas.map(l => [
-          l.id_llanta,
-          l.id_vehiculo,
-          mapVehiculos[l.id_vehiculo] || `ID #${l.id_vehiculo}`,
-          l.codigo || "S/C",
-          l.marca,
-          l.modelo,
-          l.posicion,
-          l.fecha_instalacion
-        ]);
-
-        descargarCSV("Reporte_Inventario_Llantas", encabezados, filas);
-      } catch (e) {
-        alert("Error al generar reporte de llantas.");
-      }
-    }
-
-    // --- REPORTE 4: TOTAL TALLER Y REPUESTOS ---
-    async function exportarReporteTaller() {
-      try {
-        const res = await fetch(`${API_URL}/vehiculos/`);
-        const vehiculos = await res.json();
-        
-        const encabezados = ["ID Registro", "ID Vehículo", "Placa", "Tipo de Mantenimiento / Registro", "Taller / Proveedor", "Responsable / Técnico / Solicitante", "Fecha Ingreso / Instalación", "Detalle / Falla / Repuesto", "Monto / Costo Total"];
-        const filas = [];
-
-        for (const v of vehiculos) {
-          const resHv = await fetch(`${API_URL}/vehiculos/${v.id_vehiculo}/hoja_vida/`);
-          if (resHv.ok) {
-            const dataHv = await resHv.json();
-            if (dataHv.reparaciones && dataHv.reparaciones.length > 0) {
-              dataHv.reparaciones.forEach(r => {
-                filas.push([
-                  r.id_reparacion || "N/A",
-                  v.id_vehiculo,
-                  v.placa,
-                  r.tipo_mantenimiento,
-                  r.taller_servicio,
-                  r.responsable_reparacion,
-                  r.fecha_ingreso,
-                  r.descripcion_falla,
-                  r.descripcion_falla.includes("S/") ? r.descripcion_falla : "N/A"
-                ]);
-              });
-            }
-          }
+        if (!response.ok) {
+          const errData = await response.json().catch(() => null);
+          const mensajeDetallado = errData && errData.detail ? errData.detail : `Error de servidor (${response.status})`;
+          throw new Error(mensajeDetallado);
         }
 
-        descargarCSV("Reporte_Taller_y_Repuestos", encabezados, filas);
-      } catch (e) {
-        alert("Error al recopilar el informe de taller y repuestos.");
+        const data = await response.json();
+        localStorage.setItem("user_role", data.rol);
+        localStorage.setItem("user_email", data.access_token);
+        
+        aplicarPermisosDeRol(data.rol);
+        document.getElementById("pantalla-login").classList.add("hidden");
+        document.getElementById("pantalla-dashboard").classList.remove("hidden");
+        
+        cargarMétricasResumen();
+        cargarListaVehiculos();
+        cargarListaLlantas();
+        cargarOperaciones();
+
+      } catch (error) {
+        if (error.message === "Failed to fetch" || error.name === "TypeError") {
+          errorElem.innerText = "Error de conexión o el servidor en Render se está iniciando. Por favor, reintente en 15 segundos.";
+        } else {
+          errorElem.innerText = error.message;
+        }
+        errorElem.classList.remove("hidden");
+      } finally {
+        btnSubmit.disabled = false;
+        btnSubmit.innerHTML = "Ingresar al Sistema";
       }
     }
-
-    async function iniciarSesion(event) {
-  event.preventDefault();
-  // Convierte el texto del correo a minúsculas y elimina espacios
-  const email = document.getElementById("email").value.trim().toLowerCase();
-  const password = document.getElementById("password").value.trim();
-  const errorElem = document.getElementById("error-login");
-  const btnSubmit = document.getElementById("btn-login-submit");
-
-  errorElem.classList.add("hidden");
-  btnSubmit.disabled = true;
-  btnSubmit.innerHTML = `<span class="inline-block animate-spin mr-2">🔄</span> Conectando con servidor Render...`;
-
-  try {
-    const response = await fetch(`${API_URL}/login/`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email: email, password: password })
-    });
-
-    if (!response.ok) {
-      const errData = await response.json().catch(() => null);
-      const mensajeDetallado = errData && errData.detail ? errData.detail : `Error de servidor (${response.status})`;
-      throw new Error(mensajeDetallado);
-    }
-
-    const data = await response.json();
-    localStorage.setItem("user_role", data.rol);
-    localStorage.setItem("user_email", data.access_token);
-    
-    aplicarPermisosDeRol(data.rol);
-    document.getElementById("pantalla-login").classList.add("hidden");
-    document.getElementById("pantalla-dashboard").classList.remove("hidden");
-    
-    cargarMétricasResumen();
-    cargarListaVehiculos();
-    cargarListaLlantas();
-    cargarOperaciones();
-
-  } catch (error) {
-    if (error.message === "Failed to fetch" || error.name === "TypeError") {
-      errorElem.innerText = "Error de conexión o el servidor en Render se está iniciando. Por favor, reintente en 15 segundos.";
-    } else {
-      errorElem.innerText = error.message;
-    }
-    errorElem.classList.remove("hidden");
-  } finally {
-    btnSubmit.disabled = false;
-    btnSubmit.innerHTML = "Ingresar al Sistema";
-  }
-}
 
     function aplicarPermisosDeRol(rol) {
       const userRole = rol || localStorage.getItem("user_role");
@@ -1039,36 +925,36 @@
     }
 
     function cambiarPestaña(nombreModulo) {
-  ["resumen", "vehiculos", "vencimientos", "llantas", "taller", "operaciones", "checklist", "usuarios"].forEach(m => {
-    const el = document.getElementById(`modulo-${m}`);
-    if (el) el.classList.add("hidden");
-  });
+      ["resumen", "vehiculos", "vencimientos", "llantas", "taller", "operaciones", "checklist", "usuarios"].forEach(m => {
+        const el = document.getElementById(`modulo-${m}`);
+        if (el) el.classList.add("hidden");
+      });
 
-  const objetivo = document.getElementById(`modulo-${nombreModulo}`);
-  if (objetivo) objetivo.classList.remove("hidden");
+      const objetivo = document.getElementById(`modulo-${nombreModulo}`);
+      if (objetivo) objetivo.classList.remove("hidden");
 
-  if (nombreModulo === 'llantas') {
-    cargarListaLlantas();
-  } else if (nombreModulo === 'resumen') {
-    cargarMétricasResumen();
-  } else if (nombreModulo === 'operaciones') {
-    cargarVehiculosEnSelectOperaciones();
-    cargarOperaciones();
-    const campoFecha = document.getElementById("op_fecha_operacion");
-    if (campoFecha && !campoFecha.value) {
-      campoFecha.valueAsDate = new Date();
+      if (nombreModulo === 'llantas') {
+        cargarListaLlantas();
+      } else if (nombreModulo === 'resumen') {
+        cargarMétricasResumen();
+      } else if (nombreModulo === 'operaciones') {
+        cargarListaVehiculos();
+        cargarOperaciones();
+        const campoFecha = document.getElementById("op_fecha_operacion");
+        if (campoFecha && !campoFecha.value) {
+          campoFecha.valueAsDate = new Date();
+        }
+      } else if (nombreModulo === 'checklist') {
+        cargarListaVehiculos();
+        const campoFechaChk = document.getElementById("chk-fecha");
+        if (campoFechaChk && !campoFechaChk.value) {
+          campoFechaChk.valueAsDate = new Date();
+        }
+        cargarListaChecklists();
+      } else if (nombreModulo === 'taller') {
+        cargarListaVehiculos();
+      }
     }
-  } else if (nombreModulo === 'checklist') {
-    if (typeof cargarVehiculosEnSelectOperaciones === "function") cargarVehiculosEnSelectOperaciones();
-    const campoFechaChk = document.getElementById("chk-fecha");
-    if (campoFechaChk && !campoFechaChk.value) {
-      campoFechaChk.valueAsDate = new Date();
-    }
-    cargarListaChecklists();
-  } else if (nombreModulo === 'taller') {
-    if (typeof cargarListaMantenimientos === "function") cargarListaMantenimientos();
-  }
-}
 
     async function cargarListaVehiculos() {
       try {
@@ -1077,36 +963,40 @@
         listaVehiculosGlobal = vehiculos;
         
         const tbody = document.getElementById("tabla-vehiculos-lista");
-        tbody.innerHTML = vehiculos.map(v => `
-          <tr class="border-b hover:bg-slate-50">
-            <td class="p-3 text-slate-400">#${v.id_vehiculo}</td>
-            <td class="p-3 font-bold text-blue-600">${v.placa}</td>
-            <td class="p-3">${v.sede_asignada || 'Sin Sede'}</td>
-            <td class="p-3">${v.marca} / ${v.modelo}</td>
-            <td class="p-3">${v.anio}</td>
-            <td class="p-3">
-              ${v.tiene_gps 
-                ? `<span class="bg-emerald-100 text-emerald-800 font-bold px-2 py-1 rounded text-xs">📡 ${v.empresa_gps}</span>` 
-                : `<span class="bg-slate-100 text-slate-500 font-semibold px-2 py-1 rounded text-xs">❌ Sin GPS</span>`
-              }
-            </td>
-            <td class="p-3">
-              ${v.url_tive 
-                ? `<a href="${obtenerUrlCompleta(v.url_tive)}" target="_blank" class="bg-blue-100 text-blue-700 font-bold px-2 py-1 rounded text-xs hover:bg-blue-200">Ver TIVE</a>` 
-                : `<label class="bg-yellow-100 text-yellow-800 font-bold px-2 py-1 rounded text-xs cursor-pointer hover:bg-yellow-200">
-                    + Adjuntar TIVE
-                    <input type="file" class="hidden" accept="image/*,.pdf" onchange="subirTivePosterior(${v.id_vehiculo}, this)">
-                   </label>`
-              }
-            </td>
-            <td class="p-3"><button onclick="verHojaVida(${v.id_vehiculo})" class="bg-slate-800 text-white px-2.5 py-1 rounded text-xs hover:bg-slate-700 font-semibold">Hoja de Vida</button></td>
-          </tr>
-        `).join('') || `<tr><td colspan="8" class="p-4 text-center text-slate-400">No hay vehículos registrados.</td></tr>`;
+        if (tbody) {
+          tbody.innerHTML = vehiculos.map(v => `
+            <tr class="border-b hover:bg-slate-50">
+              <td class="p-3 text-slate-400">#${v.id_vehiculo}</td>
+              <td class="p-3 font-bold text-blue-600">${v.placa}</td>
+              <td class="p-3">${v.sede_asignada || 'Sin Sede'}</td>
+              <td class="p-3">${v.marca} / ${v.modelo}</td>
+              <td class="p-3">${v.anio}</td>
+              <td class="p-3">
+                ${v.tiene_gps 
+                  ? `<span class="bg-emerald-100 text-emerald-800 font-bold px-2 py-1 rounded text-xs">📡 ${v.empresa_gps}</span>` 
+                  : `<span class="bg-slate-100 text-slate-500 font-semibold px-2 py-1 rounded text-xs">❌ Sin GPS</span>`
+                }
+              </td>
+              <td class="p-3">
+                ${v.url_tive 
+                  ? `<a href="${obtenerUrlCompleta(v.url_tive)}" target="_blank" class="bg-blue-100 text-blue-700 font-bold px-2 py-1 rounded text-xs hover:bg-blue-200">Ver TIVE</a>` 
+                  : `<label class="bg-yellow-100 text-yellow-800 font-bold px-2 py-1 rounded text-xs cursor-pointer hover:bg-yellow-200">
+                      + Adjuntar TIVE
+                      <input type="file" class="hidden" accept="image/*,.pdf" onchange="subirTivePosterior(${v.id_vehiculo}, this)">
+                     </label>`
+                }
+              </td>
+              <td class="p-3"><button onclick="verHojaVida(${v.id_vehiculo})" class="bg-slate-800 text-white px-2.5 py-1 rounded text-xs hover:bg-slate-700 font-semibold">Hoja de Vida</button></td>
+            </tr>
+          `).join('') || `<tr><td colspan="8" class="p-4 text-center text-slate-400">No hay vehículos registrados.</td></tr>`;
+        }
 
-        const selects = document.querySelectorAll(".select-vehiculos-dinamico");
+        const selects = document.querySelectorAll(".select-vehiculos-dinamico, #op_id_vehiculo");
         selects.forEach(s => {
-          s.innerHTML = `<option value="">Seleccione placa...</option>` + 
-            vehiculos.map(v => `<option value="${v.id_vehiculo}">${v.placa} (${v.marca} ${v.modelo})</option>`).join('');
+          if (s) {
+            s.innerHTML = `<option value="">Seleccione placa...</option>` + 
+              vehiculos.map(v => `<option value="${v.id_vehiculo}">${v.placa} (${v.marca} ${v.modelo})</option>`).join('');
+          }
         });
 
       } catch (e) {
@@ -1114,555 +1004,90 @@
       }
     }
 
-    async function subirTivePosterior(idVehiculo, inputElement) {
-      if (!inputElement.files || !inputElement.files[0]) return;
-      const archivo = inputElement.files[0];
-      const formData = new FormData();
-      formData.append("archivo_tive", archivo);
+    function toggleDetalleInc(chequeado) {
+      const cont = document.getElementById("contenedor-detalle-inc");
+      if (chequeado) {
+        cont.classList.remove("hidden");
+      } else {
+        cont.classList.add("hidden");
+        document.getElementById("chk-detalle-inc").value = "";
+      }
+    }
+
+    async function registrarChecklist(e) {
+      e.preventDefault();
+      const tieneInc = document.getElementById("chk-tiene-inc").checked;
+      const detalle = document.getElementById("chk-detalle-inc").value.trim();
+
+      if (tieneInc && !detalle) {
+        alert("Si marcó que el vehículo presenta un inconveniente, debe detallar la observación para Taller.");
+        return;
+      }
+
+      const payload = {
+        id_vehiculo: parseInt(document.getElementById("chk-vehiculo").value),
+        conductor: document.getElementById("chk-conductor").value.trim(),
+        fecha_inspeccion: document.getElementById("chk-fecha").value,
+        kilometraje: parseFloat(document.getElementById("chk-km").value) || 0.0,
+        estado_documentos: document.getElementById("chk-doc").value,
+        estado_luces_exterior: document.getElementById("chk-luces").value,
+        estado_neumaticos: document.getElementById("chk-neumaticos").value,
+        estado_niveles_motor: document.getElementById("chk-niveles").value,
+        estado_equipos_seguridad: document.getElementById("chk-seguridad").value,
+        tiene_inconveniente: tieneInc,
+        detalle_inconveniente: detalle
+      };
 
       try {
-        const res = await fetch(`${API_URL}/vehiculos/${idVehiculo}/tive/`, {
+        const res = await fetch(`${API_URL}/checklists/`, {
           method: "POST",
-          body: formData
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload)
         });
         if (res.ok) {
-          alert("Tarjeta TIVE subida a Cloudinary exitosamente.");
-          cargarListaVehiculos();
+          alert("Inspección guardada correctamente" + (tieneInc ? " y se generó una orden de revisión en Taller." : "."));
+          document.getElementById("form-checklist").reset();
+          toggleDetalleInc(false);
+          cargarListaChecklists();
         } else {
-          alert("Error al subir la TIVE.");
+          alert("Error al guardar la inspección pre-operativa.");
         }
-      } catch (e) {
-        alert("Error de conexión al servidor.");
+      } catch (err) {
+        alert("Error de conexión con el servidor.");
       }
     }
 
-    async function registrarGPS(e) {
-      e.preventDefault();
-      const btn = e.target.querySelector("button[type='submit']");
-      const textoOriginal = btn.innerHTML;
-      btn.disabled = true;
-      btn.innerHTML = `<span class="inline-block animate-spin mr-1">🔄</span> Guardando GPS...`;
-
-      const formData = new FormData();
-      formData.append("id_vehiculo", document.getElementById("gps-vehiculo").value);
-      formData.append("empresa_gps", document.getElementById("gps-empresa").value.trim());
-      formData.append("fecha_inicio", document.getElementById("gps-inicio").value);
-      formData.append("fecha_vencimiento", document.getElementById("gps-vencimiento").value);
-
+    async function cargarListaChecklists() {
       try {
-        const res = await fetch(`${API_URL}/gps/`, { method: "POST", body: formData });
-        if (res.ok) {
-          alert("Servicio de GPS registrado exitosamente.");
-          document.getElementById("form-gps").reset();
-          cargarListaVehiculos();
-          cargarMétricasResumen();
-        } else {
-          alert("Error al guardar el servicio de GPS.");
-        }
-      } catch (err) { alert("Error de conexión al servidor."); }
-      finally {
-        btn.disabled = false;
-        btn.innerHTML = textoOriginal;
-      }
-    }
-
-    async function verHojaVida(idVehiculo) {
-      document.getElementById("modal-hoja-vida").classList.remove("hidden");
-      const contenedor = document.getElementById("hv-contenido");
-      contenedor.innerHTML = "<p class='text-slate-400'><span class='inline-block animate-spin mr-2'>🔄</span> Consultando historial técnico en Neon.tech y Cloudinary...</p>";
-
-      try {
-        const res = await fetch(`${API_URL}/vehiculos/${idVehiculo}/hoja_vida/`);
-        if (!res.ok) {
-          const errData = await res.json().catch(() => null);
-          throw new Error(errData && errData.detail ? errData.detail : `Error ${res.status} en servidor backend`);
-        }
-
+        const res = await fetch(`${API_URL}/checklists/`);
+        if (!res.ok) return;
         const data = await res.json();
-        document.getElementById("hv-titulo").innerText = `Hoja de Vida: Placa ${data.placa} (${data.marca || ''} ${data.modelo || ''})`;
         
-        contenedor.innerHTML = `
-          <div class="bg-slate-50 p-4 rounded-lg border grid grid-cols-2 gap-3 text-slate-700 font-medium">
-            <div><strong>Sede Asignada:</strong> ${data.sede_asignada || 'Por Asignar'}</div>
-            <div><strong>N° VIN / Chasis:</strong> ${data.numero_vin || 'S/N'}</div>
-            <div><strong>Año Fabricación:</strong> ${data.anio || 'N/A'}</div>
-            <div><strong>Kilometraje:</strong> ${data.kilometraje_actual || 0} km</div>
-          </div>
-          <div>
-            <h4 class="font-bold border-b pb-1 mb-2 text-emerald-800 uppercase">📡 Monitoreo GPS</h4>
-            ${data.gps && data.gps.length > 0 
-              ? data.gps.map(g => `<p class="text-xs">• <strong>Empresa:</strong> ${g.empresa_gps} | Vence: ${g.fecha_vencimiento}</p>`).join('')
-              : '<p class="text-slate-400 italic">Sin servicio GPS activo registrado.</p>'}
-          </div>
-          <div>
-            <h4 class="font-bold border-b pb-1 mb-2 text-slate-800 uppercase">1. Cobertura de Seguros / SOAT (${data.seguros ? data.seguros.length : 0})</h4>
-            ${data.seguros && data.seguros.length > 0 
-              ? data.seguros.map(s => `
-                <div class="flex justify-between items-center py-1 border-b border-slate-100">
-                  <p>• <strong>${s.tipo_seguro}:</strong> ${s.compania_seguros} (Póliza ${s.numero_poliza}) - Vence: ${s.fecha_vencimiento} ${s.url_adjunto ? `<a href="${obtenerUrlCompleta(s.url_adjunto)}" target="_blank" class="text-blue-600 font-bold underline ml-2">[Ver Póliza]</a>` : ''}</p>
-                  <button onclick="borrarSeguro(${s.id_seguro}, ${data.id_vehiculo})" class="btn-eliminar bg-red-50 hover:bg-red-100 text-red-600 font-bold text-xs px-2.5 py-1 rounded transition ml-2">🗑️ Eliminar</button>
-                </div>`).join('') 
-              : '<p class="text-slate-400 italic">Sin registros de SOAT o póliza vehicular.</p>'}
-          </div>
-          <div>
-            <h4 class="font-bold border-b pb-1 mb-2 text-slate-800 uppercase">2. Revisiones Técnicas CITV (${data.documentos ? data.documentos.length : 0})</h4>
-            ${data.documentos && data.documentos.length > 0 
-              ? data.documentos.map(d => `
-                <div class="flex justify-between items-center py-1 border-b border-slate-100">
-                  <p>• Certificado ${d.numero_documento} (${d.entidad_emisora}) - Vence: ${d.fecha_vencimiento} ${d.url_adjunto ? `<a href="${obtenerUrlCompleta(d.url_adjunto)}" target="_blank" class="text-blue-600 font-bold underline ml-2">[Ver CITV]</a>` : ''}</p>
-                  <button onclick="borrarDocumento(${d.id_documento}, ${data.id_vehiculo})" class="btn-eliminar bg-red-50 hover:bg-red-100 text-red-600 font-bold text-xs px-2.5 py-1 rounded transition ml-2">🗑️ Eliminar</button>
-                </div>`).join('') 
-              : '<p class="text-slate-400 italic">Sin registros de CITV.</p>'}
-          </div>
-          <div>
-            <h4 class="font-bold border-b pb-1 mb-2 text-slate-800 uppercase">3. Taller y Repuestos Instalados (${data.reparaciones ? data.reparaciones.length : 0})</h4>
-            ${data.reparaciones && data.reparaciones.length > 0 
-              ? data.reparaciones.map(r => `
-                <div class="flex justify-between items-center py-1 border-b border-slate-100">
-                  <p>• [${r.fecha_ingreso}] ${r.tipo_mantenimiento} - ${r.taller_servicio} (${r.responsable_reparacion}) - ${r.descripcion_falla}</p>
-                  <button onclick="borrarReparacion(${r.id_reparacion}, ${data.id_vehiculo})" class="btn-eliminar bg-red-50 hover:bg-red-100 text-red-600 font-bold text-xs px-2.5 py-1 rounded transition ml-2">🗑️ Eliminar</button>
-                </div>`).join('') 
-              : '<p class="text-slate-400 italic">Sin registros de repuestos o taller.</p>'}
-          </div>
-          <div>
-            <h4 class="font-bold border-b pb-1 mb-2 text-amber-800 uppercase">4. Control de Llantas y Posiciones (${data.llantas ? data.llantas.length : 0})</h4>
-            ${data.llantas && data.llantas.length > 0 
-              ? data.llantas.map(l => `
-                <div class="flex justify-between items-center py-1 border-b border-slate-100">
-                  <p>• <strong>Código:</strong> <span class="font-mono font-bold text-slate-800">${l.codigo || 'S/C'}</span> - <strong>Posición:</strong> ${l.posicion} - <strong>Marca/Modelo:</strong> ${l.marca} ${l.modelo} - Inst: ${l.fecha_instalacion}</p>
-                  <button onclick="borrarLlanta(${l.id_llanta}, ${data.id_vehiculo})" class="btn-eliminar bg-red-50 hover:bg-red-100 text-red-600 font-bold text-xs px-2.5 py-1 rounded transition ml-2">🗑️ Eliminar</button>
-                </div>`).join('') 
-              : '<p class="text-slate-400 italic">Sin registros de llantas instaladas.</p>'}
-          </div>
-          <div>
-            <h4 class="font-bold border-b pb-1 mb-2 text-amber-900 uppercase">5. Historial de Operaciones y Carga Diaria (${data.operaciones ? data.operaciones.length : 0})</h4>
-            ${data.operaciones && data.operaciones.length > 0 
-              ? data.operaciones.map(op => `
-                <div class="flex justify-between items-center py-1 border-b border-slate-100">
-                  <p>• [${op.fecha_operacion}] Chofer: <strong>${op.chofer}</strong> | Ruta: ${op.ruta_origen_destino || op.tipo_trabajo || 'S/R'} | Carga: ${op.toneladas_carga} t | Costo: S/ ${op.costo_combustible}</p>
-                  <button onclick="eliminarOperacion(${op.id_operacion})" class="btn-eliminar bg-red-50 hover:bg-red-100 text-red-600 font-bold text-xs px-2.5 py-1 rounded transition ml-2">🗑️ Eliminar</button>
-                </div>`).join('') 
-              : '<p class="text-slate-400 italic">Sin partes diarios de operaciones registrados.</p>'}
-          </div>
-        `;
-        aplicarPermisosDeRol();
+        const mapVehiculos = {};
+        if (Array.isArray(listaVehiculosGlobal)) {
+          listaVehiculosGlobal.forEach(v => mapVehiculos[v.id_vehiculo] = v.placa);
+        }
+
+        const tbody = document.getElementById("tabla-checklists-lista");
+        if (!tbody) return;
+
+        tbody.innerHTML = data.map(c => `
+          <tr class="border-b hover:bg-slate-50">
+            <td class="p-3 text-slate-400">#${c.id_checklist}</td>
+            <td class="p-3 font-semibold">${c.fecha_inspeccion}</td>
+            <td class="p-3 font-bold text-blue-600">${mapVehiculos[c.id_vehiculo] || 'Vehículo #' + c.id_vehiculo}</td>
+            <td class="p-3">${c.conductor}</td>
+            <td class="p-3">${c.kilometraje || 0} km</td>
+            <td class="p-3">
+              ${c.tiene_inconveniente 
+                ? '<span class="bg-red-100 text-red-800 text-xs font-bold px-2.5 py-1 rounded-full">⚠️ Con Alerta</span>' 
+                : '<span class="bg-emerald-100 text-emerald-800 text-xs font-bold px-2.5 py-1 rounded-full">✅ Conforme</span>'}
+            </td>
+            <td class="p-3 text-slate-600">${c.detalle_inconveniente || 'Sin observaciones'}</td>
+          </tr>
+        `).join('') || `<tr><td colspan="7" class="p-4 text-center text-slate-400">No hay inspecciones registradas.</td></tr>`;
       } catch (e) {
-        contenedor.innerHTML = `<p class='text-red-600 font-bold'>Error detectado al abrir la Hoja de Vida: ${e.message}</p>`;
-      }
-    }
-
-    async function cargarListaLlantas() {
-  try {
-    const res = await fetch(`${API_URL}/llantas/`);
-    const llantas = await res.json();
-    listaLlantasGlobal = llantas;
-    
-    const mapVehiculos = {};
-    listaVehiculosGlobal.forEach(v => mapVehiculos[v.id_vehiculo] = v.placa);
-
-    const tbody = document.getElementById("tabla-llantas-lista");
-    tbody.innerHTML = llantas.map(l => `
-      <tr class="border-b hover:bg-slate-50">
-        <td class="p-3 text-slate-400">#${l.id_llanta}</td>
-        <td class="p-3 font-bold text-blue-600">${mapVehiculos[l.id_vehiculo] || 'Vehículo #' + l.id_vehiculo}</td>
-        <td class="p-3 font-mono font-bold text-slate-800">${l.codigo || 'S/C'}</td>
-        <td class="p-3 font-semibold text-slate-800">${l.marca} / ${l.modelo}</td>
-        <td class="p-3 font-medium text-amber-700">${l.posicion}</td>
-        <td class="p-3">${l.km_instalacion || 0} km</td>
-        <td class="p-3 flex gap-1">
-          <button onclick="abrirModalRotar(${l.id_llanta})" class="bg-amber-600 hover:bg-amber-700 text-white font-bold text-xs px-2.5 py-1 rounded transition">🔄 Rotar</button>
-          <button onclick="verHistorialLlanta(${l.id_llanta})" class="bg-slate-800 hover:bg-slate-900 text-white font-bold text-xs px-2.5 py-1 rounded transition">📋 Historial</button>
-          <button onclick="borrarLlantaDirecto(${l.id_llanta})" class="btn-eliminar bg-red-50 hover:bg-red-100 text-red-600 font-bold text-xs px-2 py-1 rounded transition">🗑️</button>
-        </td>
-      </tr>
-    `).join('') || `<tr><td colspan="7" class="p-4 text-center text-slate-400">No hay llantas registradas.</td></tr>`;
-  } catch (e) { console.error("Error cargando llantas:", e); }
-}
-
-async function registrarLlanta(e) {
-  e.preventDefault();
-  const formData = new FormData();
-  formData.append("id_vehiculo", document.getElementById("ll-vehiculo").value);
-  formData.append("codigo", document.getElementById("ll-codigo").value.trim());
-  formData.append("marca", document.getElementById("ll-marca").value.trim());
-  formData.append("modelo", document.getElementById("ll-modelo").value.trim());
-  formData.append("posicion", document.getElementById("ll-posicion").value);
-  formData.append("fecha_instalacion", document.getElementById("ll-fecha").value);
-  formData.append("km_instalacion", parseFloat(document.getElementById("ll-km").value) || 0.0);
-  formData.append("horometro_instalacion", parseFloat(document.getElementById("ll-horometro").value) || 0.0);
-
-  try {
-    const res = await fetch(`${API_URL}/llantas/`, { method: "POST", body: formData });
-    if (res.ok) {
-      alert("Llanta guardada y asignada exitosamente.");
-      document.getElementById("form-llanta").reset();
-      cargarListaLlantas();
-    } else { alert("Error al registrar la llanta."); }
-  } catch (err) { alert("Error de conexión al servidor."); }
-}
-
-function abrirModalRotar(idLlanta) {
-  document.getElementById("rot-id-llanta").value = idLlanta;
-  document.getElementById("rot-fecha").valueAsDate = new Date();
-  document.getElementById("modal-rotar-llanta").classList.remove("hidden");
-}
-
-function cerrarModalRotar() {
-  document.getElementById("modal-rotar-llanta").classList.add("hidden");
-}
-
-async function ejecutarRotacionLlanta(e) {
-  e.preventDefault();
-  const formData = new FormData();
-  formData.append("id_llanta", document.getElementById("rot-id-llanta").value);
-  formData.append("id_vehiculo_destino", document.getElementById("rot-vehiculo-destino").value);
-  formData.append("posicion_destino", document.getElementById("rot-posicion-destino").value);
-  formData.append("fecha_movimiento", document.getElementById("rot-fecha").value);
-  formData.append("km_evento", parseFloat(document.getElementById("rot-km").value) || 0.0);
-  formData.append("motivo_cambio", document.getElementById("rot-motivo").value.trim() || "Rotación preventiva");
-
-  try {
-    const res = await fetch(`${API_URL}/llantas/rotar/`, { method: "POST", body: formData });
-    if (res.ok) {
-      alert("Rotación realizada y actualizada correctamente.");
-      cerrarModalRotar();
-      cargarListaLlantas();
-    } else { alert("Error al registrar rotación."); }
-  } catch (e) { alert("Error de conexión."); }
-}
-
-async function verHistorialLlanta(idLlanta) {
-  document.getElementById("modal-historial-llanta").classList.remove("hidden");
-  const contenedor = document.getElementById("hist-llanta-contenido");
-  contenedor.innerHTML = "<p class='text-slate-400'>Consultando movimientos en base de datos...</p>";
-
-  try {
-    const res = await fetch(`${API_URL}/llantas/${idLlanta}/historial/`);
-    if (!res.ok) throw new Error("Error al consultar historial.");
-    const data = await res.json();
-
-    document.getElementById("hist-llanta-titulo").innerText = `📋 Trazabilidad Llanta Código: ${data.llanta.codigo || 'S/C'} (${data.llanta.marca} ${data.llanta.modelo})`;
-
-    contenedor.innerHTML = `
-      <div class="bg-amber-50 p-3 rounded-lg border border-amber-200">
-        <p><strong>Ubicación Actual:</strong> Vehículo #${data.llanta.id_vehiculo} | <strong>Posición:</strong> ${data.llanta.posicion}</p>
-        <p><strong>Instalación Inicial:</strong> ${data.llanta.fecha_instalacion} (${data.llanta.km_instalacion} km)</p>
-      </div>
-      <div>
-        <h4 class="font-bold border-b pb-1 mb-2 text-slate-800 uppercase">🔄 Historial de Movimientos / Rotaciones (${data.movimientos.length})</h4>
-        ${data.movimientos.length > 0 
-          ? data.movimientos.map(m => `<p class="py-1 border-b text-xs">• [${m.fecha_movimiento}] De Vehículo #${m.id_vehiculo_origen || 'S/V'} (${m.posicion_origen}) ➔ A Vehículo #${m.id_vehiculo_destino} (${m.posicion_destino}) | Km: ${m.km_evento} | Motivo: ${m.motivo_cambio}</p>`).join('')
-          : '<p class="text-slate-400 italic">Sin movimientos o rotaciones registradas.</p>'}
-      </div>
-    `;
-  } catch (e) {
-    contenedor.innerHTML = `<p class="text-red-600 font-bold">Error: ${e.message}</p>`;
-  }
-}
-
-function cerrarModalHistorialLlanta() {
-  document.getElementById("modal-historial-llanta").classList.add("hidden");
-}
-
-    async function borrarLlanta(idLlanta, idVehiculo) {
-      if (!confirm("¿Está seguro de eliminar esta llanta del registro?")) return;
-      try {
-        const res = await fetch(`${API_URL}/llantas/${idLlanta}/`, { method: "DELETE" });
-        if (res.ok) {
-          alert("Llanta eliminada con éxito.");
-          verHojaVida(idVehiculo);
-          cargarListaLlantas();
-        } else { alert("Error al eliminar."); }
-      } catch (e) { alert("Error de conexión al servidor."); }
-    }
-
-    async function borrarLlantaDirecto(idLlanta) {
-      if (!confirm("¿Está seguro de eliminar esta llanta del catálogo?")) return;
-      try {
-        const res = await fetch(`${API_URL}/llantas/${idLlanta}/`, { method: "DELETE" });
-        if (res.ok) {
-          alert("Llanta eliminada con éxito.");
-          cargarListaLlantas();
-        } else { alert("Error al eliminar."); }
-      } catch (e) { alert("Error de conexión al servidor."); }
-    }
-
-    async function borrarSeguro(idSeguro, idVehiculo) {
-      if (!confirm("¿Está seguro de eliminar este registro de seguro/SOAT?")) return;
-      try {
-        const res = await fetch(`${API_URL}/seguros/${idSeguro}/`, { method: "DELETE" });
-        if (res.ok) {
-          alert("Registro eliminado con éxito.");
-          verHojaVida(idVehiculo);
-          cargarMétricasResumen();
-        } else { alert("Error al eliminar el registro."); }
-      } catch (e) { alert("Error de conexión al servidor."); }
-    }
-
-    async function borrarDocumento(idDocumento, idVehiculo) {
-      if (!confirm("¿Está seguro de eliminar este certificado CITV?")) return;
-      try {
-        const res = await fetch(`${API_URL}/documentos/${idDocumento}/`, { method: "DELETE" });
-        if (res.ok) {
-          alert("Documento eliminado con éxito.");
-          verHojaVida(idVehiculo);
-          cargarMétricasResumen();
-        } else { alert("Error al eliminar."); }
-      } catch (e) { alert("Error de conexión al servidor."); }
-    }
-
-    async function borrarReparacion(idReparacion, idVehiculo) {
-      if (!confirm("¿Está seguro de eliminar este registro de taller/repuesto?")) return;
-      try {
-        const res = await fetch(`${API_URL}/reparaciones/${idReparacion}/`, { method: "DELETE" });
-        if (res.ok) {
-          alert("Registro de taller eliminado con éxito.");
-          verHojaVida(idVehiculo);
-        } else { alert("Error al eliminar."); }
-      } catch (e) { alert("Error de conexión."); }
-    }
-
-    function cerrarHojaVida() {
-      document.getElementById("modal-hoja-vida").classList.add("hidden");
-    }
-
-    async function registrarSOAT(e, forzarReemplazo = false) {
-      if (e) e.preventDefault();
-      const btn = document.querySelector("#form-soat button[type='submit']");
-      const textoOriginal = btn.innerHTML;
-      btn.disabled = true;
-      btn.innerHTML = `<span class="inline-block animate-spin mr-1">🔄</span> Guardando en Cloudinary...`;
-
-      const formData = new FormData();
-      formData.append("id_vehiculo", document.getElementById("soat-vehiculo").value);
-      formData.append("tipo_seguro", "SOAT");
-      formData.append("compania_seguros", document.getElementById("soat-compania").value);
-      formData.append("broker", "N/A");
-      formData.append("costo_prima", 0);
-      formData.append("numero_poliza", document.getElementById("soat-poliza").value);
-      formData.append("fecha_inicio", document.getElementById("soat-inicio").value);
-      formData.append("fecha_vencimiento", document.getElementById("soat-vencimiento").value);
-      if (forzarReemplazo) {
-        formData.append("reemplazar", "true");
-      }
-
-      const fileInput = document.getElementById("soat-archivo");
-      if (fileInput && fileInput.files && fileInput.files[0]) {
-        formData.append("archivo_adjunto", fileInput.files[0]);
-      }
-
-      try {
-        const res = await fetch(`${API_URL}/seguros/`, { method: "POST", body: formData });
-        const data = await res.json();
-
-        if (data.requiere_confirmacion) {
-          if (confirm(data.mensaje)) {
-            registrarSOAT(null, true);
-            return;
-          } else {
-            btn.disabled = false;
-            btn.innerHTML = textoOriginal;
-            return;
-          }
-        }
-
-        if (res.ok) {
-          alert(data.mensaje || "SOAT procesado exitosamente.");
-          document.getElementById("form-soat").reset();
-          cargarMétricasResumen();
-        } else {
-          alert("Error al guardar SOAT: " + (data.detail || "Verifique los datos."));
-        }
-      } catch (err) { alert("Error de conexión al servidor."); }
-      finally {
-        btn.disabled = false;
-        btn.innerHTML = textoOriginal;
-      }
-    }
-
-    async function registrarSeguroVehicular(e, forzarReemplazo = false) {
-      if (e) e.preventDefault();
-      const btn = document.querySelector("#form-seguro-vehicular button[type='submit']");
-      const textoOriginal = btn.innerHTML;
-      btn.disabled = true;
-      btn.innerHTML = `<span class="inline-block animate-spin mr-1">🔄</span> Guardando en Cloudinary...`;
-
-      const formData = new FormData();
-      formData.append("id_vehiculo", document.getElementById("sv-vehiculo").value);
-      formData.append("tipo_seguro", "Seguro Vehicular Todo Riesgo");
-      formData.append("compania_seguros", document.getElementById("sv-compania").value);
-      formData.append("broker", "Directo");
-      formData.append("costo_prima", 0);
-      formData.append("numero_poliza", document.getElementById("sv-poliza").value.trim() || "S/N");
-      formData.append("fecha_inicio", "2024-01-01");
-      formData.append("fecha_vencimiento", document.getElementById("sv-vencimiento").value);
-      if (forzarReemplazo) {
-        formData.append("reemplazar", "true");
-      }
-
-      const fileInput = document.getElementById("sv-archivo");
-      if (fileInput && fileInput.files && fileInput.files[0]) {
-        formData.append("archivo_adjunto", fileInput.files[0]);
-      }
-
-      try {
-        const res = await fetch(`${API_URL}/seguros/`, { method: "POST", body: formData });
-        const data = await res.json();
-
-        if (data.requiere_confirmacion) {
-          if (confirm(data.mensaje)) {
-            registrarSeguroVehicular(null, true);
-            return;
-          } else {
-            btn.disabled = false;
-            btn.innerHTML = textoOriginal;
-            return;
-          }
-        }
-
-        if (res.ok) {
-          alert(data.mensaje || "Póliza procesada exitosamente.");
-          document.getElementById("form-seguro-vehicular").reset();
-          cargarMétricasResumen();
-        }
-      } catch (err) { alert("Error de conexión."); }
-      finally {
-        btn.disabled = false;
-        btn.innerHTML = textoOriginal;
-      }
-    }
-
-    async function registrarCITV(e) {
-      e.preventDefault();
-      const btn = e.target.querySelector("button[type='submit']");
-      const textoOriginal = btn.innerHTML;
-      btn.disabled = true;
-      btn.innerHTML = `<span class="inline-block animate-spin mr-1">🔄</span> Guardando CITV en Cloudinary...`;
-
-      const formData = new FormData();
-      formData.append("id_vehiculo", document.getElementById("c-vehiculo").value);
-      formData.append("tipo_documento", "Revision Tecnica CITV");
-      formData.append("entidad_emisora", document.getElementById("c-entidad").value);
-      formData.append("numero_documento", document.getElementById("c-numero").value);
-      formData.append("fecha_emision", document.getElementById("c-emision").value);
-      formData.append("fecha_vencimiento", document.getElementById("c-vencimiento").value);
-
-      const fileInput = document.getElementById("c-archivo");
-      if (fileInput && fileInput.files && fileInput.files[0]) {
-        formData.append("archivo_adjunto", fileInput.files[0]);
-      }
-
-      try {
-        const res = await fetch(`${API_URL}/documentos/`, { method: "POST", body: formData });
-        if (res.ok) {
-          alert("Revisión Técnica CITV guardada exitosamente en el sistema.");
-          document.getElementById("form-citv").reset();
-          cargarMétricasResumen();
-        } else {
-          alert("Error al guardar el documento CITV.");
-        }
-      } catch (err) { alert("Error de conexión al servidor."); }
-      finally {
-        btn.disabled = false;
-        btn.innerHTML = textoOriginal;
-      }
-    }
-
-    async function registrarTaller(e) {
-      e.preventDefault();
-      const btn = e.target.querySelector("button[type='submit']");
-      const textoOriginal = btn.innerHTML;
-      btn.disabled = true;
-      btn.innerHTML = `<span class="inline-block animate-spin mr-1">🔄</span> Guardando...`;
-
-      const formData = new FormData();
-      formData.append("id_vehiculo", document.getElementById("t-vehiculo").value);
-      formData.append("tipo_mantenimiento", document.getElementById("t-tipo").value);
-      formData.append("taller_servicio", document.getElementById("t-taller").value);
-      formData.append("responsable_reparacion", document.getElementById("t-responsable").value);
-      formData.append("fecha_ingreso", document.getElementById("t-fecha").value);
-      formData.append("descripcion_falla", document.getElementById("t-descripcion").value);
-
-      try {
-        const res = await fetch(`${API_URL}/reparaciones/`, { method: "POST", body: formData });
-        if (res.ok) {
-          alert("Registro de mantenimiento guardado exitosamente.");
-          document.getElementById("form-taller").reset();
-        }
-      } catch (err) { alert("Error de conexión."); }
-      finally {
-        btn.disabled = false;
-        btn.innerHTML = textoOriginal;
-      }
-    }
-
-    async function registrarRepuesto(e) {
-      e.preventDefault();
-      const btn = e.target.querySelector("button[type='submit']");
-      const textoOriginal = btn.innerHTML;
-      btn.disabled = true;
-      btn.innerHTML = `<span class="inline-block animate-spin mr-1">🔄</span> Guardando repuesto...`;
-
-      const formData = new FormData();
-      formData.append("id_vehiculo", document.getElementById("rep-vehiculo").value);
-      formData.append("tipo_mantenimiento", `Repuesto: ${document.getElementById("rep-nombre").value}`);
-      formData.append("taller_servicio", `Instalado por: ${document.getElementById("rep-instalador").value}`);
-      formData.append("responsable_reparacion", `Solicitado por: ${document.getElementById("rep-solicitante").value}`);
-      formData.append("fecha_ingreso", document.getElementById("rep-fecha").value);
-      formData.append("descripcion_falla", `Precio Total: S/ ${document.getElementById("rep-precio").value}`);
-
-      try {
-        const res = await fetch(`${API_URL}/reparaciones/`, { method: "POST", body: formData });
-        if (res.ok) {
-          alert("Repuesto guardado y asignado exitosamente a la unidad.");
-          document.getElementById("form-repuesto").reset();
-        } else { alert("Error al guardar repuesto."); }
-      } catch (err) { alert("Error de conexión."); }
-      finally {
-        btn.disabled = false;
-        btn.innerHTML = textoOriginal;
-      }
-    }
-
-    async function registrarVehiculo(e) {
-      e.preventDefault();
-      const placa = document.getElementById("v-placa").value.trim();
-      if (!placa) { alert("El número de placa es obligatorio."); return; }
-
-      const btn = e.target.querySelector("button[type='submit']");
-      const textoOriginal = btn.innerHTML;
-      btn.disabled = true;
-      btn.innerHTML = `<span class="inline-block animate-spin mr-1">🔄</span> Registrando vehículo...`;
-
-      const formData = new FormData();
-      formData.append("placa", placa);
-      formData.append("sede_asignada", document.getElementById("v-sede").value.trim() || "Por Asignar");
-      formData.append("marca", document.getElementById("v-marca").value.trim() || "Por Especificar");
-      formData.append("modelo", document.getElementById("v-modelo").value.trim() || "Por Especificar");
-      formData.append("anio", document.getElementById("v-anio").value || 2024);
-      formData.append("numero_vin", document.getElementById("v-vin").value.trim() || "S/N");
-      formData.append("descripcion", document.getElementById("v-descripcion").value.trim() || "Registrado por placa");
-
-      const fileInput = document.getElementById("v-archivo");
-      if (fileInput && fileInput.files && fileInput.files[0]) {
-        formData.append("archivo_tive", fileInput.files[0]);
-      }
-
-      try {
-        const res = await fetch(`${API_URL}/vehiculos/`, { method: "POST", body: formData });
-        if (res.ok) {
-          alert(`Vehículo con placa ${placa} creado exitosamente.`);
-          document.getElementById("form-vehiculo").reset();
-          cargarListaVehiculos();
-          cargarMétricasResumen();
-        } else {
-          const err = await res.json();
-          alert("Error al registrar: " + (err.detail || "Verifique los datos."));
-        }
-      } catch (err) { alert("Error de conexión al servidor en Render."); }
-      finally {
-        btn.disabled = false;
-        btn.innerHTML = textoOriginal;
+        console.error("Error cargando checklists:", e);
       }
     }
 
@@ -1742,30 +1167,36 @@ function cerrarModalHistorialLlanta() {
 
       } catch (error) {
         console.error("Error cargando métricas:", error);
-        tbodyAlertas.innerHTML = `<tr><td colspan="5" class="p-4 text-center text-red-500 font-semibold">Error al obtener las alertas del servidor.</td></tr>`;
       }
     }
 
-    function cerrarSesion() {
-      localStorage.clear();
-      window.location.reload();
-    }
-
-    // --- FUNCIONES ESPECÍFICAS DEL MÓDULO OPERACIONES Y CARGA ---
-    async function cargarVehiculosEnSelectOperaciones() {
+    async function cargarListaLlantas() {
       try {
-        const resp = await fetch(`${API_URL}/vehiculos/`);
-        if (!resp.ok) return;
-        const vehiculos = await resp.json();
-        const select = document.getElementById("op_id_vehiculo");
-        if (!select) return;
-        select.innerHTML = '<option value="">Seleccione un vehículo...</option>';
-        vehiculos.forEach(v => {
-          select.innerHTML += `<option value="${v.id_vehiculo}">${v.placa} - ${v.marca || ''} ${v.modelo || ''}</option>`;
-        });
-      } catch (err) {
-        console.error("Error al cargar selector de vehículos:", err);
-      }
+        const res = await fetch(`${API_URL}/llantas/`);
+        const llantas = await res.json();
+        listaLlantasGlobal = llantas;
+        
+        const mapVehiculos = {};
+        listaVehiculosGlobal.forEach(v => mapVehiculos[v.id_vehiculo] = v.placa);
+
+        const tbody = document.getElementById("tabla-llantas-lista");
+        if (!tbody) return;
+        tbody.innerHTML = llantas.map(l => `
+          <tr class="border-b hover:bg-slate-50">
+            <td class="p-3 text-slate-400">#${l.id_llanta}</td>
+            <td class="p-3 font-bold text-blue-600">${mapVehiculos[l.id_vehiculo] || 'Vehículo #' + l.id_vehiculo}</td>
+            <td class="p-3 font-mono font-bold text-slate-800">${l.codigo || 'S/C'}</td>
+            <td class="p-3 font-semibold text-slate-800">${l.marca} / ${l.modelo}</td>
+            <td class="p-3 font-medium text-amber-700">${l.posicion}</td>
+            <td class="p-3">${l.km_instalacion || 0} km</td>
+            <td class="p-3 flex gap-1">
+              <button onclick="abrirModalRotar(${l.id_llanta})" class="bg-amber-600 hover:bg-amber-700 text-white font-bold text-xs px-2.5 py-1 rounded transition">🔄 Rotar</button>
+              <button onclick="verHistorialLlanta(${l.id_llanta})" class="bg-slate-800 hover:bg-slate-900 text-white font-bold text-xs px-2.5 py-1 rounded transition">📋 Historial</button>
+              <button onclick="borrarLlantaDirecto(${l.id_llanta})" class="btn-eliminar bg-red-50 hover:bg-red-100 text-red-600 font-bold text-xs px-2 py-1 rounded transition">🗑️</button>
+            </td>
+          </tr>
+        `).join('') || `<tr><td colspan="7" class="p-4 text-center text-slate-400">No hay llantas registradas.</td></tr>`;
+      } catch (e) { console.error("Error cargando llantas:", e); }
     }
 
     async function cargarOperaciones() {
@@ -1811,107 +1242,12 @@ function cerrarModalHistorialLlanta() {
         `).join('');
       } catch (err) {
         console.error(err);
-        tbody.innerHTML = '<tr><td colspan="10" class="p-4 text-center text-red-500">Error al consultar partes diarios del servidor.</td></tr>';
       }
     }
 
-    async function registrarOperacion(event) {
-      event.preventDefault();
-      const btn = event.target.querySelector("button[type='submit']");
-      const textoOriginal = btn.innerHTML;
-      btn.disabled = true;
-      btn.innerHTML = `<span class="inline-block animate-spin mr-1">🔄</span> Guardando parte diario...`;
-
-      const payload = {
-        id_vehiculo: parseInt(document.getElementById("op_id_vehiculo").value),
-        chofer: document.getElementById("op_chofer").value.trim(),
-        fecha_operacion: document.getElementById("op_fecha_operacion").value,
-        tipo_trabajo: document.getElementById("op_tipo_trabajo").value.trim() || null,
-        ruta_origen_destino: document.getElementById("op_ruta").value.trim() || null,
-        toneladas_carga: parseFloat(document.getElementById("op_carga_toneladas").value) || 0.0,
-        numero_viajes: parseInt(document.getElementById("op_numero_viajes").value) || 1,
-        km_horometro_inicial: parseFloat(document.getElementById("op_km_inicial").value) || 0.0,
-        km_horometro_final: parseFloat(document.getElementById("op_km_final").value) || 0.0,
-        galones_combustible: parseFloat(document.getElementById("op_galones").value) || 0.0,
-        costo_combustible: parseFloat(document.getElementById("op_costo_combustible").value) || 0.0,
-        grifo_surtidor: document.getElementById("op_grifo").value.trim() || null,
-        observaciones: document.getElementById("op_observaciones").value.trim() || null
-      };
-
-      try {
-        const resp = await fetch(`${API_URL}/operaciones/`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(payload)
-        });
-
-        if (!resp.ok) {
-          const err = await resp.json().catch(() => ({}));
-          alert("Error: " + (err.detail || "No se pudo registrar la operación."));
-          return;
-        }
-
-        alert("✅ Parte diario registrado correctamente.");
-        document.getElementById("form-operaciones").reset();
-        document.getElementById("op_fecha_operacion").valueAsDate = new Date();
-        cargarOperaciones();
-        if (typeof cargarListaVehiculos === 'function') cargarListaVehiculos();
-      } catch (err) {
-        alert("Error de conexión con el servidor.");
-      } finally {
-        btn.disabled = false;
-        btn.innerHTML = textoOriginal;
-      }
-    }
-
-    async function eliminarOperacion(id) {
-      if (!confirm("¿Desea eliminar este parte diario?")) return;
-      try {
-        const resp = await fetch(`${API_URL}/operaciones/${id}`, { method: "DELETE" });
-        if (resp.ok) {
-          alert("Registro de operación eliminado.");
-          cargarOperaciones();
-        } else {
-          alert("Error al eliminar el registro.");
-        }
-      } catch (err) {
-        alert("Error de conexión.");
-      }
-    }
-
-    function exportarOperacionesCSV() {
-      if (!listaOperacionesCache || listaOperacionesCache.length === 0) {
-        alert("No hay registros de operaciones para exportar.");
-        return;
-      }
-      let csv = "ID,ID Vehiculo,Chofer,Fecha,Tipo Trabajo,Ruta,Carga Tons,N Viajes,Km Inicial,Km Final,Galones,Costo Combustible,Grifo,Observaciones\n";
-      listaOperacionesCache.forEach(op => {
-        csv += [
-          op.id_operacion,
-          op.id_vehiculo,
-          `"${(op.chofer || '').replace(/"/g, '""')}"`,
-          op.fecha_operacion,
-          `"${(op.tipo_trabajo || '').replace(/"/g, '""')}"`,
-          `"${(op.ruta_origen_destino || '').replace(/"/g, '""')}"`,
-          op.toneladas_carga || op.carga_toneladas || 0,
-          op.numero_viajes || 0,
-          op.km_horometro_inicial || 0,
-          op.km_horometro_final || 0,
-          op.galones_combustible || 0,
-          op.costo_combustible || 0,
-          `"${(op.grifo_surtidor || '').replace(/"/g, '""')}"`,
-          `"${(op.observaciones || '').replace(/"/g, '""')}"`
-        ].join(",") + "\n";
-      });
-
-      const blob = new Blob(["\uFEFF" + csv], { type: "text/csv;charset=utf-8;" });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = `operaciones_ponderosa_${new Date().toISOString().split('T')[0]}.csv`;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
+    function cerrarSesion() {
+      localStorage.clear();
+      window.location.reload();
     }
 
     document.addEventListener("DOMContentLoaded", () => {
@@ -1927,158 +1263,5 @@ function cerrarModalHistorialLlanta() {
       }
     });
   </script>
-  <!-- MODAL ROTAR LLANTA -->
-<div id="modal-rotar-llanta" class="hidden fixed inset-0 bg-slate-900 bg-opacity-50 flex items-center justify-center p-4 z-50">
-  <div class="bg-white rounded-xl shadow-xl max-w-lg w-full p-6 space-y-4">
-    <div class="flex justify-between items-center border-b pb-3">
-      <h3 class="text-base font-bold text-slate-800">🔄 Registrar Rotación / Cambio de Posición</h3>
-      <button onclick="cerrarModalRotar()" class="text-slate-400 hover:text-slate-600 font-bold">✕</button>
-    </div>
-    <form id="form-rotar-llanta" onsubmit="ejecutarRotacionLlanta(event)" class="space-y-3 text-xs md:text-sm">
-      <input type="hidden" id="rot-id-llanta">
-      <div>
-        <label class="block font-semibold text-slate-600 uppercase mb-1">Vehículo Destino (*)</label>
-        <select id="rot-vehiculo-destino" required class="select-vehiculos-dinamico w-full p-2.5 border rounded-lg"><option value="">Cargando...</option></select>
-      </div>
-      <div>
-        <label class="block font-semibold text-slate-600 uppercase mb-1">Nueva Posición (*)</label>
-        <select id="rot-posicion-destino" required class="w-full p-2.5 border rounded-lg">
-          <option value="">Seleccione nueva posición...</option>
-          <option value="Delantera Izquierda (1)">Delantera Izquierda (1)</option>
-          <option value="Delantera Derecha (2)">Delantera Derecha (2)</option>
-          <option value="Tracción Izq Exterior (3)">Tracción Izq Exterior (3)</option>
-          <option value="Tracción Izq Interior (4)">Tracción Izq Interior (4)</option>
-          <option value="Tracción Der Interior (5)">Tracción Der Interior (5)</option>
-          <option value="Tracción Der Exterior (6)">Tracción Der Exterior (6)</option>
-          <option value="Eje Posterior Izquierdo">Eje Posterior Izquierdo</option>
-          <option value="Eje Posterior Derecho">Eje Posterior Derecho</option>
-          <option value="Repuesto 1">Repuesto 1</option>
-          <option value="Repuesto 2">Repuesto 2</option>
-        </select>
-      </div>
-      <div class="grid grid-cols-2 gap-3">
-        <div>
-          <label class="block font-semibold text-slate-600 uppercase mb-1">Fecha Movimiento (*)</label>
-          <input type="date" id="rot-fecha" required class="w-full p-2.5 border rounded-lg">
-        </div>
-        <div>
-          <label class="block font-semibold text-slate-600 uppercase mb-1">Km Actual Evento</label>
-          <input type="number" step="0.1" id="rot-km" placeholder="0.0" class="w-full p-2.5 border rounded-lg">
-        </div>
-      </div>
-      <div>
-        <label class="block font-semibold text-slate-600 uppercase mb-1">Motivo del Cambio</label>
-        <input type="text" id="rot-motivo" placeholder="Ej. Rotación por desgaste parejo" class="w-full p-2.5 border rounded-lg">
-      </div>
-      <div class="flex justify-end gap-2 pt-2">
-        <button type="button" onclick="cerrarModalRotar()" class="px-4 py-2 bg-slate-200 rounded-lg text-slate-700 font-medium">Cancelar</button>
-        <button type="submit" class="px-5 py-2 bg-amber-600 hover:bg-amber-700 text-white rounded-lg font-bold">Guardar Rotación</button>
-      </div>
-    </form>
-  </div>
-</div>
-
-<!-- MODAL HISTORIAL TRAZABILIDAD LLANTA -->
-<div id="modal-historial-llanta" class="hidden fixed inset-0 bg-slate-900 bg-opacity-50 flex items-center justify-center p-4 z-50">
-  <div class="bg-white rounded-xl shadow-xl max-w-2xl w-full p-6 max-h-[85vh] overflow-y-auto space-y-4">
-    <div class="flex justify-between items-center border-b pb-3">
-      <h3 id="hist-llanta-titulo" class="text-base font-bold text-slate-800">📋 Trazabilidad de Neumático</h3>
-      <button onclick="cerrarModalHistorialLlanta()" class="text-slate-400 hover:text-slate-600 font-bold">✕</button>
-    </div>
-    <div id="hist-llanta-contenido" class="space-y-4 text-xs md:text-sm">
-      <p class="text-slate-400">Cargando trazabilidad...</p>
-    </div>
-  </div>
-</div>
-<script>
-// --- FUNCIONES INTERACTIVAS Y CONSUMO API PARA CHECKLIST ---
-function toggleDetalleInc(chequeado) {
-  const cont = document.getElementById("contenedor-detalle-inc");
-  if (chequeado) {
-    cont.classList.remove("hidden");
-  } else {
-    cont.classList.add("hidden");
-    document.getElementById("chk-detalle-inc").value = "";
-  }
-}
-
-async function registrarChecklist(e) {
-  e.preventDefault();
-  const tieneInc = document.getElementById("chk-tiene-inc").checked;
-  const detalle = document.getElementById("chk-detalle-inc").value.trim();
-
-  if (tieneInc && !detalle) {
-    alert("Si marcó que el vehículo presenta un inconveniente, debe detallar la observación para Taller.");
-    return;
-  }
-
-  const payload = {
-    id_vehiculo: parseInt(document.getElementById("chk-vehiculo").value),
-    conductor: document.getElementById("chk-conductor").value.trim(),
-    fecha_inspeccion: document.getElementById("chk-fecha").value,
-    kilometraje: parseFloat(document.getElementById("chk-km").value) || 0.0,
-    estado_documentos: document.getElementById("chk-doc").value,
-    estado_luces_exterior: document.getElementById("chk-luces").value,
-    estado_neumaticos: document.getElementById("chk-neumaticos").value,
-    estado_niveles_motor: document.getElementById("chk-niveles").value,
-    estado_equipos_seguridad: document.getElementById("chk-seguridad").value,
-    tiene_inconveniente: tieneInc,
-    detalle_inconveniente: detalle
-  };
-
-  try {
-    const res = await fetch(`${API_URL}/checklists/`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload)
-    });
-    if (res.ok) {
-      alert("Inspección guardada correctamente" + (tieneInc ? " y se generó una orden de revisión en Taller." : "."));
-      document.getElementById("form-checklist").reset();
-      toggleDetalleInc(false);
-      cargarListaChecklists();
-      if (typeof cargarListaMantenimientos === "function") cargarListaMantenimientos();
-    } else {
-      alert("Error al guardar la inspección pre-operativa.");
-    }
-  } catch (err) {
-    alert("Error de conexión con el servidor.");
-  }
-}
-
-async function cargarListaChecklists() {
-  try {
-    const res = await fetch(`${API_URL}/checklists/`);
-    if (!res.ok) return;
-    const data = await res.json();
-    
-    const mapVehiculos = {};
-    if (Array.isArray(listaVehiculosGlobal)) {
-      listaVehiculosGlobal.forEach(v => mapVehiculos[v.id_vehiculo] = v.placa);
-    }
-
-    const tbody = document.getElementById("tabla-checklists-lista");
-    if (!tbody) return;
-
-    tbody.innerHTML = data.map(c => `
-      <tr class="border-b hover:bg-slate-50">
-        <td class="p-3 text-slate-400">#${c.id_checklist}</td>
-        <td class="p-3 font-semibold">${c.fecha_inspeccion}</td>
-        <td class="p-3 font-bold text-blue-600">${mapVehiculos[c.id_vehiculo] || 'Vehículo #' + c.id_vehiculo}</td>
-        <td class="p-3">${c.conductor}</td>
-        <td class="p-3">${c.kilometraje || 0} km</td>
-        <td class="p-3">
-          ${c.tiene_inconveniente 
-            ? '<span class="bg-red-100 text-red-800 text-xs font-bold px-2.5 py-1 rounded-full">⚠️ Con Alerta</span>' 
-            : '<span class="bg-emerald-100 text-emerald-800 text-xs font-bold px-2.5 py-1 rounded-full">✅ Conforme</span>'}
-        </td>
-        <td class="p-3 text-slate-600">${c.detalle_inconveniente || 'Sin observaciones'}</td>
-      </tr>
-    `).join('') || `<tr><td colspan="7" class="p-4 text-center text-slate-400">No hay inspecciones registradas.</td></tr>`;
-  } catch (e) {
-    console.error("Error cargando checklists:", e);
-  }
-}
-</script>
 </body>
 </html>

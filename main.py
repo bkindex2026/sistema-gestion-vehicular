@@ -580,19 +580,17 @@ def registrar_checklist(payload: ChecklistSchema, db: Session = Depends(get_db))
     if vehiculo and payload.kilometraje and payload.kilometraje > 0:
         vehiculo.kilometraje_actual = payload.kilometraje
 
-    # Si reporta observación/falla, crea automáticamente una orden pendiente en Taller
+    # Si reporta observación/falla, crea automáticamente un registro en Taller/Reparaciones
     if payload.tiene_inconveniente and payload.detalle_inconveniente:
-        nuevo_mantenimiento = models.Mantenimiento(
+        nueva_reparacion = models.Reparacion(
             id_vehiculo=payload.id_vehiculo,
-            taller_proveedor="Taller Interno / Alerta Checklist",
-            tecnico_responsable=payload.conductor,
-            tipo_mantenimiento="CORRECTIVO",
-            descripcion_trabajo=f"[ALERTA CHECKLIST PRE-OPERATIVO]: {payload.detalle_inconveniente}",
-            costo_total=0.0,
+            tipo_mantenimiento="CORRECTIVO (Checklist)",
+            taller_servicio="Taller Interno / Alerta Checklist",
+            responsable_reparacion=payload.conductor,
             fecha_ingreso=payload.fecha_inspeccion,
-            estado="PENDIENTE"
+            descripcion_falla=f"[ALERTA CHECKLIST PRE-OPERATIVO]: {payload.detalle_inconveniente}"
         )
-        db.add(nuevo_mantenimiento)
+        db.add(nueva_reparacion)
 
     db.commit()
     db.refresh(nuevo_chk)
@@ -607,4 +605,3 @@ def listar_checklists(db: Session = Depends(get_db)):
 @app.get("/checklists/vehiculo/{id_vehiculo}")
 def listar_checklists_por_vehiculo(id_vehiculo: int, db: Session = Depends(get_db)):
     return db.query(models.ChecklistVehicular).filter(models.ChecklistVehicular.id_vehiculo == id_vehiculo).order_by(models.ChecklistVehicular.id_checklist.desc()).all()
-    
