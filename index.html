@@ -1059,6 +1059,11 @@
       campoFecha.valueAsDate = new Date();
     }
   } else if (nombreModulo === 'checklist') {
+    if (typeof cargarVehiculosEnSelectOperaciones === "function") cargarVehiculosEnSelectOperaciones();
+    const campoFechaChk = document.getElementById("chk-fecha");
+    if (campoFechaChk && !campoFechaChk.value) {
+      campoFechaChk.valueAsDate = new Date();
+    }
     cargarListaChecklists();
   } else if (nombreModulo === 'taller') {
     if (typeof cargarListaMantenimientos === "function") cargarListaMantenimientos();
