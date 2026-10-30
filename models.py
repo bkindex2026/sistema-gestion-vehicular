@@ -140,3 +140,18 @@ class ReparacionLlanta(Base):
     fecha_actividad = Column(String(10), nullable=False)
     km_evento = Column(Float, default=0.0)
     observaciones = Column(String(255), default="")
+    class ChecklistVehicular(Base):
+    __tablename__ = "checklists_vehiculares"
+
+    id_checklist = Column(Integer, primary_key=True, index=True)
+    id_vehiculo = Column(Integer, ForeignKey("vehiculos.id_vehiculo"), nullable=False)
+    conductor = Column(String(150), nullable=False)
+    fecha_inspeccion = Column(String(10), nullable=False)
+    kilometraje = Column(Float, default=0.0)
+    estado_documentos = Column(String(20), default="OK")
+    estado_luces_exterior = Column(String(20), default="OK")
+    estado_neumaticos = Column(String(20), default="OK")
+    estado_niveles_motor = Column(String(20), default="OK")
+    estado_equipos_seguridad = Column(String(20), default="OK")
+    tiene_inconveniente = Column(Boolean, default=False)
+    detalle_inconveniente = Column(Text, default="")

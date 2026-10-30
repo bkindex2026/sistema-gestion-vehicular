@@ -48,15 +48,16 @@
           <h1 class="text-lg font-bold tracking-wide">Ponderosa Minerals S.A.C.</h1>
         </div>
         
-        <div class="flex flex-wrap justify-center gap-2 md:gap-3 text-xs md:text-sm font-medium">
-          <button onclick="cambiarPestaña('resumen')" class="px-3 py-1.5 rounded hover:bg-slate-800 transition">Resumen</button>
-          <button onclick="cambiarPestaña('vehiculos')" class="px-3 py-1.5 rounded hover:bg-slate-800 transition">Vehículos</button>
-          <button onclick="cambiarPestaña('vencimientos')" class="px-3 py-1.5 rounded hover:bg-slate-800 transition">Vencimientos</button>
-          <button onclick="cambiarPestaña('llantas')" class="px-3 py-1.5 rounded hover:bg-slate-800 transition text-amber-300 font-bold">🛞 Llantas</button>
-          <button onclick="cambiarPestaña('taller')" class="px-3 py-1.5 rounded hover:bg-slate-800 transition">Taller y Repuestos</button>
-          <button onclick="cambiarPestaña('operaciones')" class="px-3 py-1.5 rounded-lg font-bold transition-colors bg-amber-600 text-white hover:bg-amber-700">🚚 Operaciones y Carga</button>
-          <button onclick="cambiarPestaña('usuarios')" class="seccion-usuarios px-3 py-1.5 rounded hover:bg-slate-800 transition">Usuarios</button>
-        </div>
+        <div class="flex flex-wrap justify-center gap-2 md:gap-3 text-xs md:text-sm font-semibold">
+  <button onclick="cambiarPestaña('resumen')" class="px-3 py-1.5 rounded bg-slate-800 hover:bg-slate-700 transition">📊 Resumen</button>
+  <button onclick="cambiarPestaña('vehiculos')" class="px-3 py-1.5 rounded bg-slate-800 hover:bg-slate-700 transition">🚛 Vehículos</button>
+  <button onclick="cambiarPestaña('vencimientos')" class="px-3 py-1.5 rounded bg-slate-800 hover:bg-slate-700 transition">📅 Documentos</button>
+  <button onclick="cambiarPestaña('llantas')" class="px-3 py-1.5 rounded bg-slate-800 hover:bg-slate-700 transition">🛞 Llantas</button>
+  <button onclick="cambiarPestaña('taller')" class="px-3 py-1.5 rounded bg-slate-800 hover:bg-slate-700 transition">🛠️ Taller</button>
+  <button onclick="cambiarPestaña('operaciones')" class="px-3 py-1.5 rounded bg-slate-800 hover:bg-slate-700 transition">🚚 Operaciones</button>
+  <button onclick="cambiarPestaña('checklist')" class="px-3 py-1.5 rounded bg-indigo-700 hover:bg-indigo-600 font-bold transition">📋 Checklist</button>
+  <button onclick="cambiarPestaña('usuarios')" class="seccion-usuarios px-3 py-1.5 rounded bg-slate-800 hover:bg-slate-700 transition">👥 Usuarios</button>
+</div>
 
         <button onclick="cerrarSesion()" class="bg-red-600 hover:bg-red-700 text-xs px-3 py-1.5 rounded transition">Cerrar Sesión</button>
       </div>
@@ -558,6 +559,100 @@
     <input type="number" step="0.01" id="op_costo_urea" class="w-full px-3 py-2 border border-amber-300 rounded-lg text-sm focus:ring-2 focus:ring-amber-500 focus:outline-none" placeholder="0.00">
   </div>
 </div>
+<!-- MÓDULO CHECKLIST VEHICULAR PRE-OPERATIVO -->
+<div id="modulo-checklist" class="hidden space-y-6">
+  <div class="bg-white p-6 rounded-xl shadow-sm border-l-4 border-indigo-600 space-y-4">
+    <div class="flex justify-between items-center border-b pb-2">
+      <h2 class="text-lg font-bold text-slate-800">📋 Inspección Pre-operativa y Checklist Vehicular</h2>
+      <span class="bg-indigo-100 text-indigo-800 text-xs font-bold px-2.5 py-1 rounded">Control Diario</span>
+    </div>
+    
+    <form id="form-checklist" onsubmit="registrarChecklist(event)" class="space-y-4">
+      <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <div>
+          <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Vehículo Inspeccionado (*)</label>
+          <select id="chk-vehiculo" required class="select-vehiculos-dinamico w-full p-2.5 border rounded-lg text-sm"><option value="">Cargando...</option></select>
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Conductor / Inspector (*)</label>
+          <input type="text" id="chk-conductor" required placeholder="Nombre completo" class="w-full p-2.5 border rounded-lg text-sm">
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Fecha Inspección (*)</label>
+          <input type="date" id="chk-fecha" required class="w-full p-2.5 border rounded-lg text-sm">
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Kilometraje Actual</label>
+          <input type="number" step="0.1" id="chk-km" placeholder="0.0" class="w-full p-2.5 border rounded-lg text-sm">
+        </div>
+      </div>
+
+      <!-- MATRIZ DE VERIFICACIÓN -->
+      <div class="bg-slate-50 p-4 rounded-lg border space-y-3">
+        <h3 class="text-xs font-bold text-slate-700 uppercase tracking-wider">Estado de Sistemas Principales</h3>
+        <div class="grid grid-cols-1 md:grid-cols-5 gap-3 text-xs">
+          <div>
+            <label class="block font-semibold mb-1">Documentos (SOAT/CITV)</label>
+            <select id="chk-doc" class="w-full p-2 border rounded-lg"><option value="OK">✅ Conforme (OK)</option><option value="OBSERVADO">⚠️ Observado</option></select>
+          </div>
+          <div>
+            <label class="block font-semibold mb-1">Luces / Faros Exterior</label>
+            <select id="chk-luces" class="w-full p-2 border rounded-lg"><option value="OK">✅ Conforme (OK)</option><option value="OBSERVADO">⚠️ Observado</option></select>
+          </div>
+          <div>
+            <label class="block font-semibold mb-1">Neumáticos y Presión</label>
+            <select id="chk-neumaticos" class="w-full p-2 border rounded-lg"><option value="OK">✅ Conforme (OK)</option><option value="OBSERVADO">⚠️ Observado</option></select>
+          </div>
+          <div>
+            <label class="block font-semibold mb-1">Niveles (Aceite/Agua/Urea)</label>
+            <select id="chk-niveles" class="w-full p-2 border rounded-lg"><option value="OK">✅ Conforme (OK)</option><option value="OBSERVADO">⚠️ Observado</option></select>
+          </div>
+          <div>
+            <label class="block font-semibold mb-1">Equipos de Seguridad</label>
+            <select id="chk-seguridad" class="w-full p-2 border rounded-lg"><option value="OK">✅ Conforme (OK)</option><option value="OBSERVADO">⚠️ Observado</option></select>
+          </div>
+        </div>
+      </div>
+
+      <!-- ALERTA DE INCONVENIENTE -->
+      <div class="bg-amber-50 p-4 rounded-lg border border-amber-200 space-y-2">
+        <div class="flex items-center gap-2">
+          <input type="checkbox" id="chk-tiene-inc" onchange="toggleDetalleInc(this.checked)" class="w-4 h-4 text-amber-600 rounded">
+          <label for="chk-tiene-inc" class="text-xs font-bold text-amber-900 uppercase">¿El vehículo presenta alguna falla o inconveniente para enviar a Taller?</label>
+        </div>
+        <div id="contenedor-detalle-inc" class="hidden">
+          <textarea id="chk-detalle-inc" rows="2" placeholder="Describa detalladamente la falla detectada. Esto creará automáticamente un reporte pendiente en el Módulo de Taller..." class="w-full p-2.5 border rounded-lg text-sm border-amber-300 focus:ring-2 focus:ring-amber-500"></textarea>
+        </div>
+      </div>
+
+      <div class="flex justify-end">
+        <button type="submit" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-6 py-2.5 rounded-lg text-sm transition">Guardar Inspección</button>
+      </div>
+    </form>
+  </div>
+
+  <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
+    <h3 class="text-base font-bold text-slate-800 mb-4">Historial de Inspecciones Pre-operativas</h3>
+    <div class="overflow-x-auto">
+      <table class="w-full text-left border-collapse text-xs md:text-sm">
+        <thead>
+          <tr class="border-b bg-slate-50 text-slate-600 font-semibold uppercase">
+            <th class="p-3">ID</th>
+            <th class="p-3">Fecha</th>
+            <th class="p-3">Vehículo</th>
+            <th class="p-3">Conductor</th>
+            <th class="p-3">Km</th>
+            <th class="p-3">Resultado</th>
+            <th class="p-3">Observaciones de Taller</th>
+          </tr>
+        </thead>
+        <tbody id="tabla-checklists-lista">
+          <tr><td colspan="7" class="p-4 text-center text-slate-400">Cargando inspecciones...</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
 
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div>
@@ -944,26 +1039,31 @@
     }
 
     function cambiarPestaña(nombreModulo) {
-      ["resumen", "vehiculos", "vencimientos", "llantas", "taller", "operaciones", "usuarios"].forEach(m => {
-        const el = document.getElementById(`modulo-${m}`);
-        if (el) el.classList.add("hidden");
-      });
-      
-      const objetivo = document.getElementById(`modulo-${nombreModulo}`);
-      if (objetivo) objetivo.classList.remove("hidden");
+  ["resumen", "vehiculos", "vencimientos", "llantas", "taller", "operaciones", "checklist", "usuarios"].forEach(m => {
+    const el = document.getElementById(`modulo-${m}`);
+    if (el) el.classList.add("hidden");
+  });
 
-      if (nombreModulo === 'llantas') {
-        cargarListaLlantas();
-      } else if (nombreModulo === 'resumen') {
-        cargarMétricasResumen();
-      } else if (nombreModulo === 'operaciones') {
-        cargarVehiculosEnSelectOperaciones();
-        cargarOperaciones();
-        const campoFecha = document.getElementById("op_fecha_operacion");
-        if (campoFecha && !campoFecha.value) {
-          campoFecha.valueAsDate = new Date();
-        }
-      }
+  const objetivo = document.getElementById(`modulo-${nombreModulo}`);
+  if (objetivo) objetivo.classList.remove("hidden");
+
+  if (nombreModulo === 'llantas') {
+    cargarListaLlantas();
+  } else if (nombreModulo === 'resumen') {
+    cargarMétricasResumen();
+  } else if (nombreModulo === 'operaciones') {
+    cargarVehiculosEnSelectOperaciones();
+    cargarOperaciones();
+    const campoFecha = document.getElementById("op_fecha_operacion");
+    if (campoFecha && !campoFecha.value) {
+      campoFecha.valueAsDate = new Date();
+    }
+  } else if (nombreModulo === 'checklist') {
+    cargarListaChecklists();
+  } else if (nombreModulo === 'taller') {
+    if (typeof cargarListaMantenimientos === "function") cargarListaMantenimientos();
+  }
+}
     }
 
     async function cargarListaVehiculos() {
@@ -1886,5 +1986,95 @@ function cerrarModalHistorialLlanta() {
     </div>
   </div>
 </div>
+<script>
+// --- FUNCIONES INTERACTIVAS Y CONSUMO API PARA CHECKLIST ---
+function toggleDetalleInc(chequeado) {
+  const cont = document.getElementById("contenedor-detalle-inc");
+  if (chequeado) {
+    cont.classList.remove("hidden");
+  } else {
+    cont.classList.add("hidden");
+    document.getElementById("chk-detalle-inc").value = "";
+  }
+}
+
+async function registrarChecklist(e) {
+  e.preventDefault();
+  const tieneInc = document.getElementById("chk-tiene-inc").checked;
+  const detalle = document.getElementById("chk-detalle-inc").value.trim();
+
+  if (tieneInc && !detalle) {
+    alert("Si marcó que el vehículo presenta un inconveniente, debe detallar la observación para Taller.");
+    return;
+  }
+
+  const payload = {
+    id_vehiculo: parseInt(document.getElementById("chk-vehiculo").value),
+    conductor: document.getElementById("chk-conductor").value.trim(),
+    fecha_inspeccion: document.getElementById("chk-fecha").value,
+    kilometraje: parseFloat(document.getElementById("chk-km").value) || 0.0,
+    estado_documentos: document.getElementById("chk-doc").value,
+    estado_luces_exterior: document.getElementById("chk-luces").value,
+    estado_neumaticos: document.getElementById("chk-neumaticos").value,
+    estado_niveles_motor: document.getElementById("chk-niveles").value,
+    estado_equipos_seguridad: document.getElementById("chk-seguridad").value,
+    tiene_inconveniente: tieneInc,
+    detalle_inconveniente: detalle
+  };
+
+  try {
+    const res = await fetch(`${API_URL}/checklists/`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload)
+    });
+    if (res.ok) {
+      alert("Inspección guardada correctamente" + (tieneInc ? " y se generó una orden de revisión en Taller." : "."));
+      document.getElementById("form-checklist").reset();
+      toggleDetalleInc(false);
+      cargarListaChecklists();
+      if (typeof cargarListaMantenimientos === "function") cargarListaMantenimientos();
+    } else {
+      alert("Error al guardar la inspección pre-operativa.");
+    }
+  } catch (err) {
+    alert("Error de conexión con el servidor.");
+  }
+}
+
+async function cargarListaChecklists() {
+  try {
+    const res = await fetch(`${API_URL}/checklists/`);
+    if (!res.ok) return;
+    const data = await res.json();
+    
+    const mapVehiculos = {};
+    if (Array.isArray(listaVehiculosGlobal)) {
+      listaVehiculosGlobal.forEach(v => mapVehiculos[v.id_vehiculo] = v.placa);
+    }
+
+    const tbody = document.getElementById("tabla-checklists-lista");
+    if (!tbody) return;
+
+    tbody.innerHTML = data.map(c => `
+      <tr class="border-b hover:bg-slate-50">
+        <td class="p-3 text-slate-400">#${c.id_checklist}</td>
+        <td class="p-3 font-semibold">${c.fecha_inspeccion}</td>
+        <td class="p-3 font-bold text-blue-600">${mapVehiculos[c.id_vehiculo] || 'Vehículo #' + c.id_vehiculo}</td>
+        <td class="p-3">${c.conductor}</td>
+        <td class="p-3">${c.kilometraje || 0} km</td>
+        <td class="p-3">
+          ${c.tiene_inconveniente 
+            ? '<span class="bg-red-100 text-red-800 text-xs font-bold px-2.5 py-1 rounded-full">⚠️ Con Alerta</span>' 
+            : '<span class="bg-emerald-100 text-emerald-800 text-xs font-bold px-2.5 py-1 rounded-full">✅ Conforme</span>'}
+        </td>
+        <td class="p-3 text-slate-600">${c.detalle_inconveniente || 'Sin observaciones'}</td>
+      </tr>
+    `).join('') || `<tr><td colspan="7" class="p-4 text-center text-slate-400">No hay inspecciones registradas.</td></tr>`;
+  } catch (e) {
+    console.error("Error cargando checklists:", e);
+  }
+}
+</script>
 </body>
 </html>

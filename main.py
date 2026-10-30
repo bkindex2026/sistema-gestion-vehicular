@@ -59,6 +59,18 @@ class OperacionSchema(BaseModel):
     grifo_surtidor: Optional[str] = None
     observaciones: Optional[str] = None
 
+class ChecklistSchema(BaseModel):
+    id_vehiculo: int
+    conductor: str
+    fecha_inspeccion: str
+    kilometraje: Optional[float] = 0.0
+    estado_documentos: Optional[str] = "OK"
+    estado_luces_exterior: Optional[str] = "OK"
+    estado_neumaticos: Optional[str] = "OK"
+    estado_niveles_motor: Optional[str] = "OK"
+    estado_equipos_seguridad: Optional[str] = "OK"
+    tiene_inconveniente: Optional[bool] = False
+    detalle_inconveniente: Optional[str] = ""
 
 def subir_a_cloudinary(archivo: UploadFile, carpeta: str) -> str:
     try:
@@ -545,3 +557,54 @@ def historial_llanta(id_llanta: int, db: Session = Depends(get_db)):
         "movimientos": movimientos,
         "reparaciones": reparaciones
     }
+    # --- MÓDULO CHECKLIST VEHICULAR PRE-OPERATIVO Y ALERTAS DE TALLER ---
+@app.post("/checklists/")
+def registrar_checklist(payload: ChecklistSchema, db: Session = Depends(get_db)):
+    nuevo_chk = models.ChecklistVehicular(
+        id_vehiculo=payload.id_vehiculo,
+        conductor=payload.conductor,
+        fecha_inspeccion=payload.fecha_inspeccion,
+        kilometraje=payload.kilometraje or 0.0,
+        estado_documentos=payload.estado_documentos or "OK",
+        estado_luces_exterior=payload.estado_luces_exterior or "OK",
+        estado_neumaticos=payload.estado_neumaticos or "OK",
+        estado_niveles_motor=payload.estado_niveles_motor or "OK",
+        estado_equipos_seguridad=payload.estado_equipos_seguridad or "OK",
+        tiene_inconveniente=payload.tiene_inconveniente or False,
+        detalle_inconveniente=payload.detalle_inconveniente or ""
+    )
+    db.add(nuevo_chk)
+
+    # Actualizar kilometraje del vehículo si viene registrado
+    vehiculo = db.query(models.Vehiculo).filter(models.Vehiculo.id_vehiculo == payload.id_vehiculo).first()
+    if vehiculo and payload.kilometraje and payload.kilometraje > 0:
+        vehiculo.kilometraje_actual = payload.kilometraje
+
+    # Si reporta observación/falla, crea automáticamente una orden pendiente en Taller
+    if payload.tiene_inconveniente and payload.detalle_inconveniente:
+        nuevo_mantenimiento = models.Mantenimiento(
+            id_vehiculo=payload.id_vehiculo,
+            taller_proveedor="Taller Interno / Alerta Checklist",
+            tecnico_responsable=payload.conductor,
+            tipo_mantenimiento="CORRECTIVO",
+            descripcion_trabajo=f"[ALERTA CHECKLIST PRE-OPERATIVO]: {payload.detalle_inconveniente}",
+            costo_total=0.0,
+            fecha_ingreso=payload.fecha_inspeccion,
+            estado="PENDIENTE"
+        )
+        db.add(nuevo_mantenimiento)
+
+    db.commit()
+    db.refresh(nuevo_chk)
+    return {"mensaje": "Checklist registrado correctamente", "id_checklist": nuevo_chk.id_checklist}
+
+
+@app.get("/checklists/")
+def listar_checklists(db: Session = Depends(get_db)):
+    return db.query(models.ChecklistVehicular).order_by(models.ChecklistVehicular.id_checklist.desc()).all()
+
+
+@app.get("/checklists/vehiculo/{id_vehiculo}")
+def listar_checklists_por_vehiculo(id_vehiculo: int, db: Session = Depends(get_db)):
+    return db.query(models.ChecklistVehicular).filter(models.ChecklistVehicular.id_vehiculo == id_vehiculo).order_by(models.ChecklistVehicular.id_checklist.desc()).all()
+    
