@@ -67,7 +67,7 @@
     <main class="max-w-7xl mx-auto p-4 md:p-6 space-y-6">
       
       <!-- MÓDULO 1: RESUMEN Y KPIS -->
-      <!-- TARJETAS DE KPIS AJUSTADAS -->
+      <div id="modulo-resumen" class="space-y-6">
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           <div class="bg-white p-5 rounded-xl shadow-sm border-l-4 border-blue-600">
             <p class="text-xs text-slate-500 uppercase font-bold">Total Flota Activa</p>
@@ -925,34 +925,41 @@
     }
 
     function cambiarPestaña(nombreModulo) {
-      ["resumen", "vehiculos", "vencimientos", "llantas", "taller", "operaciones", "checklist", "usuarios"].forEach(m => {
-        const el = document.getElementById(`modulo-${m}`);
-        if (el) el.classList.add("hidden");
-      });
+      try {
+        const modulos = ["resumen", "vehiculos", "vencimientos", "llantas", "taller", "operaciones", "checklist", "usuarios"];
+        modulos.forEach(m => {
+          const el = document.getElementById(`modulo-${m}`);
+          if (el) el.classList.add("hidden");
+        });
 
-      const objetivo = document.getElementById(`modulo-${nombreModulo}`);
-      if (objetivo) objetivo.classList.remove("hidden");
+        const objetivo = document.getElementById(`modulo-${nombreModulo}`);
+        if (objetivo) {
+          objetivo.classList.remove("hidden");
+        }
 
-      if (nombreModulo === 'llantas') {
-        cargarListaLlantas();
-      } else if (nombreModulo === 'resumen') {
-        cargarMétricasResumen();
-      } else if (nombreModulo === 'operaciones') {
-        cargarListaVehiculos();
-        cargarOperaciones();
-        const campoFecha = document.getElementById("op_fecha_operacion");
-        if (campoFecha && !campoFecha.value) {
-          campoFecha.valueAsDate = new Date();
+        if (nombreModulo === 'llantas') {
+          cargarListaLlantas();
+        } else if (nombreModulo === 'resumen') {
+          cargarMétricasResumen();
+        } else if (nombreModulo === 'operaciones') {
+          cargarListaVehiculos();
+          cargarOperaciones();
+          const campoFecha = document.getElementById("op_fecha_operacion");
+          if (campoFecha && !campoFecha.value) {
+            campoFecha.valueAsDate = new Date();
+          }
+        } else if (nombreModulo === 'checklist') {
+          cargarListaVehiculos();
+          const campoFechaChk = document.getElementById("chk-fecha");
+          if (campoFechaChk && !campoFechaChk.value) {
+            campoFechaChk.valueAsDate = new Date();
+          }
+          cargarListaChecklists();
+        } else if (nombreModulo === 'vehiculos' || nombreModulo === 'vencimientos' || nombreModulo === 'taller') {
+          cargarListaVehiculos();
         }
-      } else if (nombreModulo === 'checklist') {
-        cargarListaVehiculos();
-        const campoFechaChk = document.getElementById("chk-fecha");
-        if (campoFechaChk && !campoFechaChk.value) {
-          campoFechaChk.valueAsDate = new Date();
-        }
-        cargarListaChecklists();
-      } else if (nombreModulo === 'taller') {
-        cargarListaVehiculos();
+      } catch (err) {
+        console.error("Error al cambiar de pestaña:", err);
       }
     }
 
@@ -1092,124 +1099,127 @@
     }
 
     async function cargarMétricasResumen() {
-  const tbodyAlertas = document.getElementById("tabla-alertas-resumen");
-  if (!tbodyAlertas) return;
+      const tbodyAlertas = document.getElementById("tabla-alertas-resumen");
+      if (!tbodyAlertas) return;
 
-  try {
-    const [resVehiculos, resSeguros, resDocumentos, resGps] = await Promise.all([
-      fetch(`${API_URL}/vehiculos/`).then(r => r.ok ? r.json() : []),
-      fetch(`${API_URL}/seguros/vencimientos/`).then(r => r.ok ? r.json() : []),
-      fetch(`${API_URL}/documentos/vencimientos/`).then(r => r.ok ? r.json() : []),
-      fetch(`${API_URL}/gps/vencimientos/`).then(r => r.ok ? r.json() : [])
-    ]);
+      try {
+        const [resVehiculos, resSeguros, resDocumentos, resGps] = await Promise.all([
+          fetch(`${API_URL}/vehiculos/`).then(r => r.ok ? r.json() : []),
+          fetch(`${API_URL}/seguros/vencimientos/`).then(r => r.ok ? r.json() : []),
+          fetch(`${API_URL}/documentos/vencimientos/`).then(r => r.ok ? r.json() : []),
+          fetch(`${API_URL}/gps/vencimientos/`).then(r => r.ok ? r.json() : [])
+        ]);
 
-    const mapVehiculos = {};
-    resVehiculos.forEach(v => mapVehiculos[v.id_vehiculo] = v.placa);
+        const mapVehiculos = {};
+        resVehiculos.forEach(v => mapVehiculos[v.id_vehiculo] = v.placa);
 
-    const hoy = new Date();
-    hoy.setHours(0, 0, 0, 0);
+        const hoy = new Date();
+        hoy.setHours(0, 0, 0, 0);
 
-    // 1. KPI Total Flota
-    document.getElementById("kpi-total-vehiculos").innerText = resVehiculos.length || 0;
+        // 1. KPI Total Flota
+        const elemTotal = document.getElementById("kpi-total-vehiculos");
+        if (elemTotal) elemTotal.innerText = resVehiculos.length || 0;
 
-    // 2. KPI SOAT Críticos (Vencidos o a 7 días o menos)
-    const soatCriticos = resSeguros.filter(s => {
-      if (s.tipo_seguro !== "SOAT") return false;
-      const fVenc = new Date(s.fecha_vencimiento);
-      const dias = Math.ceil((fVenc - hoy) / (1000 * 60 * 60 * 24));
-      return dias <= 7;
-    });
-    document.getElementById("kpi-soat-vencer").innerText = soatCriticos.length;
+        // 2. KPI SOAT Críticos (Vencidos o a 7 días o menos)
+        const soatCriticos = resSeguros.filter(s => {
+          if (s.tipo_seguro !== "SOAT") return false;
+          const fVenc = new Date(s.fecha_vencimiento);
+          const dias = Math.ceil((fVenc - hoy) / (1000 * 60 * 60 * 24));
+          return dias <= 7;
+        });
+        const elemSoat = document.getElementById("kpi-soat-vencer");
+        if (elemSoat) elemSoat.innerText = soatCriticos.length;
 
-    // 3. KPI CITV Críticos (Vencidos o a 7 días o menos)
-    const citvCriticos = resDocumentos.filter(d => {
-      const fVenc = new Date(d.fecha_vencimiento);
-      const dias = Math.ceil((fVenc - hoy) / (1000 * 60 * 60 * 24));
-      return dias <= 7;
-    });
-    document.getElementById("kpi-citv-vencidos").innerText = citvCriticos.length;
+        // 3. KPI CITV Críticos (Vencidos o a 7 días o menos)
+        const citvCriticos = resDocumentos.filter(d => {
+          const fVenc = new Date(d.fecha_vencimiento);
+          const dias = Math.ceil((fVenc - hoy) / (1000 * 60 * 60 * 24));
+          return dias <= 7;
+        });
+        const elemCitv = document.getElementById("kpi-citv-vencidos");
+        if (elemCitv) elemCitv.innerText = citvCriticos.length;
 
-    // 4. KPI Vehículos SIN GPS
-    const sinGpsCount = resVehiculos.filter(v => !v.tiene_gps).length;
-    const elemSinGps = document.getElementById("kpi-sin-gps");
-    if (elemSinGps) elemSinGps.innerText = sinGpsCount;
+        // 4. KPI Vehículos SIN GPS
+        const sinGpsCount = resVehiculos.filter(v => !v.tiene_gps).length;
+        const elemSinGps = document.getElementById("kpi-sin-gps");
+        if (elemSinGps) elemSinGps.innerText = sinGpsCount;
 
-    // 5. CONSOLIDADO DE ALERTAS DE MENOR A MAYOR POR DÍAS RESTANTES
-    const listaAlertas = [];
+        // 5. CONSOLIDADO DE ALERTAS DE MENOR A MAYOR POR DÍAS RESTANTES
+        const listaAlertas = [];
 
-    // Mapear Seguros/SOAT
-    resSeguros.forEach(s => {
-      const fVenc = new Date(s.fecha_vencimiento);
-      const dias = Math.ceil((fVenc - hoy) / (1000 * 60 * 60 * 24));
-      listaAlertas.push({
-        placa: mapVehiculos[s.id_vehiculo] || `ID #${s.id_vehiculo}`,
-        tipo: s.tipo_seguro,
-        detalle: `${s.compania_seguros} (Póliza ${s.numero_poliza})`,
-        fecha: s.fecha_vencimiento,
-        dias: dias
-      });
-    });
+        // Mapear Seguros/SOAT
+        resSeguros.forEach(s => {
+          const fVenc = new Date(s.fecha_vencimiento);
+          const dias = Math.ceil((fVenc - hoy) / (1000 * 60 * 60 * 24));
+          listaAlertas.push({
+            placa: mapVehiculos[s.id_vehiculo] || `ID #${s.id_vehiculo}`,
+            tipo: s.tipo_seguro,
+            detalle: `${s.compania_seguros} (Póliza ${s.numero_poliza})`,
+            fecha: s.fecha_vencimiento,
+            dias: dias
+          });
+        });
 
-    // Mapear CITV
-    resDocumentos.forEach(d => {
-      const fVenc = new Date(d.fecha_vencimiento);
-      const dias = Math.ceil((fVenc - hoy) / (1000 * 60 * 60 * 24));
-      listaAlertas.push({
-        placa: mapVehiculos[d.id_vehiculo] || `ID #${d.id_vehiculo}`,
-        tipo: "Revisión Técnica CITV",
-        detalle: `${d.entidad_emisora} (Cert. ${d.numero_documento})`,
-        fecha: d.fecha_vencimiento,
-        dias: dias
-      });
-    });
+        // Mapear CITV
+        resDocumentos.forEach(d => {
+          const fVenc = new Date(d.fecha_vencimiento);
+          const dias = Math.ceil((fVenc - hoy) / (1000 * 60 * 60 * 24));
+          listaAlertas.push({
+            placa: mapVehiculos[d.id_vehiculo] || `ID #${d.id_vehiculo}`,
+            tipo: "Revisión Técnica CITV",
+            detalle: `${d.entidad_emisora} (Cert. ${d.numero_documento})`,
+            fecha: d.fecha_vencimiento,
+            dias: dias
+          });
+        });
 
-    // Mapear GPS
-    resGps.forEach(g => {
-      const fVenc = new Date(g.fecha_vencimiento);
-      const dias = Math.ceil((fVenc - hoy) / (1000 * 60 * 60 * 24));
-      listaAlertas.push({
-        placa: mapVehiculos[g.id_vehiculo] || `ID #${g.id_vehiculo}`,
-        tipo: "Servicio GPS Satelital",
-        detalle: g.empresa_gps,
-        fecha: g.fecha_vencimiento,
-        dias: dias
-      });
-    });
+        // Mapear GPS
+        resGps.forEach(g => {
+          const fVenc = new Date(g.fecha_vencimiento);
+          const dias = Math.ceil((fVenc - hoy) / (1000 * 60 * 60 * 24));
+          listaAlertas.push({
+            placa: mapVehiculos[g.id_vehiculo] || `ID #${g.id_vehiculo}`,
+            tipo: "Servicio GPS Satelital",
+            detalle: g.empresa_gps,
+            fecha: g.fecha_vencimiento,
+            dias: dias
+          });
+        });
 
-    // ORDENAR ESTRICTAMENTE DE MENOR A MAYOR POR DÍAS RESTANTES
-    listaAlertas.sort((a, b) => a.dias - b.dias);
+        // ORDENAR ESTRICTAMENTE DE MENOR A MAYOR POR DÍAS RESTANTES
+        listaAlertas.sort((a, b) => a.dias - b.dias);
 
-    // Renderizar tabla
-    let filasHTML = "";
-    listaAlertas.forEach(item => {
-      let estadoBadge = "";
-      if (item.dias < 0) {
-        estadoBadge = `<span class="bg-red-100 text-red-800 font-bold px-2.5 py-1 rounded-full text-xs">⚠️ VENCIDO (${Math.abs(item.dias)} días)</span>`;
-      } else if (item.dias <= 7) {
-        estadoBadge = `<span class="bg-amber-100 text-amber-800 font-bold px-2.5 py-1 rounded-full text-xs">⚡ Crítico (${item.dias} días)</span>`;
-      } else if (item.dias <= 30) {
-        estadoBadge = `<span class="bg-yellow-100 text-yellow-800 font-semibold px-2.5 py-1 rounded-full text-xs">Por Vencer (${item.dias} días)</span>`;
-      } else {
-        estadoBadge = `<span class="bg-emerald-100 text-emerald-800 font-medium px-2.5 py-1 rounded-full text-xs">Vigente (${item.dias} días)</span>`;
+        // Renderizar tabla
+        let filasHTML = "";
+        listaAlertas.forEach(item => {
+          let estadoBadge = "";
+          if (item.dias < 0) {
+            estadoBadge = `<span class="bg-red-100 text-red-800 font-bold px-2.5 py-1 rounded-full text-xs">⚠️ VENCIDO (${Math.abs(item.dias)} días)</span>`;
+          } else if (item.dias <= 7) {
+            estadoBadge = `<span class="bg-amber-100 text-amber-800 font-bold px-2.5 py-1 rounded-full text-xs">⚡ Crítico (${item.dias} días)</span>`;
+          } else if (item.dias <= 30) {
+            estadoBadge = `<span class="bg-yellow-100 text-yellow-800 font-semibold px-2.5 py-1 rounded-full text-xs">Por Vencer (${item.dias} días)</span>`;
+          } else {
+            estadoBadge = `<span class="bg-emerald-100 text-emerald-800 font-medium px-2.5 py-1 rounded-full text-xs">Vigente (${item.dias} días)</span>`;
+          }
+
+          filasHTML += `
+            <tr class="border-b hover:bg-slate-50 transition-colors">
+              <td class="p-3 font-bold text-blue-600">${item.placa}</td>
+              <td class="p-3 font-semibold text-slate-800">${item.tipo}</td>
+              <td class="p-3 text-slate-600">${item.detalle}</td>
+              <td class="p-3 font-mono font-medium">${item.fecha}</td>
+              <td class="p-3">${estadoBadge}</td>
+            </tr>`;
+        });
+
+        tbodyAlertas.innerHTML = filasHTML || `<tr><td colspan="5" class="p-4 text-center text-slate-400">✅ No hay alertas pendientes en la flota.</td></tr>`;
+
+      } catch (error) {
+        console.error("Error cargando métricas:", error);
+        tbodyAlertas.innerHTML = `<tr><td colspan="5" class="p-4 text-center text-red-500 font-semibold">Error al obtener las alertas del servidor.</td></tr>`;
       }
-
-      filasHTML += `
-        <tr class="border-b hover:bg-slate-50 transition-colors">
-          <td class="p-3 font-bold text-blue-600">${item.placa}</td>
-          <td class="p-3 font-semibold text-slate-800">${item.tipo}</td>
-          <td class="p-3 text-slate-600">${item.detalle}</td>
-          <td class="p-3 font-mono font-medium">${item.fecha}</td>
-          <td class="p-3">${estadoBadge}</td>
-        </tr>`;
-    });
-
-    tbodyAlertas.innerHTML = filasHTML || `<tr><td colspan="5" class="p-4 text-center text-slate-400">✅ No hay alertas pendientes en la flota.</td></tr>`;
-
-  } catch (error) {
-    console.error("Error cargando métricas:", error);
-    tbodyAlertas.innerHTML = `<tr><td colspan="5" class="p-4 text-center text-red-500 font-semibold">Error al obtener las alertas del servidor.</td></tr>`;
-  }
-}
+    }
 
     async function cargarListaLlantas() {
       try {
