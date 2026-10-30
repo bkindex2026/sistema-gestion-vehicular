@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, Float, Boolean, ForeignKey
+from sqlalchemy import Column, Integer, String, Float, Boolean, ForeignKey, Text
 from database import Base
 
 class Usuario(Base):
@@ -114,7 +114,9 @@ class OperacionDiaria(Base):
     observaciones = Column(String(255), default="")
     galones_urea = Column(Float, default=0.0)
     costo_urea = Column(Float, default=0.0)
-    class MovimientoLlanta(Base):
+
+
+class MovimientoLlanta(Base):
     __tablename__ = "movimientos_llantas"
 
     id_movimiento = Column(Integer, primary_key=True, index=True)
@@ -140,7 +142,9 @@ class ReparacionLlanta(Base):
     fecha_actividad = Column(String(10), nullable=False)
     km_evento = Column(Float, default=0.0)
     observaciones = Column(String(255), default="")
-    class ChecklistVehicular(Base):
+
+
+class ChecklistVehicular(Base):
     __tablename__ = "checklists_vehiculares"
 
     id_checklist = Column(Integer, primary_key=True, index=True)
