@@ -324,7 +324,7 @@
 
       </div>
 
-      <!-- MÓDULO CONTROL DE LLANTAS Y NEUMÁTICOS EXTENDIDO -->
+      <!-- MÓDULO CONTROL DE LLANTAS Y NEUMÁTICOS -->
       <div id="modulo-llantas" class="hidden space-y-6">
         <div class="bg-white p-6 rounded-xl shadow-sm border-l-4 border-amber-500 space-y-4">
           <div class="flex justify-between items-center border-b pb-2">
@@ -507,7 +507,6 @@
           </button>
         </div>
 
-        <!-- Formulario de Registro de Operaciones -->
         <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
           <div class="bg-slate-800 px-6 py-3 border-b border-slate-700">
             <h3 class="text-sm font-semibold text-white">📝 Registrar Nuevo Parte Diario</h3>
@@ -582,7 +581,6 @@
           </form>
         </div>
 
-        <!-- Tabla de Historial de Operaciones -->
         <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
           <div class="bg-slate-800 px-6 py-3 border-b border-slate-700">
             <h3 class="text-sm font-semibold text-white">📋 Historial Reciente de Operaciones</h3>
@@ -613,7 +611,7 @@
         </div>
       </div>
 
-      <!-- MÓDULO CHECKLIST VEHICULAR PRE-OPERATIVO (UBICACIÓN CORRECTA E INDEPENDIENTE) -->
+      <!-- MÓDULO CHECKLIST VEHICULAR PRE-OPERATIVO -->
       <div id="modulo-checklist" class="hidden space-y-6">
         <div class="bg-white p-6 rounded-xl shadow-sm border-l-4 border-indigo-600 space-y-4">
           <div class="flex justify-between items-center border-b pb-2">
@@ -641,7 +639,6 @@
               </div>
             </div>
 
-            <!-- MATRIZ DE VERIFICACIÓN -->
             <div class="bg-slate-50 p-4 rounded-lg border space-y-3">
               <h3 class="text-xs font-bold text-slate-700 uppercase tracking-wider">Estado de Sistemas Principales</h3>
               <div class="grid grid-cols-1 md:grid-cols-5 gap-3 text-xs">
@@ -668,7 +665,6 @@
               </div>
             </div>
 
-            <!-- ALERTA DE INCONVENIENTE -->
             <div class="bg-amber-50 p-4 rounded-lg border border-amber-200 space-y-2">
               <div class="flex items-center gap-2">
                 <input type="checkbox" id="chk-tiene-inc" onchange="toggleDetalleInc(this.checked)" class="w-4 h-4 text-amber-600 rounded">
@@ -756,71 +752,7 @@
     </div>
   </div>
 
-  <!-- MODAL ROTAR LLANTA -->
-  <div id="modal-rotar-llanta" class="hidden fixed inset-0 bg-slate-900 bg-opacity-50 flex items-center justify-center p-4 z-50">
-    <div class="bg-white rounded-xl shadow-xl max-w-lg w-full p-6 space-y-4">
-      <div class="flex justify-between items-center border-b pb-3">
-        <h3 class="text-base font-bold text-slate-800">🔄 Registrar Rotación / Cambio de Posición</h3>
-        <button onclick="cerrarModalRotar()" class="text-slate-400 hover:text-slate-600 font-bold">✕</button>
-      </div>
-      <form id="form-rotar-llanta" onsubmit="ejecutarRotacionLlanta(event)" class="space-y-3 text-xs md:text-sm">
-        <input type="hidden" id="rot-id-llanta">
-        <div>
-          <label class="block font-semibold text-slate-600 uppercase mb-1">Vehículo Destino (*)</label>
-          <select id="rot-vehiculo-destino" required class="select-vehiculos-dinamico w-full p-2.5 border rounded-lg"><option value="">Cargando...</option></select>
-        </div>
-        <div>
-          <label class="block font-semibold text-slate-600 uppercase mb-1">Nueva Posición (*)</label>
-          <select id="rot-posicion-destino" required class="w-full p-2.5 border rounded-lg">
-            <option value="">Seleccione nueva posición...</option>
-            <option value="Delantera Izquierda (1)">Delantera Izquierda (1)</option>
-            <option value="Delantera Derecha (2)">Delantera Derecha (2)</option>
-            <option value="Tracción Izq Exterior (3)">Tracción Izq Exterior (3)</option>
-            <option value="Tracción Izq Interior (4)">Tracción Izq Interior (4)</option>
-            <option value="Tracción Der Interior (5)">Tracción Der Interior (5)</option>
-            <option value="Tracción Der Exterior (6)">Tracción Der Exterior (6)</option>
-            <option value="Eje Posterior Izquierdo">Eje Posterior Izquierdo</option>
-            <option value="Eje Posterior Derecho">Eje Posterior Derecho</option>
-            <option value="Repuesto 1">Repuesto 1</option>
-            <option value="Repuesto 2">Repuesto 2</option>
-          </select>
-        </div>
-        <div class="grid grid-cols-2 gap-3">
-          <div>
-            <label class="block font-semibold text-slate-600 uppercase mb-1">Fecha Movimiento (*)</label>
-            <input type="date" id="rot-fecha" required class="w-full p-2.5 border rounded-lg">
-          </div>
-          <div>
-            <label class="block font-semibold text-slate-600 uppercase mb-1">Km Actual Evento</label>
-            <input type="number" step="0.1" id="rot-km" placeholder="0.0" class="w-full p-2.5 border rounded-lg">
-          </div>
-        </div>
-        <div>
-          <label class="block font-semibold text-slate-600 uppercase mb-1">Motivo del Cambio</label>
-          <input type="text" id="rot-motivo" placeholder="Ej. Rotación por desgaste parejo" class="w-full p-2.5 border rounded-lg">
-        </div>
-        <div class="flex justify-end gap-2 pt-2">
-          <button type="button" onclick="cerrarModalRotar()" class="px-4 py-2 bg-slate-200 rounded-lg text-slate-700 font-medium">Cancelar</button>
-          <button type="submit" class="px-5 py-2 bg-amber-600 hover:bg-amber-700 text-white rounded-lg font-bold">Guardar Rotación</button>
-        </div>
-      </form>
-    </div>
-  </div>
-
-  <!-- MODAL HISTORIAL TRAZABILIDAD LLANTA -->
-  <div id="modal-historial-llanta" class="hidden fixed inset-0 bg-slate-900 bg-opacity-50 flex items-center justify-center p-4 z-50">
-    <div class="bg-white rounded-xl shadow-xl max-w-2xl w-full p-6 max-h-[85vh] overflow-y-auto space-y-4">
-      <div class="flex justify-between items-center border-b pb-3">
-        <h3 id="hist-llanta-titulo" class="text-base font-bold text-slate-800">📋 Trazabilidad de Neumático</h3>
-        <button onclick="cerrarModalHistorialLlanta()" class="text-slate-400 hover:text-slate-600 font-bold">✕</button>
-      </div>
-      <div id="hist-llanta-contenido" class="space-y-4 text-xs md:text-sm">
-        <p class="text-slate-400">Cargando trazabilidad...</p>
-      </div>
-    </div>
-  </div>
-
-  <!-- LÓGICA DE PROGRAMACIÓN JAVASCRIPT -->
+  <!-- LÓGICA JAVASCRIPT REVISADA Y COMPLETA -->
   <script>
     const API_URL = "https://ponderosa-flota-v1.onrender.com";
     let listaVehiculosGlobal = [];
@@ -842,27 +774,6 @@
     function obtenerUrlCompleta(url) {
       if (!url) return "#";
       return url.startsWith("http") ? url : `${API_URL}${url}`;
-    }
-
-    function descargarCSV(nombreArchivo, encabezados, filas) {
-      if (!filas || filas.length === 0) {
-        alert("No hay registros en la base de datos para generar este reporte.");
-        return;
-      }
-      let contenido = "\uFEFF";
-      contenido += encabezados.map(e => `"${e}"`).join(",") + "\n";
-      filas.forEach(fila => {
-        contenido += fila.map(campo => `"${String(campo).replace(/"/g, '""')}"`).join(",") + "\n";
-      });
-
-      const blob = new Blob([contenido], { type: "text/csv;charset=utf-8;" });
-      const url = URL.createObjectURL(blob);
-      const link = document.createElement("a");
-      link.setAttribute("href", url);
-      link.setAttribute("download", `${nombreArchivo}_${new Date().toISOString().split('T')[0]}.csv`);
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
     }
 
     async function iniciarSesion(event) {
@@ -933,9 +844,7 @@
         });
 
         const objetivo = document.getElementById(`modulo-${nombreModulo}`);
-        if (objetivo) {
-          objetivo.classList.remove("hidden");
-        }
+        if (objetivo) objetivo.classList.remove("hidden");
 
         if (nombreModulo === 'llantas') {
           cargarListaLlantas();
@@ -944,16 +853,8 @@
         } else if (nombreModulo === 'operaciones') {
           cargarListaVehiculos();
           cargarOperaciones();
-          const campoFecha = document.getElementById("op_fecha_operacion");
-          if (campoFecha && !campoFecha.value) {
-            campoFecha.valueAsDate = new Date();
-          }
         } else if (nombreModulo === 'checklist') {
           cargarListaVehiculos();
-          const campoFechaChk = document.getElementById("chk-fecha");
-          if (campoFechaChk && !campoFechaChk.value) {
-            campoFechaChk.valueAsDate = new Date();
-          }
           cargarListaChecklists();
         } else if (nombreModulo === 'vehiculos' || nombreModulo === 'vencimientos' || nombreModulo === 'taller') {
           cargarListaVehiculos();
@@ -969,7 +870,9 @@
         const vehiculos = await res.json();
         listaVehiculosGlobal = vehiculos;
         
+        const userRole = localStorage.getItem("user_role");
         const tbody = document.getElementById("tabla-vehiculos-lista");
+        
         if (tbody) {
           tbody.innerHTML = vehiculos.map(v => `
             <tr class="border-b hover:bg-slate-50">
@@ -987,13 +890,20 @@
               <td class="p-3">
                 ${v.url_tive 
                   ? `<a href="${obtenerUrlCompleta(v.url_tive)}" target="_blank" class="bg-blue-100 text-blue-700 font-bold px-2 py-1 rounded text-xs hover:bg-blue-200">Ver TIVE</a>` 
-                  : `<label class="bg-yellow-100 text-yellow-800 font-bold px-2 py-1 rounded text-xs cursor-pointer hover:bg-yellow-200">
-                      + Adjuntar TIVE
-                      <input type="file" class="hidden" accept="image/*,.pdf" onchange="subirTivePosterior(${v.id_vehiculo}, this)">
-                     </label>`
+                  : (userRole !== 'Lectura' 
+                      ? `<label class="bg-yellow-100 text-yellow-800 font-bold px-2 py-1 rounded text-xs cursor-pointer hover:bg-yellow-200">
+                          + Adjuntar TIVE
+                          <input type="file" class="hidden" accept="image/*,.pdf" onchange="subirTivePosterior(${v.id_vehiculo}, this)">
+                         </label>`
+                      : `<span class="text-xs text-slate-400">Sin archivo</span>`
+                    )
                 }
               </td>
-              <td class="p-3"><button onclick="verHojaVida(${v.id_vehiculo})" class="bg-slate-800 text-white px-2.5 py-1 rounded text-xs hover:bg-slate-700 font-semibold">Hoja de Vida</button></td>
+              <td class="p-3">
+                <button onclick="verHojaVida(${v.id_vehiculo})" class="bg-slate-800 text-white px-2.5 py-1 rounded text-xs hover:bg-slate-700 font-semibold">
+                  📋 Hoja de Vida
+                </button>
+              </td>
             </tr>
           `).join('') || `<tr><td colspan="8" class="p-4 text-center text-slate-400">No hay vehículos registrados.</td></tr>`;
         }
@@ -1009,6 +919,139 @@
       } catch (e) {
         console.error("Error cargando vehículos:", e);
       }
+    }
+
+    async function registrarVehiculo(e) {
+      e.preventDefault();
+      const formData = new FormData();
+      formData.append("placa", document.getElementById("v-placa").value.trim().toUpperCase());
+      formData.append("sede_asignada", document.getElementById("v-sede").value.trim());
+      formData.append("marca", document.getElementById("v-marca").value.trim());
+      formData.append("modelo", document.getElementById("v-modelo").value.trim());
+      formData.append("anio", document.getElementById("v-anio").value ? parseInt(document.getElementById("v-anio").value) : 0);
+      formData.append("vin", document.getElementById("v-vin").value.trim());
+      formData.append("descripcion", document.getElementById("v-descripcion").value.trim());
+
+      const fileInput = document.getElementById("v-archivo");
+      if (fileInput.files.length > 0) {
+        formData.append("archivo_tive", fileInput.files[0]);
+      }
+
+      try {
+        const res = await fetch(`${API_URL}/vehiculos/`, { method: "POST", body: formData });
+        if (res.ok) {
+          alert("Vehículo registrado correctamente.");
+          document.getElementById("form-vehiculo").reset();
+          cargarListaVehiculos();
+        } else {
+          const err = await res.json();
+          alert("Error: " + (err.detail || "No se pudo registrar el vehículo"));
+        }
+      } catch (err) {
+        alert("Error de conexión al guardar vehículo.");
+      }
+    }
+
+    async function subirTivePosterior(idVehiculo, input) {
+      if (!input.files || input.files.length === 0) return;
+      const formData = new FormData();
+      formData.append("archivo", input.files[0]);
+
+      try {
+        const res = await fetch(`${API_URL}/vehiculos/${idVehiculo}/tive`, { method: "POST", body: formData });
+        if (res.ok) {
+          alert("TIVE actualizada exitosamente.");
+          cargarListaVehiculos();
+        } else {
+          alert("Error subiendo el archivo TIVE.");
+        }
+      } catch (err) {
+        alert("Error de red al actualizar TIVE.");
+      }
+    }
+
+    async function verHojaVida(idVehiculo) {
+      const modal = document.getElementById("modal-hoja-vida");
+      const contenedor = document.getElementById("hv-contenido");
+      const titulo = document.getElementById("hv-titulo");
+
+      if (!modal || !contenedor) return;
+
+      modal.classList.remove("hidden");
+      contenedor.innerHTML = '<p class="text-slate-400 p-4 text-center">Cargando expediente vehicular...</p>';
+
+      try {
+        const res = await fetch(`${API_URL}/vehiculos/${idVehiculo}/hoja-vida`);
+        if (!res.ok) throw new Error("Error al obtener la Hoja de Vida");
+        
+        const data = await res.json();
+        const veh = data.vehiculo;
+        const userRole = localStorage.getItem("user_role");
+
+        titulo.innerText = `Hoja de Vida Vehicular - Placa: ${veh.placa}`;
+
+        let html = `
+          <div class="bg-slate-50 p-4 rounded-lg border border-slate-200 space-y-2">
+            <h4 class="font-bold text-slate-800 uppercase text-xs">Datos de la Unidad</h4>
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-2 text-xs">
+              <div><span class="text-slate-500">Marca/Modelo:</span> <strong>${veh.marca || 'N/A'} ${veh.modelo || ''}</strong></div>
+              <div><span class="text-slate-500">Año:</span> <strong>${veh.anio || 'N/A'}</strong></div>
+              <div><span class="text-slate-500">Sede:</span> <strong>${veh.sede_asignada || 'N/A'}</strong></div>
+              <div><span class="text-slate-500">VIN:</span> <strong>${veh.vin || 'N/A'}</strong></div>
+            </div>
+          </div>
+        `;
+
+        html += `
+          <div class="space-y-4">
+            <h4 class="font-bold text-slate-800 text-sm">Historial Técnico y Reparaciones</h4>
+            ${data.reparaciones && data.reparaciones.length > 0 ? `
+              <ul class="divide-y divide-slate-200 border rounded-lg bg-white">
+                ${data.reparaciones.map(r => `
+                  <li class="p-3 text-xs flex justify-between items-center">
+                    <div>
+                      <span class="font-bold text-slate-700">[${r.fecha_ingreso}] ${r.tipo_mantenimiento}</span> - ${r.taller_servicio}
+                      <p class="text-slate-500">${r.descripcion_falla}</p>
+                    </div>
+                    ${userRole !== 'Lectura' ? `
+                      <button onclick="borrarReparacion(${r.id_reparacion}, ${idVehiculo})" class="btn-eliminar text-red-600 hover:text-red-800 font-bold ml-2">🗑️</button>
+                    ` : ''}
+                  </li>
+                `).join('')}
+              </ul>
+            ` : '<p class="text-xs text-slate-400 italic">No registra ingresos a taller.</p>'}
+          </div>
+        `;
+
+        contenedor.innerHTML = html;
+
+        if (userRole === 'Lectura') {
+          contenedor.querySelectorAll(".btn-eliminar").forEach(el => el.style.display = "none");
+        }
+
+      } catch (err) {
+        console.error("Error al cargar la Hoja de Vida:", err);
+        contenedor.innerHTML = '<p class="text-red-500 p-4 text-center font-semibold">Error al cargar el expediente del vehículo.</p>';
+      }
+    }
+
+    async function borrarReparacion(idReparacion, idVehiculo) {
+      if (!confirm("¿Está seguro de eliminar este registro de mantenimiento?")) return;
+      try {
+        const res = await fetch(`${API_URL}/taller/${idReparacion}`, { method: "DELETE" });
+        if (res.ok) {
+          verHojaVida(idVehiculo);
+        } else {
+          alert("Error al eliminar la reparación.");
+        }
+      } catch (err) {
+        alert("Error de red al intentar eliminar.");
+      }
+    }
+
+    function cerrarHojaVida() {
+      const modal = document.getElementById("modal-hoja-vida");
+      if (modal) modal.classList.add("hidden");
     }
 
     function toggleDetalleInc(chequeado) {
@@ -1082,7 +1125,7 @@
           <tr class="border-b hover:bg-slate-50">
             <td class="p-3 text-slate-400">#${c.id_checklist}</td>
             <td class="p-3 font-semibold">${c.fecha_inspeccion}</td>
-            <td class="p-3 font-bold text-blue-600">${mapVehiculos[c.id_vehiculo] || 'Vehículo #' + c.id_vehiculo}</td>
+            <td class="p-3 font-bold text-blue-600">${mapVehiculos[c.id_vehiculo] || 'Vehículo #' + c.id_checklist}</td>
             <td class="p-3">${c.conductor}</td>
             <td class="p-3">${c.kilometraje || 0} km</td>
             <td class="p-3">
@@ -1116,11 +1159,9 @@
         const hoy = new Date();
         hoy.setHours(0, 0, 0, 0);
 
-        // 1. KPI Total Flota
         const elemTotal = document.getElementById("kpi-total-vehiculos");
         if (elemTotal) elemTotal.innerText = resVehiculos.length || 0;
 
-        // 2. KPI SOAT Críticos (Vencidos o a 7 días o menos)
         const soatCriticos = resSeguros.filter(s => {
           if (s.tipo_seguro !== "SOAT") return false;
           const fVenc = new Date(s.fecha_vencimiento);
@@ -1130,7 +1171,6 @@
         const elemSoat = document.getElementById("kpi-soat-vencer");
         if (elemSoat) elemSoat.innerText = soatCriticos.length;
 
-        // 3. KPI CITV Críticos (Vencidos o a 7 días o menos)
         const citvCriticos = resDocumentos.filter(d => {
           const fVenc = new Date(d.fecha_vencimiento);
           const dias = Math.ceil((fVenc - hoy) / (1000 * 60 * 60 * 24));
@@ -1139,15 +1179,12 @@
         const elemCitv = document.getElementById("kpi-citv-vencidos");
         if (elemCitv) elemCitv.innerText = citvCriticos.length;
 
-        // 4. KPI Vehículos SIN GPS
         const sinGpsCount = resVehiculos.filter(v => !v.tiene_gps).length;
         const elemSinGps = document.getElementById("kpi-sin-gps");
         if (elemSinGps) elemSinGps.innerText = sinGpsCount;
 
-        // 5. CONSOLIDADO DE ALERTAS DE MENOR A MAYOR POR DÍAS RESTANTES
         const listaAlertas = [];
 
-        // Mapear Seguros/SOAT
         resSeguros.forEach(s => {
           const fVenc = new Date(s.fecha_vencimiento);
           const dias = Math.ceil((fVenc - hoy) / (1000 * 60 * 60 * 24));
@@ -1160,7 +1197,6 @@
           });
         });
 
-        // Mapear CITV
         resDocumentos.forEach(d => {
           const fVenc = new Date(d.fecha_vencimiento);
           const dias = Math.ceil((fVenc - hoy) / (1000 * 60 * 60 * 24));
@@ -1173,7 +1209,6 @@
           });
         });
 
-        // Mapear GPS
         resGps.forEach(g => {
           const fVenc = new Date(g.fecha_vencimiento);
           const dias = Math.ceil((fVenc - hoy) / (1000 * 60 * 60 * 24));
@@ -1186,10 +1221,8 @@
           });
         });
 
-        // ORDENAR ESTRICTAMENTE DE MENOR A MAYOR POR DÍAS RESTANTES
         listaAlertas.sort((a, b) => a.dias - b.dias);
 
-        // Renderizar tabla
         let filasHTML = "";
         listaAlertas.forEach(item => {
           let estadoBadge = "";
@@ -1241,7 +1274,6 @@
             <td class="p-3 font-medium text-amber-700">${l.posicion}</td>
             <td class="p-3">${l.km_instalacion || 0} km</td>
             <td class="p-3 flex gap-1">
-              <button onclick="abrirModalRotar(${l.id_llanta})" class="bg-amber-600 hover:bg-amber-700 text-white font-bold text-xs px-2.5 py-1 rounded transition">🔄 Rotar</button>
               <button onclick="verHistorialLlanta(${l.id_llanta})" class="bg-slate-800 hover:bg-slate-900 text-white font-bold text-xs px-2.5 py-1 rounded transition">📋 Historial</button>
               <button onclick="borrarLlantaDirecto(${l.id_llanta})" class="btn-eliminar bg-red-50 hover:bg-red-100 text-red-600 font-bold text-xs px-2 py-1 rounded transition">🗑️</button>
             </td>
@@ -1285,7 +1317,7 @@
             <td class="p-3 text-right text-slate-700">${(op.galones_combustible || 0).toFixed(2)} gal</td>
             <td class="p-3 text-right font-medium text-emerald-700">S/ ${(op.costo_combustible || 0).toFixed(2)}</td>
             <td class="p-3 text-center">
-              <button onclick="eliminarOperacion(${op.id_operacion})" class="p-1 text-red-600 hover:text-red-800 hover:bg-red-50 rounded transition-colors" title="Eliminar registro">
+              <button onclick="eliminarOperacion(${op.id_operacion})" class="btn-eliminar p-1 text-red-600 hover:text-red-800 hover:bg-red-50 rounded transition-colors" title="Eliminar registro">
                 🗑️
               </button>
             </td>
