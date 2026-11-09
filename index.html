@@ -728,6 +728,7 @@
                 <option value="Administrador">Administrador (Acceso Total)</option>
                 <option value="Edicion">Edición (Modificación Operativa)</option>
                 <option value="Lectura">Lectura (Solo Consulta)</option>
+                <option value="Chofer">Chofer (Modo Conductor)</option>
               </select>
             </div>
             <div class="md:col-span-2 flex justify-end">
@@ -940,13 +941,15 @@
     // --- SUB-PASO 2.1: APLICACIÓN DE PERMISOS DE ROL (INCLUYE CHOFER) ---
     function aplicarPermisosDeRol(rol) {
       const userRole = rol || localStorage.getItem("user_role");
-      
+
+      // 1. Resetear visibilidad global (permite al Administrador ver todo el sistema)
+      document.querySelectorAll(".seccion-usuarios, .btn-crear, .btn-eliminar, #modulo-resumen, #modulo-vehiculos, #modulo-vencimientos, #modulo-llantas, #modulo-taller, #modulo-operaciones, #modulo-checklist, #modulo-usuarios, #modulo-chofer").forEach(el => el.style.display = "");
+      document.querySelectorAll("nav button").forEach(el => el.style.display = "");
+
+      // 2. Aplicar restricciones por rol sin alterar la lógica de Chofer, Lectura o Edición
       if (userRole === "Chofer") {
-        // Ocultar menús y secciones administrativas de oficina
         document.querySelectorAll(".seccion-usuarios, #modulo-resumen, #modulo-vehiculos, #modulo-vencimientos, #modulo-taller, #modulo-usuarios, nav button:not(#btn-nav-chofer)").forEach(el => el.style.display = "none");
         document.querySelectorAll(".btn-eliminar").forEach(el => el.style.display = "none");
-        
-        // Redirigir por defecto al entorno del Chofer
         cambiarPestaña('chofer');
       } else if (userRole === "Lectura") {
         document.querySelectorAll(".btn-crear, .btn-eliminar, form:not(#form-login)").forEach(el => el.style.display = "none");
