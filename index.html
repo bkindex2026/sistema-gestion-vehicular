@@ -737,6 +737,25 @@
           </form>
         </div>
       </div>
+      <!-- TABLA DE USUARIOS REGISTRADOS -->
+        <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200 mt-6">
+          <h3 class="text-base font-bold text-slate-800 mb-4">Usuarios Registrados en el Sistema</h3>
+          <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse text-xs md:text-sm">
+              <thead>
+                <tr class="border-b bg-slate-50 text-slate-600 font-semibold uppercase">
+                  <th class="p-3">ID</th>
+                  <th class="p-3">Nombre Completo</th>
+                  <th class="p-3">Correo Electrónico</th>
+                  <th class="p-3">Rol Asignado</th>
+                </tr>
+              </thead>
+              <tbody id="tabla-usuarios-lista">
+                <tr><td colspan="4" class="p-4 text-center text-slate-400">Cargando usuarios...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
       <!-- SUB-PASO 2.2 Y 2.3: MÓDULO ESPECIALIZADO PARA ROL CHOFER -->
       <div id="modulo-chofer" class="hidden space-y-6">
         
@@ -979,6 +998,8 @@
         } else if (nombreModulo === 'checklist') {
           cargarListaVehiculos();
           cargarListaChecklists();
+        } else if (nombreModulo === 'usuarios') {
+          cargarListaUsuarios();
         } else if (nombreModulo === 'vehiculos' || nombreModulo === 'vencimientos' || nombreModulo === 'taller') {
           cargarListaVehiculos();
         }
@@ -1448,6 +1469,28 @@
         `).join('');
       } catch (err) {
         console.error(err);
+      }
+    }
+    async function cargarListaUsuarios() {
+      try {
+        const res = await fetch(`${API_URL}/usuarios/`);
+        if (!res.ok) return;
+        const usuarios = await res.json();
+        const tbody = document.getElementById("tabla-usuarios-lista");
+        if (!tbody) return;
+
+        tbody.innerHTML = usuarios.map(u => `
+          <tr class="border-b hover:bg-slate-50">
+            <td class="p-3 text-slate-400">#${u.id_usuario || u.id}</td>
+            <td class="p-3 font-bold text-slate-800">${u.nombre}</td>
+            <td class="p-3 font-semibold text-blue-600">${u.email}</td>
+            <td class="p-3">
+              <span class="bg-blue-100 text-blue-800 font-bold px-2.5 py-1 rounded-full text-xs">${u.rol}</span>
+            </td>
+          </tr>
+        `).join('') || `<tr><td colspan="4" class="p-4 text-center text-slate-400">No hay usuarios registrados.</td></tr>`;
+      } catch (e) {
+        console.error("Error cargando lista de usuarios:", e);
       }
     }
 
