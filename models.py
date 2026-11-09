@@ -77,6 +77,10 @@ class Llanta(Base):
     marca = Column(String(100), nullable=False)
     modelo = Column(String(100), nullable=False)
     posicion = Column(String(100), nullable=False)
+    
+    # --- CAMBIO FASE 1.1: CAMPO AGREGADO PARA CONTROL DE REENCAUCHE ---
+    tipo_banda = Column(String(50), default="Original")
+    
     fecha_instalacion = Column(String(10), nullable=False)
     km_instalacion = Column(Float, default=0.0)
     horometro_instalacion = Column(Float, default=0.0)
@@ -108,6 +112,10 @@ class OperacionDiaria(Base):
     numero_viajes = Column(Integer, default=0)
     km_horometro_inicial = Column(Float, default=0.0)
     km_horometro_final = Column(Float, default=0.0)
+    
+    # --- CAMBIO FASE 1.1: CAMPO AGREGADO PARA KILOMETRAJE SEPARADO DEL HORÓMETRO ---
+    kilometraje_manual = Column(Float, nullable=True, default=0.0)
+    
     galones_combustible = Column(Float, default=0.0)
     costo_combustible = Column(Float, default=0.0)
     grifo_surtidor = Column(String(100), default="")

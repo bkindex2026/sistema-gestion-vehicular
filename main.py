@@ -40,18 +40,22 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# --- ESQUEMA PYDANTIC PARA OPERACIONES DIARIAS ---
+# --- ESQUEMA PYDANTIC PARA OPERACIONES DIARIAS Y CHOFERES ---
 class OperacionSchema(BaseModel):
     id_vehiculo: int
     chofer: str
     fecha_operacion: str
-    tipo_trabajo: Optional[str] = None
+    tipo_trabajo: Optional[str] = "Mina Baja -> Planta (Acarreo)"  # Mina-Mina o Mina-Planta
     ruta_origen_destino: Optional[str] = None
     toneladas_carga: Optional[float] = 0.0
-    carga_toneladas: Optional[float] = None  # Soporte para ambos nombres de variable
+    carga_toneladas: Optional[float] = None
     numero_viajes: Optional[int] = 1
+    
+    # --- CAMBIOS CLAVE FASE 1 ---
     km_horometro_inicial: Optional[float] = 0.0
-    km_horometro_final: Optional[float] = 0.0
+    km_horometro_final: float  # HORÓMETRO EN HORAS (OBLIGATORIO)
+    kilometraje_manual: Optional[float] = None  # KILOMETRAJE EN KM (OPCIONAL/DE REFERENCIA)
+    
     galones_combustible: Optional[float] = 0.0
     costo_combustible: Optional[float] = 0.0
     galones_urea: Optional[float] = 0.0
@@ -353,16 +357,18 @@ def listar_llantas(db: Session = Depends(get_db)):
     return db.query(models.Llanta).order_by(models.Llanta.id_llanta.desc()).all()
 
 
+# --- LLANTAS (AMPLIADO A POSICIONES 1-10 Y BANDAS) ---
 @app.post("/llantas/")
 def registrar_llanta(
     id_vehiculo: int = Form(...),
     codigo: str = Form("S/C"),
     marca: str = Form(...),
     modelo: str = Form(...),
-    posicion: str = Form(...),
+    posicion: str = Form(...),  # Acepta posiciones del "1" al "10" o "Repuesto"
+    tipo_banda: str = Form("Original"),  # "Original", "1er Reencuche", "2do Reencuche"
     fecha_instalacion: str = Form(...),
-    km_instalacion: float = Form(0.0),
-    horometro_instalacion: float = Form(0.0),
+    horometro_instalacion: float = Form(...),  # Horómetro obligatorio en horas
+    km_instalacion: float = Form(0.0),  # Km manual opcional
     db: Session = Depends(get_db)
 ):
     nueva_l = models.Llanta(
@@ -371,16 +377,16 @@ def registrar_llanta(
         marca=marca,
         modelo=modelo,
         posicion=posicion,
+        tipo_banda=tipo_banda,
         fecha_instalacion=fecha_instalacion,
-        km_instalacion=km_instalacion,
         horometro_instalacion=horometro_instalacion,
+        km_instalacion=km_instalacion,
         estado_llanta="INSTALADA"
     )
     db.add(nueva_l)
     db.commit()
     db.refresh(nueva_l)
     return {"mensaje": "Llanta registrada exitosamente", "id_llanta": nueva_l.id_llanta}
-
 
 @app.delete("/llantas/{id_llanta}/")
 def eliminar_llanta(id_llanta: int, db: Session = Depends(get_db)):
@@ -605,3 +611,49 @@ def listar_checklists(db: Session = Depends(get_db)):
 @app.get("/checklists/vehiculo/{id_vehiculo}")
 def listar_checklists_por_vehiculo(id_vehiculo: int, db: Session = Depends(get_db)):
     return db.query(models.ChecklistVehicular).filter(models.ChecklistVehicular.id_vehiculo == id_vehiculo).order_by(models.ChecklistVehicular.id_checklist.desc()).all()
+    # --- ENDPOINT ESPECIALIZADO PARA ROL CHOFER (CAPTURA CON FOTO) ---
+@app.post("/operaciones/chofer/")
+def registrar_operacion_chofer(
+    id_vehiculo: int = Form(...),
+    chofer: str = Form(...),
+    fecha_operacion: str = Form(...),
+    tipo_trabajo: str = Form("Mina Baja -> Planta (Acarreo)"),
+    horometro_final: float = Form(...),  # Horómetro extraído/registrado (OBLIGATORIO)
+    kilometraje_manual: Optional[float] = Form(None),  # Kilometraje tipear a mano (OPCIONAL)
+    galones_combustible: Optional[float] = Form(0.0),
+    costo_combustible: Optional[float] = Form(0.0),
+    galones_urea: Optional[float] = Form(0.0),
+    costo_urea: Optional[float] = Form(0.0),
+    foto_tablero: UploadFile = File(None),  # Foto para evidencia / OCR
+    db: Session = Depends(get_db)
+):
+    url_foto = ""
+    if foto_tablero:
+        url_foto = subir_a_cloudinary(foto_tablero, "tableros_horometro")
+
+    nueva_op = models.OperacionDiaria(
+        id_vehiculo=id_vehiculo,
+        chofer=chofer,
+        fecha_operacion=fecha_operacion,
+        tipo_trabajo=tipo_trabajo,
+        km_horometro_final=horometro_final,
+        galones_combustible=galones_combustible,
+        costo_combustible=costo_combustible,
+        galones_urea=galones_urea,
+        costo_urea=costo_urea,
+        observaciones=f"Foto Tablero: {url_foto}" if url_foto else "Sin Foto"
+    )
+    db.add(nueva_op)
+    
+    # Actualiza el horómetro/kilometraje actual en el vehículo
+    vehiculo = db.query(models.Vehiculo).filter(models.Vehiculo.id_vehiculo == id_vehiculo).first()
+    if vehiculo and horometro_final > 0:
+        vehiculo.kilometraje_actual = horometro_final
+        
+    db.commit()
+    db.refresh(nueva_op)
+    return {
+        "mensaje": "Parte diario registrado correctamente por Chofer",
+        "id_operacion": nueva_op.id_operacion,
+        "url_foto": url_foto
+    }
