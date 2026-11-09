@@ -57,6 +57,7 @@
           <button onclick="cambiarPestaña('operaciones')" class="px-3 py-1.5 rounded bg-slate-800 hover:bg-slate-700 transition">🚚 Operaciones</button>
           <button onclick="cambiarPestaña('checklist')" class="px-3 py-1.5 rounded bg-indigo-700 hover:bg-indigo-600 font-bold transition">📋 Checklist</button>
           <button onclick="cambiarPestaña('usuarios')" class="seccion-usuarios px-3 py-1.5 rounded bg-slate-800 hover:bg-slate-700 transition">👥 Usuarios</button>
+          <button id="btn-nav-chofer" onclick="cambiarPestaña('chofer')" class="px-3 py-1.5 rounded bg-amber-600 hover:bg-amber-500 font-bold text-white transition">📱 Modo Chofer</button>
         </div>
 
         <button onclick="cerrarSesion()" class="bg-red-600 hover:bg-red-700 text-xs px-3 py-1.5 rounded transition">Cerrar Sesión</button>
@@ -735,6 +736,116 @@
           </form>
         </div>
       </div>
+      <!-- SUB-PASO 2.2 Y 2.3: MÓDULO ESPECIALIZADO PARA ROL CHOFER -->
+      <div id="modulo-chofer" class="hidden space-y-6">
+        
+        <!-- CONSULTA RÁPIDA DE DOCUMENTOS (SOAT / CITV / TIVE) -->
+        <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-200 space-y-4">
+          <h2 class="text-base font-bold text-slate-800 flex items-center gap-2">📄 Documentos de la Unidad</h2>
+          <div>
+            <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Seleccionar Mi Vehículo</label>
+            <select id="chofer-vehiculo-select" onchange="cargarDocumentosChofer(this.value)" class="select-vehiculos-dinamico w-full p-3 border rounded-lg text-sm font-bold text-blue-600">
+              <option value="">Cargando unidades...</option>
+            </select>
+          </div>
+          <div id="contenedor-docs-chofer" class="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
+            <p class="text-slate-400 italic col-span-3">Seleccione una placa para ver SOAT, CITV y TIVE.</p>
+          </div>
+        </div>
+
+        <!-- FORMULARIO DE REGISTRO CON FOTO OBLIGATORIA DEL TABLERO -->
+        <div class="bg-white p-5 rounded-xl shadow-sm border-l-4 border-amber-500 space-y-4">
+          <h2 class="text-base font-bold text-slate-800 flex items-center gap-2">🚚 Registrar Parte Diario / Carga</h2>
+          
+          <form id="form-chofer-operacion" onsubmit="registrarParteChofer(event)" class="space-y-4">
+            <div>
+              <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Tipo de Trabajo / Ruta</label>
+              <div class="grid grid-cols-2 gap-2">
+                <button type="button" onclick="seleccionarTipoTrabajo('Mina Alta -> Mina Baja (Interno)', this)" class="btn-ruta p-3 border rounded-lg text-xs font-bold text-slate-700 bg-slate-50 hover:bg-amber-100 border-slate-300 active">🏔️ Mina Alta ➔ Mina Baja</button>
+                <button type="button" onclick="seleccionarTipoTrabajo('Mina Baja -> Planta (Acarreo)', this)" class="btn-ruta p-3 border rounded-lg text-xs font-bold text-slate-700 bg-slate-50 hover:bg-amber-100 border-slate-300">🏭 Mina Baja ➔ Planta</button>
+              </div>
+              <input type="hidden" id="chofer-tipo-trabajo" value="Mina Alta -> Mina Baja (Interno)">
+            </div>
+
+            <!-- FOTO OBLIGATORIA DEL TABLERO -->
+            <div class="bg-amber-50 p-4 rounded-lg border border-amber-200 space-y-2">
+              <label class="block text-xs font-bold text-amber-900 uppercase">📷 Foto del Tablero / Horómetro (* Obligatorio)</label>
+              <input type="file" id="chofer-foto-tablero" accept="image/*" capture="environment" required class="w-full text-xs text-slate-600 file:mr-3 file:py-2.5 file:px-4 file:rounded-lg file:border-0 file:bg-amber-600 file:text-white file:font-bold">
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div>
+                <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Horómetro Actual (Horas *)</label>
+                <input type="number" step="0.1" id="chofer-horometro" required placeholder="Ej. 1250.5" class="w-full p-3 border rounded-lg text-base font-bold text-slate-800">
+              </div>
+              <div>
+                <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Kilometraje (Opcional)</label>
+                <input type="number" step="0.1" id="chofer-km-manual" placeholder="Ej. 45200" class="w-full p-3 border rounded-lg text-sm">
+              </div>
+            </div>
+
+            <div class="grid grid-cols-2 gap-3">
+              <div>
+                <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Galones Diésel</label>
+                <input type="number" step="0.01" id="chofer-galones" placeholder="0.00" class="w-full p-3 border rounded-lg text-sm">
+              </div>
+              <div>
+                <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Galones Urea</label>
+                <input type="number" step="0.01" id="chofer-urea" placeholder="0.00" class="w-full p-3 border rounded-lg text-sm">
+              </div>
+            </div>
+
+            <button type="submit" id="btn-submit-chofer" class="w-full bg-amber-600 hover:bg-amber-700 text-white font-bold py-3.5 rounded-lg text-base shadow-md transition flex items-center justify-center gap-2">
+              💾 Guardar Registro Diario
+            </button>
+          </form>
+          </div>
+          <!-- INSPECCIÓN RÁPIDA DE NEUMÁTICOS (POSICIONES 1 AL 10) -->
+        <div class="bg-white p-5 rounded-xl shadow-sm border-l-4 border-amber-500 space-y-4">
+          <h2 class="text-base font-bold text-slate-800 flex items-center gap-2">🛞 Inspección Rápida de Neumáticos</h2>
+          
+          <form id="form-chofer-llanta" onsubmit="registrarLlantaChofer(event)" class="space-y-4">
+            <div>
+              <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Posición del Neumático (*)</label>
+              <select id="chofer-ll-posicion" required class="w-full p-3 border rounded-lg text-sm font-bold text-slate-800">
+                <option value="">Seleccione posición (1-10)...</option>
+                <option value="1">Posición 1 - Delantera Izquierda</option>
+                <option value="2">Posición 2 - Delantera Derecha</option>
+                <option value="3">Posición 3 - Tracción Izq Exterior</option>
+                <option value="4">Posición 4 - Tracción Izq Interior</option>
+                <option value="5">Posición 5 - Tracción Der Interior</option>
+                <option value="6">Posición 6 - Tracción Der Exterior</option>
+                <option value="7">Posición 7 - Posterior Izq Exterior</option>
+                <option value="8">Posición 8 - Posterior Izq Interior</option>
+                <option value="9">Posición 9 - Posterior Der Interior</option>
+                <option value="10">Posición 10 - Posterior Der Exterior</option>
+              </select>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div>
+                <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Código / Marca (*)</label>
+                <input type="text" id="chofer-ll-codigo" required placeholder="Ej. MICHELIN-01" class="w-full p-3 border rounded-lg text-sm">
+              </div>
+              <div>
+                <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Tipo de Banda / Estado (*)</label>
+                <select id="chofer-ll-banda" required class="w-full p-3 border rounded-lg text-sm">
+                  <option value="Original">Original</option>
+                  <option value="1er Reencuche">1er Reencuche</option>
+                  <option value="2do Reencuche">2do Reencuche</option>
+                  <option value="Requiere Cambio">⚠️ Requiere Cambio Urgente</option>
+                </select>
+              </div>
+            </div>
+
+            <button type="submit" id="btn-submit-llanta-chofer" class="w-full bg-slate-800 hover:bg-slate-900 text-white font-bold py-3 rounded-lg text-sm shadow transition">
+              🛞 Guardar Estado de Llanta
+            </button>
+          </form>
+        </div>
+        </div>
+
+      </div>
 
     </main>
   </div>
@@ -826,9 +937,18 @@
       }
     }
 
+    // --- SUB-PASO 2.1: APLICACIÓN DE PERMISOS DE ROL (INCLUYE CHOFER) ---
     function aplicarPermisosDeRol(rol) {
       const userRole = rol || localStorage.getItem("user_role");
-      if (userRole === "Lectura") {
+      
+      if (userRole === "Chofer") {
+        // Ocultar menús y secciones administrativas de oficina
+        document.querySelectorAll(".seccion-usuarios, #modulo-resumen, #modulo-vehiculos, #modulo-vencimientos, #modulo-taller, #modulo-usuarios, nav button:not(#btn-nav-chofer)").forEach(el => el.style.display = "none");
+        document.querySelectorAll(".btn-eliminar").forEach(el => el.style.display = "none");
+        
+        // Redirigir por defecto al entorno del Chofer
+        cambiarPestaña('chofer');
+      } else if (userRole === "Lectura") {
         document.querySelectorAll(".btn-crear, .btn-eliminar, form:not(#form-login)").forEach(el => el.style.display = "none");
       } else if (userRole === "Edicion") {
         document.querySelectorAll(".seccion-usuarios").forEach(el => el.style.display = "none");
@@ -837,7 +957,7 @@
 
     function cambiarPestaña(nombreModulo) {
       try {
-        const modulos = ["resumen", "vehiculos", "vencimientos", "llantas", "taller", "operaciones", "checklist", "usuarios"];
+        const modulos = ["resumen", "vehiculos", "vencimientos", "llantas", "taller", "operaciones", "checklist", "usuarios", "chofer"];
         modulos.forEach(m => {
           const el = document.getElementById(`modulo-${m}`);
           if (el) el.classList.add("hidden");
@@ -1332,7 +1452,123 @@
       localStorage.clear();
       window.location.reload();
     }
+function seleccionarTipoTrabajo(valor, btn) {
+      document.getElementById("chofer-tipo-trabajo").value = valor;
+      document.querySelectorAll(".btn-ruta").forEach(b => b.classList.remove("bg-amber-500", "text-white"));
+      btn.classList.add("bg-amber-500", "text-white");
+    }
 
+    async function cargarDocumentosChofer(idVehiculo) {
+      const cont = document.getElementById("contenedor-docs-chofer");
+      if (!idVehiculo) {
+        cont.innerHTML = '<p class="text-slate-400 italic col-span-3">Seleccione una placa para ver SOAT, CITV y TIVE.</p>';
+        return;
+      }
+      try {
+        const res = await fetch(`${API_URL}/vehiculos/${idVehiculo}/hoja_vida/`);
+        const data = await res.json();
+        
+        cont.innerHTML = `
+          <div class="p-3 bg-blue-50 border rounded-lg">
+            <span class="font-bold text-blue-900 block">TIVE</span>
+            ${data.url_tive ? `<a href="${obtenerUrlCompleta(data.url_tive)}" target="_blank" class="text-blue-700 underline font-bold">Ver Tarjeta</a>` : '<span class="text-slate-400">Sin archivo</span>'}
+          </div>
+          <div class="p-3 bg-emerald-50 border rounded-lg">
+            <span class="font-bold text-emerald-900 block">SOAT</span>
+            <span class="text-slate-600">${data.seguros && data.seguros.length > 0 ? data.seguros[0].fecha_vencimiento : 'Sin registrar'}</span>
+          </div>
+          <div class="p-3 bg-purple-50 border rounded-lg">
+            <span class="font-bold text-purple-900 block">CITV / Revisión</span>
+            <span class="text-slate-600">${data.documentos && data.documentos.length > 0 ? data.documentos[0].fecha_vencimiento : 'Sin registrar'}</span>
+          </div>
+        `;
+      } catch(e) {
+        cont.innerHTML = '<p class="text-red-500 italic col-span-3">Error al consultar documentos.</p>';
+      }
+    }
+
+    async function registrarParteChofer(e) {
+      e.preventDefault();
+      const btn = document.getElementById("btn-submit-chofer");
+      btn.disabled = true;
+      btn.innerHTML = "Subiendo foto y registrando...";
+
+      const formData = new FormData();
+      formData.append("id_vehiculo", document.getElementById("chofer-vehiculo-select").value);
+      formData.append("chofer", localStorage.getItem("user_email") || "Chofer");
+      formData.append("fecha_operacion", new Date().toISOString().split('T')[0]);
+      formData.append("tipo_trabajo", document.getElementById("chofer-tipo-trabajo").value);
+      formData.append("horometro_final", parseFloat(document.getElementById("chofer-horometro").value));
+      
+      const kmManual = document.getElementById("chofer-km-manual").value;
+      if (kmManual) formData.append("kilometraje_manual", parseFloat(kmManual));
+      
+      formData.append("galones_combustible", parseFloat(document.getElementById("chofer-galones").value) || 0);
+      formData.append("galones_urea", parseFloat(document.getElementById("chofer-urea").value) || 0);
+
+      const fileInput = document.getElementById("chofer-foto-tablero");
+      if (fileInput.files.length > 0) {
+        formData.append("foto_tablero", fileInput.files[0]);
+      }
+
+      try {
+        const res = await fetch(`${API_URL}/operaciones/chofer/`, { method: "POST", body: formData });
+        if (res.ok) {
+          alert("Parte diario y foto guardados exitosamente.");
+          document.getElementById("form-chofer-operacion").reset();
+        } else {
+          alert("Error al guardar el registro.");
+        }
+      } catch (err) {
+        alert("Error de conexión al enviar formulario.");
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = "💾 Guardar Registro Diario";
+      }
+    }
+    async function registrarLlantaChofer(e) {
+      e.preventDefault();
+      const idVehiculo = document.getElementById("chofer-vehiculo-select").value;
+      if (!idVehiculo) {
+        alert("Por favor seleccione un vehículo en la parte superior del módulo.");
+        return;
+      }
+
+      const btn = document.getElementById("btn-submit-llanta-chofer");
+      btn.disabled = true;
+      btn.innerHTML = "Guardando...";
+
+      const payload = {
+        id_vehiculo: parseInt(idVehiculo),
+        codigo: document.getElementById("chofer-ll-codigo").value.trim(),
+        marca: "Por Especificar",
+        modelo: "Por Especificar",
+        posicion: document.getElementById("chofer-ll-posicion").value,
+        tipo_banda: document.getElementById("chofer-ll-banda").value,
+        fecha_instalacion: new Date().toISOString().split('T')[0],
+        horometro_instalacion: parseFloat(document.getElementById("chofer-horometro")?.value || 0.0)
+      };
+
+      try {
+        const res = await fetch(`${API_URL}/llantas/`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload)
+        });
+
+        if (res.ok) {
+          alert("Estado de llanta actualizado correctamente.");
+          document.getElementById("form-chofer-llanta").reset();
+        } else {
+          alert("Error al guardar la llanta.");
+        }
+      } catch (err) {
+        alert("Error de conexión con el servidor.");
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = "🛞 Guardar Estado de Llanta";
+      }
+    }
     document.addEventListener("DOMContentLoaded", () => {
       const savedRole = localStorage.getItem("user_role");
       if (savedRole) {
