@@ -1,8 +1,7 @@
 import os
 import bcrypt
-from typing import List, Optional
-from datetime import date
-from fastapi import FastAPI, Depends, HTTPException, status, File, UploadFile, Form
+from typing import Optional
+from fastapi import FastAPI, Depends, HTTPException, File, UploadFile, Form
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from sqlalchemy import func
@@ -11,14 +10,12 @@ import cloudinary
 import cloudinary.uploader
 import models
 from database import engine, get_db
-from passlib.context import CryptContext
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
-# --- CONFIGURACIÓN DE CLOUDINARY ---
+# --- CONFIGURACIÓN DE CLOUDINARY (ENTORNO CON RESPALDO) ---
 cloudinary.config(
-    cloud_name="waeqxw9d",
-    api_key="843623439288624",
-    api_secret="449u-DZA3ZBkZW3jmWft4zqxe1I",
+    cloud_name=os.getenv("CLOUDINARY_CLOUD_NAME", "waeqxw9d").strip(),
+    api_key=os.getenv("CLOUDINARY_API_KEY", "843623439288624").strip(),
+    api_secret=os.getenv("CLOUDINARY_API_SECRET", "449u-DZA3ZBkZW3jmWft4zqxe1I").strip(),
     secure=True
 )
 
@@ -35,33 +32,31 @@ app.add_middleware(
         "http://localhost:5500",
         "http://127.0.0.1:5500"
     ],
-    allow_credentials=False,  # Desactivado para evitar bloqueos de cabecera en navegadores móviles y desktop
+    allow_credentials=False,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-# --- ESQUEMA PYDANTIC PARA OPERACIONES DIARIAS Y CHOFERES ---
+# --- ESQUEMAS PYDANTIC ---
 class OperacionSchema(BaseModel):
     id_vehiculo: int
     chofer: str
     fecha_operacion: str
-    tipo_trabajo: Optional[str] = "Mina Baja -> Planta (Acarreo)"  # Mina-Mina o Mina-Planta
+    tipo_trabajo: Optional[str] = "Mina Baja -> Planta (Acarreo)"
     ruta_origen_destino: Optional[str] = None
     toneladas_carga: Optional[float] = 0.0
     carga_toneladas: Optional[float] = None
     numero_viajes: Optional[int] = 1
-    
-    # --- CAMBIOS CLAVE FASE 1 ---
     km_horometro_inicial: Optional[float] = 0.0
-    km_horometro_final: float  # HORÓMETRO EN HORAS (OBLIGATORIO)
-    kilometraje_manual: Optional[float] = None  # KILOMETRAJE EN KM (OPCIONAL/DE REFERENCIA)
-    
+    km_horometro_final: float
+    kilometraje_manual: Optional[float] = None
     galones_combustible: Optional[float] = 0.0
     costo_combustible: Optional[float] = 0.0
     galones_urea: Optional[float] = 0.0
     costo_urea: Optional[float] = 0.0
     grifo_surtidor: Optional[str] = None
     observaciones: Optional[str] = None
+
 
 class ChecklistSchema(BaseModel):
     id_vehiculo: int
@@ -75,6 +70,19 @@ class ChecklistSchema(BaseModel):
     estado_equipos_seguridad: Optional[str] = "OK"
     tiene_inconveniente: Optional[bool] = False
     detalle_inconveniente: Optional[str] = ""
+
+
+class LlantaCreateSchema(BaseModel):
+    id_vehiculo: int
+    codigo: Optional[str] = "S/C"
+    marca: str
+    modelo: str
+    posicion: str
+    tipo_banda: Optional[str] = "Original"
+    fecha_instalacion: str
+    horometro_instalacion: Optional[float] = 0.0
+    km_instalacion: Optional[float] = 0.0
+
 
 def subir_a_cloudinary(archivo: UploadFile, carpeta: str) -> str:
     try:
@@ -94,44 +102,55 @@ def health_check():
     return {"status": "ok", "message": "Servidor backend activo."}
 
 
-# --- LOGIN CON VERIFICACIÓN BCRYPT Y SEGURIDAD ---
+# --- USUARIOS ---
+@app.get("/usuarios/")
+def listar_usuarios(db: Session = Depends(get_db)):
+    usuarios = db.query(models.Usuario).order_by(models.Usuario.id_usuario.asc()).all()
+    return [
+        {
+            "id_usuario": u.id_usuario,
+            "nombre": u.nombre,
+            "email": u.email,
+            "rol": u.rol
+        }
+        for u in usuarios
+    ]
+
+
+# --- LOGIN CON VERIFICACIÓN BCRYPT ---
 @app.post("/login/")
 def login(data: dict, db: Session = Depends(get_db)):
     raw_email = data.get("email")
     password = data.get("password")
-    
+
     if not raw_email or not password:
         raise HTTPException(status_code=400, detail="Debe ingresar correo y contraseña.")
-    
+
     email_clean = str(raw_email).strip().lower()
-    
-    # 1. Búsqueda de usuario (insensible a mayúsculas)
     user = db.query(models.Usuario).filter(func.lower(models.Usuario.email) == email_clean).first()
-    
+
     if not user:
         raise HTTPException(status_code=401, detail="Credenciales incorrectas")
-    
-    # 2. Verificación nativa con bcrypt (sin pasar por passlib)
+
     es_valida = False
     stored_pw = user.password or ""
-    
+
     try:
         if stored_pw.startswith("$2b$") or stored_pw.startswith("$2a$"):
-            # Compara directamente con la librería bcrypt oficial
-            es_valida = bcrypt.checkpw(password.encode('utf-8'), stored_pw.encode('utf-8'))
+            es_valida = bcrypt.checkpw(password.encode("utf-8"), stored_pw.encode("utf-8"))
         else:
             es_valida = (stored_pw == password)
     except Exception:
         es_valida = False
-        
+
     if not es_valida:
         raise HTTPException(status_code=401, detail="Credenciales incorrectas")
-        
+
     return {
         "access_token": user.email,
         "token_type": "bearer",
         "rol": user.rol,
-        "nombre": getattr(user, 'nombre', user.email)
+        "nombre": getattr(user, "nombre", user.email)
     }
 
 
@@ -156,9 +175,11 @@ def crear_vehiculo(
     existente = db.query(models.Vehiculo).filter(models.Vehiculo.placa == placa.upper().strip()).first()
     if existente:
         raise HTTPException(status_code=400, detail="La placa ya está registrada")
+
     url_tive = ""
     if archivo_tive:
         url_tive = subir_a_cloudinary(archivo_tive, "tive")
+
     nuevo_v = models.Vehiculo(
         placa=placa.upper().strip(),
         sede_asignada=sede_asignada,
@@ -180,7 +201,7 @@ def subir_tive_vehiculo(id_vehiculo: int, archivo_tive: UploadFile = File(...), 
     v = db.query(models.Vehiculo).filter(models.Vehiculo.id_vehiculo == id_vehiculo).first()
     if not v:
         raise HTTPException(status_code=404, detail="Vehículo no encontrado")
-    
+
     url_cloud = subir_a_cloudinary(archivo_tive, "tive")
     v.url_tive = url_cloud
     db.commit()
@@ -192,27 +213,41 @@ def obtener_hoja_vida(id_vehiculo: int, db: Session = Depends(get_db)):
     vehiculo = db.query(models.Vehiculo).filter(models.Vehiculo.id_vehiculo == id_vehiculo).first()
     if not vehiculo:
         raise HTTPException(status_code=404, detail="Vehículo no encontrado")
-    try: seguros = db.query(models.Seguro).filter(models.Seguro.id_vehiculo == id_vehiculo).all()
-    except Exception: seguros = []
-    try: documentos = db.query(models.Documento).filter(models.Documento.id_vehiculo == id_vehiculo).all()
-    except Exception: documentos = []
-    try: reparaciones = db.query(models.Reparacion).filter(models.Reparacion.id_vehiculo == id_vehiculo).all()
-    except Exception: reparaciones = []
-    try: gps = db.query(models.ServicioGPS).filter(models.ServicioGPS.id_vehiculo == id_vehiculo).all()
-    except Exception: gps = []
-    try: llantas = db.query(models.Llanta).filter(models.Llanta.id_vehiculo == id_vehiculo).all()
-    except Exception: llantas = []
-    try: operaciones = db.query(models.OperacionDiaria).filter(models.OperacionDiaria.id_vehiculo == id_vehiculo).all()
-    except Exception: operaciones = []
+    try:
+        seguros = db.query(models.Seguro).filter(models.Seguro.id_vehiculo == id_vehiculo).all()
+    except Exception:
+        seguros = []
+    try:
+        documentos = db.query(models.Documento).filter(models.Documento.id_vehiculo == id_vehiculo).all()
+    except Exception:
+        documentos = []
+    try:
+        reparaciones = db.query(models.Reparacion).filter(models.Reparacion.id_vehiculo == id_vehiculo).all()
+    except Exception:
+        reparaciones = []
+    try:
+        gps = db.query(models.ServicioGPS).filter(models.ServicioGPS.id_vehiculo == id_vehiculo).all()
+    except Exception:
+        gps = []
+    try:
+        llantas = db.query(models.Llanta).filter(models.Llanta.id_vehiculo == id_vehiculo).all()
+    except Exception:
+        llantas = []
+    try:
+        operaciones = db.query(models.OperacionDiaria).filter(models.OperacionDiaria.id_vehiculo == id_vehiculo).all()
+    except Exception:
+        operaciones = []
+
     return {
         "id_vehiculo": vehiculo.id_vehiculo,
         "placa": vehiculo.placa,
-        "sede_asignada": getattr(vehiculo, 'sede_asignada', 'Por Asignar'),
-        "marca": getattr(vehiculo, 'marca', 'N/A'),
-        "modelo": getattr(vehiculo, 'modelo', 'N/A'),
-        "anio": getattr(vehiculo, 'anio', 2024),
-        "numero_vin": getattr(vehiculo, 'numero_vin', 'S/N'),
-        "kilometraje_actual": getattr(vehiculo, 'kilometraje_actual', 0.0),
+        "sede_asignada": getattr(vehiculo, "sede_asignada", "Por Asignar"),
+        "marca": getattr(vehiculo, "marca", "N/A"),
+        "modelo": getattr(vehiculo, "modelo", "N/A"),
+        "anio": getattr(vehiculo, "anio", 2024),
+        "numero_vin": getattr(vehiculo, "numero_vin", "S/N"),
+        "kilometraje_actual": getattr(vehiculo, "kilometraje_actual", 0.0),
+        "url_tive": getattr(vehiculo, "url_tive", ""),
         "seguros": seguros,
         "documentos": documentos,
         "reparaciones": reparaciones,
@@ -243,14 +278,22 @@ def registrar_seguro(
     db: Session = Depends(get_db)
 ):
     if reemplazar != "true":
-        existente = db.query(models.Seguro).filter(models.Seguro.id_vehiculo == id_vehiculo, models.Seguro.tipo_seguro == tipo_seguro).first()
+        existente = db.query(models.Seguro).filter(
+            models.Seguro.id_vehiculo == id_vehiculo,
+            models.Seguro.tipo_seguro == tipo_seguro
+        ).first()
         if existente:
             return {"requiere_confirmacion": True, "mensaje": f"Ya existe un {tipo_seguro} activo. ¿Desea reemplazarlo?"}
     if reemplazar == "true":
-        db.query(models.Seguro).filter(models.Seguro.id_vehiculo == id_vehiculo, models.Seguro.tipo_seguro == tipo_seguro).delete()
+        db.query(models.Seguro).filter(
+            models.Seguro.id_vehiculo == id_vehiculo,
+            models.Seguro.tipo_seguro == tipo_seguro
+        ).delete()
+
     url_adjunto = ""
     if archivo_adjunto:
         url_adjunto = subir_a_cloudinary(archivo_adjunto, "seguros")
+
     nuevo_s = models.Seguro(
         id_vehiculo=id_vehiculo,
         tipo_seguro=tipo_seguro,
@@ -297,6 +340,7 @@ def registrar_documento(
     url_adjunto = ""
     if archivo_adjunto:
         url_adjunto = subir_a_cloudinary(archivo_adjunto, "documentos")
+
     nuevo_d = models.Documento(
         id_vehiculo=id_vehiculo,
         tipo_documento=tipo_documento,
@@ -340,6 +384,7 @@ def registrar_gps(
         v.tiene_gps = True
         v.empresa_gps = empresa_gps
         v.vencimiento_gps = fecha_vencimiento
+
     nuevo_g = models.ServicioGPS(
         id_vehiculo=id_vehiculo,
         empresa_gps=empresa_gps,
@@ -357,36 +402,25 @@ def listar_llantas(db: Session = Depends(get_db)):
     return db.query(models.Llanta).order_by(models.Llanta.id_llanta.desc()).all()
 
 
-# --- LLANTAS (AMPLIADO A POSICIONES 1-10 Y BANDAS) ---
 @app.post("/llantas/")
-def registrar_llanta(
-    id_vehiculo: int = Form(...),
-    codigo: str = Form("S/C"),
-    marca: str = Form(...),
-    modelo: str = Form(...),
-    posicion: str = Form(...),  # Acepta posiciones del "1" al "10" o "Repuesto"
-    tipo_banda: str = Form("Original"),  # "Original", "1er Reencuche", "2do Reencuche"
-    fecha_instalacion: str = Form(...),
-    horometro_instalacion: float = Form(...),  # Horómetro obligatorio en horas
-    km_instalacion: float = Form(0.0),  # Km manual opcional
-    db: Session = Depends(get_db)
-):
+def registrar_llanta(payload: LlantaCreateSchema, db: Session = Depends(get_db)):
     nueva_l = models.Llanta(
-        id_vehiculo=id_vehiculo,
-        codigo=codigo,
-        marca=marca,
-        modelo=modelo,
-        posicion=posicion,
-        tipo_banda=tipo_banda,
-        fecha_instalacion=fecha_instalacion,
-        horometro_instalacion=horometro_instalacion,
-        km_instalacion=km_instalacion,
+        id_vehiculo=payload.id_vehiculo,
+        codigo=(payload.codigo or "S/C").strip(),
+        marca=payload.marca.strip(),
+        modelo=payload.modelo.strip(),
+        posicion=payload.posicion.strip(),
+        tipo_banda=(payload.tipo_banda or "Original").strip(),
+        fecha_instalacion=payload.fecha_instalacion,
+        horometro_instalacion=payload.horometro_instalacion or 0.0,
+        km_instalacion=payload.km_instalacion or 0.0,
         estado_llanta="INSTALADA"
     )
     db.add(nueva_l)
     db.commit()
     db.refresh(nueva_l)
     return {"mensaje": "Llanta registrada exitosamente", "id_llanta": nueva_l.id_llanta}
+
 
 @app.delete("/llantas/{id_llanta}/")
 def eliminar_llanta(id_llanta: int, db: Session = Depends(get_db)):
@@ -398,96 +432,6 @@ def eliminar_llanta(id_llanta: int, db: Session = Depends(get_db)):
     return {"mensaje": "Llanta eliminada"}
 
 
-# --- REPARACIONES Y TALLER ---
-@app.post("/operaciones/")
-def registrar_operacion(payload: OperacionSchema, db: Session = Depends(get_db)):
-    toneladas = payload.toneladas_carga if payload.toneladas_carga is not None and payload.toneladas_carga > 0 else (payload.carga_toneladas or 0.0)
-    
-    nueva_op = models.OperacionDiaria(
-        id_vehiculo=payload.id_vehiculo,
-        chofer=payload.chofer,
-        fecha_operacion=payload.fecha_operacion,
-        tipo_trabajo=payload.tipo_trabajo or "",
-        ruta_origen_destino=payload.ruta_origen_destino or "",
-        carga_toneladas=toneladas,
-        numero_viajes=payload.numero_viajes or 1,
-        km_horometro_inicial=payload.km_horometro_inicial or 0.0,
-        km_horometro_final=payload.km_horometro_final or 0.0,
-        galones_combustible=payload.galones_combustible or 0.0,
-        costo_combustible=payload.costo_combustible or 0.0,
-        galones_urea=payload.galones_urea or 0.0,   # <--- AGREGAR ESTA LÍNEA
-        costo_urea=payload.costo_urea or 0.0,       # <--- AGREGAR ESTA LÍNEA
-        grifo_surtidor=payload.grifo_surtidor or "",
-        observaciones=payload.observaciones or ""
-    )
-    db.add(nueva_op)
-    
-    vehiculo = db.query(models.Vehiculo).filter(models.Vehiculo.id_vehiculo == payload.id_vehiculo).first()
-    if vehiculo and payload.km_horometro_final and payload.km_horometro_final > 0:
-        vehiculo.kilometraje_actual = payload.km_horometro_final
-        
-    db.commit()
-    db.refresh(nueva_op)
-    return {"mensaje": "Parte diario registrado exitosamente", "id_operacion": nueva_op.id_operacion}
-
-
-@app.delete("/reparaciones/{id_reparacion}/")
-def eliminar_reparacion(id_reparacion: int, db: Session = Depends(get_db)):
-    r = db.query(models.Reparacion).filter(models.Reparacion.id_reparacion == id_reparacion).first()
-    if not r:
-        raise HTTPException(status_code=404, detail="Registro no encontrado")
-    db.delete(r)
-    db.commit()
-    return {"mensaje": "Registro de taller eliminado"}
-
-
-# --- OPERACIONES Y CARGA DIARIA (RECEPCIÓ N JSON COMPATIBLE) ---
-@app.get("/operaciones/")
-def listar_operaciones(db: Session = Depends(get_db)):
-    return db.query(models.OperacionDiaria).order_by(models.OperacionDiaria.fecha_operacion.desc()).all()
-
-
-@app.post("/operaciones/")
-def registrar_operacion(payload: OperacionSchema, db: Session = Depends(get_db)):
-    # Determinación del tonelaje (soporta tanto toneladas_carga como carga_toneladas)
-    toneladas = payload.toneladas_carga if payload.toneladas_carga is not None and payload.toneladas_carga > 0 else (payload.carga_toneladas or 0.0)
-    
-    nueva_op = models.OperacionDiaria(
-        id_vehiculo=payload.id_vehiculo,
-        chofer=payload.chofer,
-        fecha_operacion=payload.fecha_operacion,
-        tipo_trabajo=payload.tipo_trabajo or "",
-        ruta_origen_destino=payload.ruta_origen_destino or "",
-        carga_toneladas=toneladas,
-        numero_viajes=payload.numero_viajes or 1,
-        km_horometro_inicial=payload.km_horometro_inicial or 0.0,
-        km_horometro_final=payload.km_horometro_final or 0.0,
-        galones_combustible=payload.galones_combustible or 0.0,
-        costo_combustible=payload.costo_combustible or 0.0,
-        grifo_surtidor=payload.grifo_surtidor or "",
-        observaciones=payload.observaciones or ""
-    )
-    db.add(nueva_op)
-    
-    # Actualización automática de kilometraje en la ficha del vehículo
-    vehiculo = db.query(models.Vehiculo).filter(models.Vehiculo.id_vehiculo == payload.id_vehiculo).first()
-    if vehiculo and payload.km_horometro_final and payload.km_horometro_final > 0:
-        vehiculo.kilometraje_actual = payload.km_horometro_final
-        
-    db.commit()
-    db.refresh(nueva_op)
-    return {"mensaje": "Parte diario registrado exitosamente", "id_operacion": nueva_op.id_operacion}
-
-
-@app.delete("/operaciones/{id_operacion}/")
-def eliminar_operacion(id_operacion: int, db: Session = Depends(get_db)):
-    op = db.query(models.OperacionDiaria).filter(models.OperacionDiaria.id_operacion == id_operacion).first()
-    if not op:
-        raise HTTPException(status_code=404, detail="Operación no encontrada")
-    db.delete(op)
-    db.commit()
-    return {"mensaje": "Operación eliminada"}
-    # --- ROTACIÓN Y MOVIMIENTO DE LLANTAS ---
 @app.post("/llantas/rotar/")
 def rotar_llanta(
     id_llanta: int = Form(...),
@@ -516,14 +460,12 @@ def rotar_llanta(
     )
     db.add(movimiento)
 
-    # Actualizar ubicación actual de la llanta
     llanta.id_vehiculo = id_vehiculo_destino
     llanta.posicion = posicion_destino
     db.commit()
     return {"mensaje": "Rotación de llanta efectuada correctamente"}
 
 
-# --- REPARACIÓN Y REENCAUCHE DE LLANTAS ---
 @app.post("/llantas/reparaciones/")
 def registrar_reparacion_llanta(
     id_llanta: int = Form(...),
@@ -555,15 +497,85 @@ def historial_llanta(id_llanta: int, db: Session = Depends(get_db)):
     if not llanta:
         raise HTTPException(status_code=404, detail="Llanta no encontrada")
 
-    movimientos = db.query(models.MovimientoLlanta).filter(models.MovimientoLlanta.id_llanta == id_llanta).order_by(models.MovimientoLlanta.id_movimiento.desc()).all()
-    reparaciones = db.query(models.ReparacionLlanta).filter(models.ReparacionLlanta.id_llanta == id_llanta).order_by(models.ReparacionLlanta.id_reparacion_llanta.desc()).all()
+    movimientos = db.query(models.MovimientoLlanta).filter(
+        models.MovimientoLlanta.id_llanta == id_llanta
+    ).order_by(models.MovimientoLlanta.id_movimiento.desc()).all()
+    reparaciones = db.query(models.ReparacionLlanta).filter(
+        models.ReparacionLlanta.id_llanta == id_llanta
+    ).order_by(models.ReparacionLlanta.id_reparacion_llanta.desc()).all()
 
     return {
         "llanta": llanta,
         "movimientos": movimientos,
         "reparaciones": reparaciones
     }
-    # --- MÓDULO CHECKLIST VEHICULAR PRE-OPERATIVO Y ALERTAS DE TALLER ---
+
+
+# --- REPARACIONES ---
+@app.delete("/reparaciones/{id_reparacion}/")
+def eliminar_reparacion(id_reparacion: int, db: Session = Depends(get_db)):
+    r = db.query(models.Reparacion).filter(models.Reparacion.id_reparacion == id_reparacion).first()
+    if not r:
+        raise HTTPException(status_code=404, detail="Registro no encontrado")
+    db.delete(r)
+    db.commit()
+    return {"mensaje": "Registro de taller eliminado"}
+
+
+# --- OPERACIONES Y CARGA DIARIA (ÚNICO ENDPOINT POST UNIFICADO) ---
+@app.get("/operaciones/")
+def listar_operaciones(db: Session = Depends(get_db)):
+    return db.query(models.OperacionDiaria).order_by(models.OperacionDiaria.fecha_operacion.desc()).all()
+
+
+@app.post("/operaciones/")
+def registrar_operacion(payload: OperacionSchema, db: Session = Depends(get_db)):
+    toneladas = (
+        payload.toneladas_carga
+        if payload.toneladas_carga is not None and payload.toneladas_carga > 0
+        else (payload.carga_toneladas or 0.0)
+    )
+
+    nueva_op = models.OperacionDiaria(
+        id_vehiculo=payload.id_vehiculo,
+        chofer=payload.chofer,
+        fecha_operacion=payload.fecha_operacion,
+        tipo_trabajo=payload.tipo_trabajo or "",
+        ruta_origen_destino=payload.ruta_origen_destino or "",
+        carga_toneladas=toneladas,
+        numero_viajes=payload.numero_viajes or 1,
+        km_horometro_inicial=payload.km_horometro_inicial or 0.0,
+        km_horometro_final=payload.km_horometro_final or 0.0,
+        kilometraje_manual=payload.kilometraje_manual,
+        galones_combustible=payload.galones_combustible or 0.0,
+        costo_combustible=payload.costo_combustible or 0.0,
+        galones_urea=payload.galones_urea or 0.0,
+        costo_urea=payload.costo_urea or 0.0,
+        grifo_surtidor=payload.grifo_surtidor or "",
+        observaciones=payload.observaciones or ""
+    )
+    db.add(nueva_op)
+
+    vehiculo = db.query(models.Vehiculo).filter(models.Vehiculo.id_vehiculo == payload.id_vehiculo).first()
+    if vehiculo and payload.km_horometro_final and payload.km_horometro_final > 0:
+        vehiculo.kilometraje_actual = payload.km_horometro_final
+
+    db.commit()
+    db.refresh(nueva_op)
+    return {"mensaje": "Parte diario registrado exitosamente", "id_operacion": nueva_op.id_operacion}
+
+
+@app.delete("/operaciones/{id_operacion}/")
+def eliminar_operacion(id_operacion: int, db: Session = Depends(get_db)):
+    op = db.query(models.OperacionDiaria).filter(models.OperacionDiaria.id_operacion == id_operacion).first()
+    if not op:
+        raise HTTPException(status_code=404, detail="Operación no encontrada")
+    db.delete(op)
+    db.commit()
+    return {"mensaje": "Operación eliminada"}
+
+
+# --- MÓDULO CHECKLIST VEHICULAR PRE-OPERATIVO ---
 @app.post("/checklists/")
 def registrar_checklist(payload: ChecklistSchema, db: Session = Depends(get_db)):
     nuevo_chk = models.ChecklistVehicular(
@@ -581,12 +593,10 @@ def registrar_checklist(payload: ChecklistSchema, db: Session = Depends(get_db))
     )
     db.add(nuevo_chk)
 
-    # Actualizar kilometraje del vehículo si viene registrado
     vehiculo = db.query(models.Vehiculo).filter(models.Vehiculo.id_vehiculo == payload.id_vehiculo).first()
     if vehiculo and payload.kilometraje and payload.kilometraje > 0:
         vehiculo.kilometraje_actual = payload.kilometraje
 
-    # Si reporta observación/falla, crea automáticamente un registro en Taller/Reparaciones
     if payload.tiene_inconveniente and payload.detalle_inconveniente:
         nueva_reparacion = models.Reparacion(
             id_vehiculo=payload.id_vehiculo,
@@ -610,21 +620,25 @@ def listar_checklists(db: Session = Depends(get_db)):
 
 @app.get("/checklists/vehiculo/{id_vehiculo}")
 def listar_checklists_por_vehiculo(id_vehiculo: int, db: Session = Depends(get_db)):
-    return db.query(models.ChecklistVehicular).filter(models.ChecklistVehicular.id_vehiculo == id_vehiculo).order_by(models.ChecklistVehicular.id_checklist.desc()).all()
-    # --- ENDPOINT ESPECIALIZADO PARA ROL CHOFER (CAPTURA CON FOTO) ---
+    return db.query(models.ChecklistVehicular).filter(
+        models.ChecklistVehicular.id_vehiculo == id_vehiculo
+    ).order_by(models.ChecklistVehicular.id_checklist.desc()).all()
+
+
+# --- ENDPOINT ESPECIALIZADO PARA ROL CHOFER ---
 @app.post("/operaciones/chofer/")
 def registrar_operacion_chofer(
     id_vehiculo: int = Form(...),
     chofer: str = Form(...),
     fecha_operacion: str = Form(...),
     tipo_trabajo: str = Form("Mina Baja -> Planta (Acarreo)"),
-    horometro_final: float = Form(...),  # Horómetro extraído/registrado (OBLIGATORIO)
-    kilometraje_manual: Optional[float] = Form(None),  # Kilometraje tipear a mano (OPCIONAL)
+    horometro_final: float = Form(...),
+    kilometraje_manual: Optional[float] = Form(None),
     galones_combustible: Optional[float] = Form(0.0),
     costo_combustible: Optional[float] = Form(0.0),
     galones_urea: Optional[float] = Form(0.0),
     costo_urea: Optional[float] = Form(0.0),
-    foto_tablero: UploadFile = File(None),  # Foto para evidencia / OCR
+    foto_tablero: UploadFile = File(None),
     db: Session = Depends(get_db)
 ):
     url_foto = ""
@@ -637,19 +651,19 @@ def registrar_operacion_chofer(
         fecha_operacion=fecha_operacion,
         tipo_trabajo=tipo_trabajo,
         km_horometro_final=horometro_final,
-        galones_combustible=galones_combustible,
-        costo_combustible=costo_combustible,
-        galones_urea=galones_urea,
-        costo_urea=costo_urea,
+        kilometraje_manual=kilometraje_manual,
+        galones_combustible=galones_combustible or 0.0,
+        costo_combustible=costo_combustible or 0.0,
+        galones_urea=galones_urea or 0.0,
+        costo_urea=costo_urea or 0.0,
         observaciones=f"Foto Tablero: {url_foto}" if url_foto else "Sin Foto"
     )
     db.add(nueva_op)
-    
-    # Actualiza el horómetro/kilometraje actual en el vehículo
+
     vehiculo = db.query(models.Vehiculo).filter(models.Vehiculo.id_vehiculo == id_vehiculo).first()
     if vehiculo and horometro_final > 0:
         vehiculo.kilometraje_actual = horometro_final
-        
+
     db.commit()
     db.refresh(nueva_op)
     return {

@@ -1115,69 +1115,68 @@
     }
 
     async function verHojaVida(idVehiculo) {
-      const modal = document.getElementById("modal-hoja-vida");
-      const contenedor = document.getElementById("hv-contenido");
-      const titulo = document.getElementById("hv-titulo");
+  const modal = document.getElementById("modal-hoja-vida");
+  const contenedor = document.getElementById("hv-contenido");
+  const titulo = document.getElementById("hv-titulo");
 
-      if (!modal || !contenedor) return;
+  if (!modal || !contenedor) return;
 
-      modal.classList.remove("hidden");
-      contenedor.innerHTML = '<p class="text-slate-400 p-4 text-center">Cargando expediente vehicular...</p>';
+  modal.classList.remove("hidden");
+  contenedor.innerHTML = '<p class="text-slate-400 p-4 text-center">Cargando expediente vehicular...</p>';
 
-      try {
-        const res = await fetch(`${API_URL}/vehiculos/${idVehiculo}/hoja-vida`);
-        if (!res.ok) throw new Error("Error al obtener la Hoja de Vida");
-        
-        const data = await res.json();
-        const veh = data.vehiculo;
-        const userRole = localStorage.getItem("user_role");
+  try {
+    const res = await fetch(`${API_URL}/vehiculos/${idVehiculo}/hoja_vida/`);
+    if (!res.ok) throw new Error("Error al obtener la Hoja de Vida");
 
-        titulo.innerText = `Hoja de Vida Vehicular - Placa: ${veh.placa}`;
+    const data = await res.json();
+    const userRole = localStorage.getItem("user_role");
 
-        let html = `
-          <div class="bg-slate-50 p-4 rounded-lg border border-slate-200 space-y-2">
-            <h4 class="font-bold text-slate-800 uppercase text-xs">Datos de la Unidad</h4>
-            <div class="grid grid-cols-2 md:grid-cols-4 gap-2 text-xs">
-              <div><span class="text-slate-500">Marca/Modelo:</span> <strong>${veh.marca || 'N/A'} ${veh.modelo || ''}</strong></div>
-              <div><span class="text-slate-500">Año:</span> <strong>${veh.anio || 'N/A'}</strong></div>
-              <div><span class="text-slate-500">Sede:</span> <strong>${veh.sede_asignada || 'N/A'}</strong></div>
-              <div><span class="text-slate-500">VIN:</span> <strong>${veh.vin || 'N/A'}</strong></div>
-            </div>
-          </div>
-        `;
+    titulo.innerText = `Hoja de Vida Vehicular - Placa: ${data.placa}`;
 
-        html += `
-          <div class="space-y-4">
-            <h4 class="font-bold text-slate-800 text-sm">Historial Técnico y Reparaciones</h4>
-            ${data.reparaciones && data.reparaciones.length > 0 ? `
-              <ul class="divide-y divide-slate-200 border rounded-lg bg-white">
-                ${data.reparaciones.map(r => `
-                  <li class="p-3 text-xs flex justify-between items-center">
-                    <div>
-                      <span class="font-bold text-slate-700">[${r.fecha_ingreso}] ${r.tipo_mantenimiento}</span> - ${r.taller_servicio}
-                      <p class="text-slate-500">${r.descripcion_falla}</p>
-                    </div>
-                    ${userRole !== 'Lectura' ? `
-                      <button onclick="borrarReparacion(${r.id_reparacion}, ${idVehiculo})" class="btn-eliminar text-red-600 hover:text-red-800 font-bold ml-2">🗑️</button>
-                    ` : ''}
-                  </li>
-                `).join('')}
-              </ul>
-            ` : '<p class="text-xs text-slate-400 italic">No registra ingresos a taller.</p>'}
-          </div>
-        `;
+    let html = `
+      <div class="bg-slate-50 p-4 rounded-lg border border-slate-200 space-y-2">
+        <h4 class="font-bold text-slate-800 uppercase text-xs">Datos de la Unidad</h4>
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-2 text-xs">
+          <div><span class="text-slate-500">Marca/Modelo:</span> <strong>${data.marca || 'N/A'} ${data.modelo || ''}</strong></div>
+          <div><span class="text-slate-500">Año:</span> <strong>${data.anio || 'N/A'}</strong></div>
+          <div><span class="text-slate-500">Sede:</span> <strong>${data.sede_asignada || 'N/A'}</strong></div>
+          <div><span class="text-slate-500">VIN:</span> <strong>${data.numero_vin || 'N/A'}</strong></div>
+        </div>
+      </div>
+    `;
 
-        contenedor.innerHTML = html;
+    html += `
+      <div class="space-y-4">
+        <h4 class="font-bold text-slate-800 text-sm">Historial Técnico y Reparaciones</h4>
+        ${data.reparaciones && data.reparaciones.length > 0 ? `
+          <ul class="divide-y divide-slate-200 border rounded-lg bg-white">
+            ${data.reparaciones.map(r => `
+              <li class="p-3 text-xs flex justify-between items-center">
+                <div>
+                  <span class="font-bold text-slate-700">[${r.fecha_ingreso}] ${r.tipo_mantenimiento}</span> - ${r.taller_servicio}
+                  <p class="text-slate-500">${r.descripcion_falla}</p>
+                </div>
+                ${userRole !== 'Lectura' ? `
+                  <button onclick="borrarReparacion(${r.id_reparacion}, ${idVehiculo})" class="btn-eliminar text-red-600 hover:text-red-800 font-bold ml-2">🗑️</button>
+                ` : ''}
+              </li>
+            `).join('')}
+          </ul>
+        ` : '<p class="text-xs text-slate-400 italic">No registra ingresos a taller.</p>'}
+      </div>
+    `;
 
-        if (userRole === 'Lectura') {
-          contenedor.querySelectorAll(".btn-eliminar").forEach(el => el.style.display = "none");
-        }
+    contenedor.innerHTML = html;
 
-      } catch (err) {
-        console.error("Error al cargar la Hoja de Vida:", err);
-        contenedor.innerHTML = '<p class="text-red-500 p-4 text-center font-semibold">Error al cargar el expediente del vehículo.</p>';
-      }
+    if (userRole === 'Lectura') {
+      contenedor.querySelectorAll(".btn-eliminar").forEach(el => el.style.display = "none");
     }
+
+  } catch (err) {
+    console.error("Error al cargar la Hoja de Vida:", err);
+    contenedor.innerHTML = '<p class="text-red-500 p-4 text-center font-semibold">Error al cargar el expediente del vehículo.</p>';
+  }
+}
 
     async function borrarReparacion(idReparacion, idVehiculo) {
       if (!confirm("¿Está seguro de eliminar este registro de mantenimiento?")) return;
@@ -1627,6 +1626,52 @@ function seleccionarTipoTrabajo(valor, btn) {
         cargarOperaciones();
       }
     });
+    async function registrarLlanta(e) {
+  e.preventDefault();
+  const payload = {
+    id_vehiculo: parseInt(document.getElementById("ll-vehiculo").value),
+    codigo: document.getElementById("ll-codigo").value.trim(),
+    marca: document.getElementById("ll-marca").value.trim(),
+    modelo: document.getElementById("ll-modelo").value.trim(),
+    posicion: document.getElementById("ll-posicion").value,
+    tipo_banda: "Original",
+    fecha_instalacion: document.getElementById("ll-fecha").value,
+    km_instalacion: parseFloat(document.getElementById("ll-km").value) || 0.0,
+    horometro_instalacion: parseFloat(document.getElementById("ll-horometro").value) || 0.0
+  };
+
+  try {
+    const res = await fetch(`${API_URL}/llantas/`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload)
+    });
+    if (res.ok) {
+      alert("Neumático registrado correctamente.");
+      document.getElementById("form-llanta").reset();
+      cargarListaLlantas();
+    } else {
+      const err = await res.json().catch(() => null);
+      alert("Error al registrar neumático: " + (err && err.detail ? err.detail : res.status));
+    }
+  } catch (err) {
+    alert("Error de conexión con el servidor.");
+  }
+}
+
+async function eliminarOperacion(idOperacion) {
+  if (!confirm("¿Está seguro de eliminar este parte diario?")) return;
+  try {
+    const res = await fetch(`${API_URL}/operaciones/${idOperacion}/`, { method: "DELETE" });
+    if (res.ok) {
+      cargarOperaciones();
+    } else {
+      alert("No se pudo eliminar la operación.");
+    }
+  } catch (err) {
+    alert("Error de red al eliminar la operación.");
+  }
+}
   </script>
 </body>
 </html>
