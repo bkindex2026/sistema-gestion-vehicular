@@ -736,9 +736,9 @@
             </div>
           </form>
         </div>
-      </div>
-      <!-- TABLA DE USUARIOS REGISTRADOS -->
-        <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200 mt-6">
+
+        <!-- TABLA DE USUARIOS REGISTRADOS DENTRO DEL MÓDULO DE USUARIOS -->
+        <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
           <h3 class="text-base font-bold text-slate-800 mb-4">Usuarios Registrados en el Sistema</h3>
           <div class="overflow-x-auto">
             <table class="w-full text-left border-collapse text-xs md:text-sm">
@@ -756,7 +756,9 @@
             </table>
           </div>
         </div>
-      <!-- SUB-PASO 2.2 Y 2.3: MÓDULO ESPECIALIZADO PARA ROL CHOFER -->
+      </div>
+
+      <!-- MÓDULO ESPECIALIZADO PARA ROL CHOFER -->
       <div id="modulo-chofer" class="hidden space-y-6">
         
         <!-- CONSULTA RÁPIDA DE DOCUMENTOS (SOAT / CITV / TIVE) -->
@@ -819,8 +821,9 @@
               💾 Guardar Registro Diario
             </button>
           </form>
-          </div>
-          <!-- INSPECCIÓN RÁPIDA DE NEUMÁTICOS (POSICIONES 1 AL 10) -->
+        </div>
+
+        <!-- INSPECCIÓN RÁPIDA DE NEUMÁTICOS (POSICIONES 1 AL 10) -->
         <div class="bg-white p-5 rounded-xl shadow-sm border-l-4 border-amber-500 space-y-4">
           <h2 class="text-base font-bold text-slate-800 flex items-center gap-2">🛞 Inspección Rápida de Neumáticos</h2>
           
@@ -863,8 +866,6 @@
             </button>
           </form>
         </div>
-        </div>
-
       </div>
 
     </main>
@@ -883,7 +884,6 @@
     </div>
   </div>
 
-  <!-- LÓGICA JAVASCRIPT REVISADA Y COMPLETA -->
   <script>
     const API_URL = "https://ponderosa-flota-v2.onrender.com";
     let listaVehiculosGlobal = [];
@@ -904,7 +904,24 @@
 
     function obtenerUrlCompleta(url) {
       if (!url) return "#";
-      return url.startsWith("http") ? url : `${API_URL}${url}`;
+      const limpia = String(url).trim();
+      if (!limpia) return "#";
+      return limpia.startsWith("http") ? limpia : `${API_URL}${limpia.startsWith("/") ? "" : "/"}${limpia}`;
+    }
+
+    function puedeBorrarRegistros() {
+      const userRole = localStorage.getItem("user_role");
+      return userRole === "Edicion" || userRole === "Administrador";
+    }
+
+    async function fetchConTimeout(url, options = {}, timeoutMs = 20000) {
+      const controller = new AbortController();
+      const timer = setTimeout(() => controller.abort(), timeoutMs);
+      try {
+        return await fetch(url, { ...options, signal: controller.signal });
+      } finally {
+        clearTimeout(timer);
+      }
     }
 
     async function iniciarSesion(event) {
@@ -957,15 +974,12 @@
       }
     }
 
-    // --- SUB-PASO 2.1: APLICACIÓN DE PERMISOS DE ROL (INCLUYE CHOFER) ---
     function aplicarPermisosDeRol(rol) {
       const userRole = rol || localStorage.getItem("user_role");
 
-      // 1. Resetear visibilidad global (permite al Administrador ver todo el sistema)
       document.querySelectorAll(".seccion-usuarios, .btn-crear, .btn-eliminar, #modulo-resumen, #modulo-vehiculos, #modulo-vencimientos, #modulo-llantas, #modulo-taller, #modulo-operaciones, #modulo-checklist, #modulo-usuarios, #modulo-chofer").forEach(el => el.style.display = "");
       document.querySelectorAll("nav button").forEach(el => el.style.display = "");
 
-      // 2. Aplicar restricciones por rol sin alterar la lógica de Chofer, Lectura o Edición
       if (userRole === "Chofer") {
         document.querySelectorAll(".seccion-usuarios, #modulo-resumen, #modulo-vehiculos, #modulo-vencimientos, #modulo-taller, #modulo-usuarios, nav button:not(#btn-nav-chofer)").forEach(el => el.style.display = "none");
         document.querySelectorAll(".btn-eliminar").forEach(el => el.style.display = "none");
@@ -1000,6 +1014,8 @@
           cargarListaChecklists();
         } else if (nombreModulo === 'usuarios') {
           cargarListaUsuarios();
+        } else if (nombreModulo === 'chofer') {
+          cargarListaVehiculos();
         } else if (nombreModulo === 'vehiculos' || nombreModulo === 'vencimientos' || nombreModulo === 'taller') {
           cargarListaVehiculos();
         }
@@ -1055,8 +1071,12 @@
         const selects = document.querySelectorAll(".select-vehiculos-dinamico, #op_id_vehiculo");
         selects.forEach(s => {
           if (s) {
+            const valorPrevio = s.value;
             s.innerHTML = `<option value="">Seleccione placa...</option>` + 
               vehiculos.map(v => `<option value="${v.id_vehiculo}">${v.placa} (${v.marca} ${v.modelo})</option>`).join('');
+            if (valorPrevio && vehiculos.some(v => String(v.id_vehiculo) === String(valorPrevio))) {
+              s.value = valorPrevio;
+            }
           }
         });
 
@@ -1088,8 +1108,8 @@
           document.getElementById("form-vehiculo").reset();
           cargarListaVehiculos();
         } else {
-          const err = await res.json();
-          alert("Error: " + (err.detail || "No se pudo registrar el vehículo"));
+          const err = await res.json().catch(() => null);
+          alert("Error: " + (err && err.detail ? err.detail : "No se pudo registrar el vehículo"));
         }
       } catch (err) {
         alert("Error de conexión al guardar vehículo.");
@@ -1114,82 +1134,415 @@
       }
     }
 
-    async function verHojaVida(idVehiculo) {
-  const modal = document.getElementById("modal-hoja-vida");
-  const contenedor = document.getElementById("hv-contenido");
-  const titulo = document.getElementById("hv-titulo");
+    async function registrarSOAT(e) {
+      e.preventDefault();
+      const formData = new FormData();
+      formData.append("id_vehiculo", document.getElementById("soat-vehiculo").value);
+      formData.append("tipo_seguro", "SOAT");
+      formData.append("compania_seguros", document.getElementById("soat-compania").value.trim());
+      formData.append("numero_poliza", document.getElementById("soat-poliza").value.trim());
+      formData.append("fecha_inicio", document.getElementById("soat-inicio").value);
+      formData.append("fecha_vencimiento", document.getElementById("soat-vencimiento").value);
 
-  if (!modal || !contenedor) return;
+      const fileInput = document.getElementById("soat-archivo");
+      if (fileInput && fileInput.files.length > 0) {
+        formData.append("archivo", fileInput.files[0]);
+      }
 
-  modal.classList.remove("hidden");
-  contenedor.innerHTML = '<p class="text-slate-400 p-4 text-center">Cargando expediente vehicular...</p>';
-
-  try {
-    const res = await fetch(`${API_URL}/vehiculos/${idVehiculo}/hoja_vida/`);
-    if (!res.ok) throw new Error("Error al obtener la Hoja de Vida");
-
-    const data = await res.json();
-    const userRole = localStorage.getItem("user_role");
-
-    titulo.innerText = `Hoja de Vida Vehicular - Placa: ${data.placa}`;
-
-    let html = `
-      <div class="bg-slate-50 p-4 rounded-lg border border-slate-200 space-y-2">
-        <h4 class="font-bold text-slate-800 uppercase text-xs">Datos de la Unidad</h4>
-        <div class="grid grid-cols-2 md:grid-cols-4 gap-2 text-xs">
-          <div><span class="text-slate-500">Marca/Modelo:</span> <strong>${data.marca || 'N/A'} ${data.modelo || ''}</strong></div>
-          <div><span class="text-slate-500">Año:</span> <strong>${data.anio || 'N/A'}</strong></div>
-          <div><span class="text-slate-500">Sede:</span> <strong>${data.sede_asignada || 'N/A'}</strong></div>
-          <div><span class="text-slate-500">VIN:</span> <strong>${data.numero_vin || 'N/A'}</strong></div>
-        </div>
-      </div>
-    `;
-
-    html += `
-      <div class="space-y-4">
-        <h4 class="font-bold text-slate-800 text-sm">Historial Técnico y Reparaciones</h4>
-        ${data.reparaciones && data.reparaciones.length > 0 ? `
-          <ul class="divide-y divide-slate-200 border rounded-lg bg-white">
-            ${data.reparaciones.map(r => `
-              <li class="p-3 text-xs flex justify-between items-center">
-                <div>
-                  <span class="font-bold text-slate-700">[${r.fecha_ingreso}] ${r.tipo_mantenimiento}</span> - ${r.taller_servicio}
-                  <p class="text-slate-500">${r.descripcion_falla}</p>
-                </div>
-                ${userRole !== 'Lectura' ? `
-                  <button onclick="borrarReparacion(${r.id_reparacion}, ${idVehiculo})" class="btn-eliminar text-red-600 hover:text-red-800 font-bold ml-2">🗑️</button>
-                ` : ''}
-              </li>
-            `).join('')}
-          </ul>
-        ` : '<p class="text-xs text-slate-400 italic">No registra ingresos a taller.</p>'}
-      </div>
-    `;
-
-    contenedor.innerHTML = html;
-
-    if (userRole === 'Lectura') {
-      contenedor.querySelectorAll(".btn-eliminar").forEach(el => el.style.display = "none");
-    }
-
-  } catch (err) {
-    console.error("Error al cargar la Hoja de Vida:", err);
-    contenedor.innerHTML = '<p class="text-red-500 p-4 text-center font-semibold">Error al cargar el expediente del vehículo.</p>';
-  }
-}
-
-    async function borrarReparacion(idReparacion, idVehiculo) {
-      if (!confirm("¿Está seguro de eliminar este registro de mantenimiento?")) return;
       try {
-        const res = await fetch(`${API_URL}/taller/${idReparacion}`, { method: "DELETE" });
+        const res = await fetch(`${API_URL}/seguros/`, { method: "POST", body: formData });
         if (res.ok) {
-          verHojaVida(idVehiculo);
+          alert("SOAT registrado correctamente.");
+          document.getElementById("form-soat").reset();
+          cargarMétricasResumen();
         } else {
-          alert("Error al eliminar la reparación.");
+          const err = await res.json().catch(() => null);
+          alert("Error al guardar SOAT: " + (err && err.detail ? err.detail : res.status));
         }
       } catch (err) {
-        alert("Error de red al intentar eliminar.");
+        alert("Error de red al guardar SOAT.");
       }
+    }
+
+    async function registrarSeguroVehicular(e) {
+      e.preventDefault();
+      const formData = new FormData();
+      formData.append("id_vehiculo", document.getElementById("sv-vehiculo").value);
+      formData.append("tipo_seguro", "Todo Riesgo");
+      formData.append("compania_seguros", document.getElementById("sv-compania").value.trim());
+      formData.append("numero_poliza", document.getElementById("sv-poliza").value.trim() || "S/N");
+      formData.append("fecha_inicio", new Date().toISOString().split('T')[0]);
+      formData.append("fecha_vencimiento", document.getElementById("sv-vencimiento").value);
+
+      const fileInput = document.getElementById("sv-archivo");
+      if (fileInput && fileInput.files.length > 0) {
+        formData.append("archivo", fileInput.files[0]);
+      }
+
+      try {
+        const res = await fetch(`${API_URL}/seguros/`, { method: "POST", body: formData });
+        if (res.ok) {
+          alert("Seguro vehicular registrado correctamente.");
+          document.getElementById("form-seguro-vehicular").reset();
+          cargarMétricasResumen();
+        } else {
+          const err = await res.json().catch(() => null);
+          alert("Error al guardar seguro: " + (err && err.detail ? err.detail : res.status));
+        }
+      } catch (err) {
+        alert("Error de red al guardar seguro.");
+      }
+    }
+
+    async function registrarCITV(e) {
+      e.preventDefault();
+      const formData = new FormData();
+      formData.append("id_vehiculo", document.getElementById("c-vehiculo").value);
+      formData.append("tipo_documento", "Revisión Técnica CITV");
+      formData.append("entidad_emisora", document.getElementById("c-entidad").value.trim());
+      formData.append("numero_documento", document.getElementById("c-numero").value.trim());
+      formData.append("fecha_emision", document.getElementById("c-emision").value);
+      formData.append("fecha_vencimiento", document.getElementById("c-vencimiento").value);
+
+      const fileInput = document.getElementById("c-archivo");
+      if (fileInput && fileInput.files.length > 0) {
+        formData.append("archivo", fileInput.files[0]);
+      }
+
+      try {
+        const res = await fetch(`${API_URL}/documentos/`, { method: "POST", body: formData });
+        if (res.ok) {
+          alert("CITV registrado correctamente.");
+          document.getElementById("form-citv").reset();
+          cargarMétricasResumen();
+        } else {
+          const err = await res.json().catch(() => null);
+          alert("Error al guardar CITV: " + (err && err.detail ? err.detail : res.status));
+        }
+      } catch (err) {
+        alert("Error de red al guardar CITV.");
+      }
+    }
+
+    async function registrarGPS(e) {
+      e.preventDefault();
+      const payload = {
+        id_vehiculo: parseInt(document.getElementById("gps-vehiculo").value),
+        empresa_gps: document.getElementById("gps-empresa").value.trim(),
+        fecha_inicio: document.getElementById("gps-inicio").value,
+        fecha_vencimiento: document.getElementById("gps-vencimiento").value
+      };
+
+      try {
+        const res = await fetch(`${API_URL}/gps/`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload)
+        });
+        if (res.ok) {
+          alert("Servicio GPS registrado correctamente.");
+          document.getElementById("form-gps").reset();
+          cargarListaVehiculos();
+          cargarMétricasResumen();
+        } else {
+          const err = await res.json().catch(() => null);
+          alert("Error al guardar GPS: " + (err && err.detail ? err.detail : res.status));
+        }
+      } catch (err) {
+        alert("Error de red al guardar GPS.");
+      }
+    }
+
+    async function registrarLlanta(e) {
+      e.preventDefault();
+      const payload = {
+        id_vehiculo: parseInt(document.getElementById("ll-vehiculo").value),
+        codigo: document.getElementById("ll-codigo").value.trim(),
+        marca: document.getElementById("ll-marca").value.trim(),
+        modelo: document.getElementById("ll-modelo").value.trim(),
+        posicion: document.getElementById("ll-posicion").value,
+        fecha_instalacion: document.getElementById("ll-fecha").value,
+        km_instalacion: parseFloat(document.getElementById("ll-km").value) || 0.0,
+        horometro_instalacion: parseFloat(document.getElementById("ll-horometro").value) || 0.0
+      };
+
+      try {
+        const res = await fetch(`${API_URL}/llantas/`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload)
+        });
+        if (res.ok) {
+          alert("Neumático registrado correctamente.");
+          document.getElementById("form-llanta").reset();
+          cargarListaLlantas();
+        } else {
+          const err = await res.json().catch(() => null);
+          alert("Error al guardar llanta: " + (err && err.detail ? err.detail : res.status));
+        }
+      } catch (err) {
+        alert("Error de red al guardar llanta.");
+      }
+    }
+
+    async function registrarTaller(e) {
+      e.preventDefault();
+      const payload = {
+        id_vehiculo: parseInt(document.getElementById("t-vehiculo").value),
+        tipo_mantenimiento: document.getElementById("t-tipo").value,
+        taller_servicio: document.getElementById("t-taller").value.trim(),
+        responsable_reparacion: document.getElementById("t-responsable").value.trim(),
+        fecha_ingreso: document.getElementById("t-fecha").value,
+        descripcion_falla: document.getElementById("t-descripcion").value.trim()
+      };
+
+      try {
+        const res = await fetch(`${API_URL}/taller/`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload)
+        });
+        if (res.ok) {
+          alert("Mantenimiento registrado correctamente.");
+          document.getElementById("form-taller").reset();
+        } else {
+          const err = await res.json().catch(() => null);
+          alert("Error al registrar taller: " + (err && err.detail ? err.detail : res.status));
+        }
+      } catch (err) {
+        alert("Error de red al guardar mantenimiento.");
+      }
+    }
+
+    async function registrarRepuesto(e) {
+      e.preventDefault();
+      const payload = {
+        id_vehiculo: parseInt(document.getElementById("rep-vehiculo").value),
+        nombre_repuesto: document.getElementById("rep-nombre").value.trim(),
+        fecha_instalacion: document.getElementById("rep-fecha").value,
+        precio_total: parseFloat(document.getElementById("rep-precio").value) || 0.0,
+        solicitante: document.getElementById("rep-solicitante").value.trim(),
+        instalador: document.getElementById("rep-instalador").value.trim()
+      };
+
+      try {
+        const res = await fetch(`${API_URL}/repuestos/`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload)
+        });
+        if (res.ok) {
+          alert("Repuesto registrado correctamente.");
+          document.getElementById("form-repuesto").reset();
+        } else {
+          const err = await res.json().catch(() => null);
+          alert("Error al registrar repuesto: " + (err && err.detail ? err.detail : res.status));
+        }
+      } catch (err) {
+        alert("Error de red al guardar repuesto.");
+      }
+    }
+
+    async function registrarOperacion(e) {
+      e.preventDefault();
+      const payload = {
+        id_vehiculo: parseInt(document.getElementById("op_id_vehiculo").value),
+        chofer: document.getElementById("op_chofer").value.trim(),
+        fecha_operacion: document.getElementById("op_fecha_operacion").value,
+        tipo_trabajo: document.getElementById("op_tipo_trabajo").value.trim(),
+        ruta_origen_destino: document.getElementById("op_ruta").value.trim(),
+        galones_combustible: parseFloat(document.getElementById("op_galones").value) || 0.0,
+        costo_combustible: parseFloat(document.getElementById("op_costo_combustible").value) || 0.0,
+        galones_urea: parseFloat(document.getElementById("op_galones_urea").value) || 0.0,
+        costo_urea: parseFloat(document.getElementById("op_costo_urea").value) || 0.0,
+        grifo_surtidor: document.getElementById("op_grifo").value.trim(),
+        observaciones: document.getElementById("op_observaciones").value.trim()
+      };
+
+      try {
+        const res = await fetch(`${API_URL}/operaciones/`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload)
+        });
+        if (res.ok) {
+          alert("Parte diario guardado correctamente.");
+          document.getElementById("form-operaciones").reset();
+          cargarOperaciones();
+        } else {
+          const err = await res.json().catch(() => null);
+          alert("Error al registrar operación: " + (err && err.detail ? err.detail : res.status));
+        }
+      } catch (err) {
+        alert("Error de red al guardar operación.");
+      }
+    }
+
+    async function registrarUsuario(e) {
+      e.preventDefault();
+      const payload = {
+        nombre: document.getElementById("u-nombre").value.trim(),
+        email: document.getElementById("u-email").value.trim().toLowerCase(),
+        password: document.getElementById("u-password").value.trim(),
+        rol: document.getElementById("u-rol").value
+      };
+
+      try {
+        const res = await fetch(`${API_URL}/usuarios/`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload)
+        });
+        if (res.ok) {
+          alert("Usuario creado exitosamente.");
+          document.getElementById("form-usuario").reset();
+          cargarListaUsuarios();
+        } else {
+          const err = await res.json().catch(() => null);
+          alert("Error al crear usuario: " + (err && err.detail ? err.detail : res.status));
+        }
+      } catch (err) {
+        alert("Error de red al crear usuario.");
+      }
+    }
+
+    async function verHojaVida(idVehiculo) {
+      const userRole = localStorage.getItem("user_role");
+      if (userRole === "Chofer") return;
+
+      const modal = document.getElementById("modal-hoja-vida");
+      const contenedor = document.getElementById("hv-contenido");
+      const titulo = document.getElementById("hv-titulo");
+
+      if (!modal || !contenedor) return;
+
+      const permitirBorrado = puedeBorrarRegistros();
+
+      modal.classList.remove("hidden");
+      contenedor.innerHTML = '<p class="text-slate-400 p-4 text-center">Cargando expediente vehicular...</p>';
+
+      try {
+        const res = await fetchConTimeout(`${API_URL}/vehiculos/${idVehiculo}/hoja_vida/`);
+        if (!res.ok) throw new Error("Error al obtener la Hoja de Vida");
+
+        const data = await res.json();
+        titulo.innerText = `Hoja de Vida Vehicular - Placa: ${data.placa}`;
+
+        let html = `
+          <div class="bg-slate-50 p-4 rounded-lg border border-slate-200 space-y-2">
+            <h4 class="font-bold text-slate-800 uppercase text-xs">Datos de la Unidad</h4>
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-2 text-xs">
+              <div><span class="text-slate-500">Marca/Modelo:</span> <strong>${data.marca || 'N/A'} ${data.modelo || ''}</strong></div>
+              <div><span class="text-slate-500">Año:</span> <strong>${data.anio || 'N/A'}</strong></div>
+              <div><span class="text-slate-500">Sede:</span> <strong>${data.sede_asignada || 'N/A'}</strong></div>
+              <div><span class="text-slate-500">VIN:</span> <strong>${data.numero_vin || 'N/A'}</strong></div>
+            </div>
+          </div>
+
+          <div class="space-y-2">
+            <h4 class="font-bold text-slate-800 text-sm">Seguros (SOAT / Vehicular)</h4>
+            ${data.seguros && data.seguros.length > 0 ? `
+              <ul class="divide-y divide-slate-200 border rounded-lg bg-white">
+                ${data.seguros.map(s => `
+                  <li class="p-3 text-xs flex justify-between items-center gap-2">
+                    <div>
+                      <span class="font-bold text-blue-700">${s.tipo_seguro}</span> - ${s.compania_seguros} (Póliza: ${s.numero_poliza})
+                      <p class="text-slate-500">Vigencia: ${s.fecha_inicio} al <strong>${s.fecha_vencimiento}</strong></p>
+                    </div>
+                    <div class="flex items-center gap-2">
+                      ${s.url_adjunto ? `<a href="${obtenerUrlCompleta(s.url_adjunto)}" target="_blank" rel="noopener noreferrer" class="bg-blue-100 text-blue-700 font-bold px-2.5 py-1 rounded hover:bg-blue-200">Ver Adjunto</a>` : '<span class="text-slate-400 italic">Sin adjunto</span>'}
+                      ${permitirBorrado ? `
+                        <button onclick="borrarSeguro(${s.id_seguro}, ${idVehiculo})" class="btn-eliminar text-red-600 hover:text-red-800 font-bold" title="Eliminar seguro">🗑️</button>
+                      ` : ''}
+                    </div>
+                  </li>
+                `).join('')}
+              </ul>
+            ` : '<p class="text-xs text-slate-400 italic">No registra seguros activos.</p>'}
+          </div>
+
+          <div class="space-y-2">
+            <h4 class="font-bold text-slate-800 text-sm">Documentos y Revisión Técnica (CITV)</h4>
+            ${data.documentos && data.documentos.length > 0 ? `
+              <ul class="divide-y divide-slate-200 border rounded-lg bg-white">
+                ${data.documentos.map(d => `
+                  <li class="p-3 text-xs flex justify-between items-center gap-2">
+                    <div>
+                      <span class="font-bold text-emerald-700">${d.tipo_documento}</span> - ${d.entidad_emisora} (N°: ${d.numero_documento})
+                      <p class="text-slate-500">Emisión: ${d.fecha_emision} | Vence: <strong>${d.fecha_vencimiento}</strong></p>
+                    </div>
+                    <div class="flex items-center gap-2">
+                      ${d.url_adjunto ? `<a href="${obtenerUrlCompleta(d.url_adjunto)}" target="_blank" rel="noopener noreferrer" class="bg-emerald-100 text-emerald-700 font-bold px-2.5 py-1 rounded hover:bg-emerald-200">Ver Adjunto</a>` : '<span class="text-slate-400 italic">Sin adjunto</span>'}
+                      ${permitirBorrado ? `
+                        <button onclick="borrarDocumento(${d.id_documento}, ${idVehiculo})" class="btn-eliminar text-red-600 hover:text-red-800 font-bold" title="Eliminar documento">🗑️</button>
+                      ` : ''}
+                    </div>
+                  </li>
+                `).join('')}
+              </ul>
+            ` : '<p class="text-xs text-slate-400 italic">No registra documentos o CITV.</p>'}
+          </div>
+
+          <div class="space-y-2">
+            <h4 class="font-bold text-slate-800 text-sm">Historial Técnico y Reparaciones</h4>
+            ${data.reparaciones && data.reparaciones.length > 0 ? `
+              <ul class="divide-y divide-slate-200 border rounded-lg bg-white">
+                ${data.reparaciones.map(r => `
+                  <li class="p-3 text-xs flex justify-between items-center">
+                    <div>
+                      <span class="font-bold text-slate-700">[${r.fecha_ingreso}] ${r.tipo_mantenimiento}</span> - ${r.taller_servicio}
+                      <p class="text-slate-500">${r.descripcion_falla}</p>
+                    </div>
+                    ${permitirBorrado ? `
+                      <button onclick="borrarReparacion(${r.id_reparacion}, ${idVehiculo})" class="btn-eliminar text-red-600 hover:text-red-800 font-bold ml-2" title="Eliminar reparación">🗑️</button>
+                    ` : ''}
+                  </li>
+                `).join('')}
+              </ul>
+            ` : '<p class="text-xs text-slate-400 italic">No registra ingresos a taller.</p>'}
+          </div>
+        `;
+
+        contenedor.innerHTML = html;
+
+        if (!permitirBorrado) {
+          contenedor.querySelectorAll(".btn-eliminar").forEach(el => el.style.display = "none");
+        }
+
+      } catch (err) {
+        console.error("Error al cargar la Hoja de Vida:", err);
+        contenedor.innerHTML = '<p class="text-red-500 p-4 text-center font-semibold">Error al cargar el expediente del vehículo o tiempo de espera agotado.</p>';
+      }
+    }
+
+    async function borrarSeguro(idSeguro, idVehiculo) {
+      if (!puedeBorrarRegistros()) { alert("No tiene permisos para eliminar."); return; }
+      if (!confirm("¿Está seguro de eliminar este seguro/SOAT?")) return;
+      try {
+        const res = await fetchConTimeout(`${API_URL}/seguros/${idSeguro}/`, { method: "DELETE" });
+        if (res.ok) { verHojaVida(idVehiculo); cargarMétricasResumen(); }
+        else alert("Error al eliminar el seguro.");
+      } catch (err) { alert("Error de red."); }
+    }
+
+    async function borrarDocumento(idDocumento, idVehiculo) {
+      if (!puedeBorrarRegistros()) { alert("No tiene permisos para eliminar."); return; }
+      if (!confirm("¿Está seguro de eliminar este documento/CITV?")) return;
+      try {
+        const res = await fetchConTimeout(`${API_URL}/documentos/${idDocumento}/`, { method: "DELETE" });
+        if (res.ok) { verHojaVida(idVehiculo); cargarMétricasResumen(); }
+        else alert("Error al eliminar el documento.");
+      } catch (err) { alert("Error de red."); }
+    }
+
+    async function borrarReparacion(idReparacion, idVehiculo) {
+      if (!puedeBorrarRegistros()) { alert("No tiene permisos para eliminar."); return; }
+      if (!confirm("¿Está seguro de eliminar esta reparación?")) return;
+      try {
+        const res = await fetchConTimeout(`${API_URL}/reparaciones/${idReparacion}/`, { method: "DELETE" });
+        if (res.ok) { verHojaVida(idVehiculo); }
+        else alert("Error al eliminar la reparación.");
+      } catch (err) { alert("Error de red."); }
     }
 
     function cerrarHojaVida() {
@@ -1425,6 +1778,28 @@
       } catch (e) { console.error("Error cargando llantas:", e); }
     }
 
+    async function verHistorialLlanta(idLlanta) {
+      alert(`Consultando historial de la llanta #${idLlanta}...`);
+    }
+
+    async function borrarLlantaDirecto(idLlanta) {
+      if (!puedeBorrarRegistros()) {
+        alert("No tiene permisos para eliminar neumáticos.");
+        return;
+      }
+      if (!confirm("¿Está seguro de eliminar esta llanta del inventario?")) return;
+      try {
+        const res = await fetchConTimeout(`${API_URL}/llantas/${idLlanta}/`, { method: "DELETE" });
+        if (res.ok) {
+          cargarListaLlantas();
+        } else {
+          alert("Error al eliminar la llanta.");
+        }
+      } catch (err) {
+        alert("Error de red al eliminar la llanta.");
+      }
+    }
+
     async function cargarOperaciones() {
       const tbody = document.getElementById("tabla-operaciones-body");
       if (!tbody) return;
@@ -1470,6 +1845,25 @@
         console.error(err);
       }
     }
+
+    async function eliminarOperacion(idOperacion) {
+      if (!puedeBorrarRegistros()) {
+        alert("No tiene permisos para eliminar registros de operaciones.");
+        return;
+      }
+      if (!confirm("¿Está seguro de eliminar este parte diario?")) return;
+      try {
+        const res = await fetchConTimeout(`${API_URL}/operaciones/${idOperacion}/`, { method: "DELETE" });
+        if (res.ok) {
+          cargarOperaciones();
+        } else {
+          alert("Error al eliminar la operación.");
+        }
+      } catch (err) {
+        alert("Error de red.");
+      }
+    }
+
     async function cargarListaUsuarios() {
       try {
         const res = await fetch(`${API_URL}/usuarios/`);
@@ -1497,7 +1891,8 @@
       localStorage.clear();
       window.location.reload();
     }
-function seleccionarTipoTrabajo(valor, btn) {
+
+    function seleccionarTipoTrabajo(valor, btn) {
       document.getElementById("chofer-tipo-trabajo").value = valor;
       document.querySelectorAll(".btn-ruta").forEach(b => b.classList.remove("bg-amber-500", "text-white"));
       btn.classList.add("bg-amber-500", "text-white");
@@ -1505,41 +1900,90 @@ function seleccionarTipoTrabajo(valor, btn) {
 
     async function cargarDocumentosChofer(idVehiculo) {
       const cont = document.getElementById("contenedor-docs-chofer");
+      if (!cont) return;
       if (!idVehiculo) {
         cont.innerHTML = '<p class="text-slate-400 italic col-span-3">Seleccione una placa para ver SOAT, CITV y TIVE.</p>';
         return;
       }
+      cont.innerHTML = '<p class="text-slate-400 italic col-span-3">Consultando documentos de la unidad...</p>';
+
       try {
-        const res = await fetch(`${API_URL}/vehiculos/${idVehiculo}/hoja_vida/`);
+        const res = await fetchConTimeout(`${API_URL}/vehiculos/${idVehiculo}/hoja_vida/`);
+        if (!res.ok) throw new Error("Error al consultar expediente");
         const data = await res.json();
-        
+
+        const soatReg = Array.isArray(data.seguros)
+          ? (data.seguros.find(s => String(s.tipo_seguro || "").toUpperCase().includes("SOAT")) || data.seguros[0])
+          : null;
+        const citvReg = Array.isArray(data.documentos)
+          ? (data.documentos.find(d => {
+              const t = String(d.tipo_documento || "").toUpperCase();
+              return t.includes("CITV") || t.includes("REVISION") || t.includes("REVISIÓN") || t.includes("TECNICA") || t.includes("TÉCNICA");
+            }) || data.documentos[0])
+          : null;
+
         cont.innerHTML = `
-          <div class="p-3 bg-blue-50 border rounded-lg">
-            <span class="font-bold text-blue-900 block">TIVE</span>
-            ${data.url_tive ? `<a href="${obtenerUrlCompleta(data.url_tive)}" target="_blank" class="text-blue-700 underline font-bold">Ver Tarjeta</a>` : '<span class="text-slate-400">Sin archivo</span>'}
+          <div class="p-3 bg-blue-50 border border-blue-200 rounded-lg flex flex-col justify-between gap-2">
+            <div>
+              <span class="font-bold text-blue-900 block text-xs uppercase">TIVE (Tarjeta de Identificación)</span>
+              <span class="text-slate-600 block text-xs mt-0.5">Placa: <strong>${data.placa || 'N/A'}</strong></span>
+            </div>
+            <div>
+              ${data.url_tive
+                ? `<a href="${obtenerUrlCompleta(data.url_tive)}" target="_blank" rel="noopener noreferrer" class="inline-block bg-blue-600 text-white font-bold px-3 py-1.5 rounded text-xs hover:bg-blue-700 transition">📄 Abrir TIVE</a>`
+                : '<span class="text-slate-400 text-xs italic">Sin imagen/PDF adjunto</span>'}
+            </div>
           </div>
-          <div class="p-3 bg-emerald-50 border rounded-lg">
-            <span class="font-bold text-emerald-900 block">SOAT</span>
-            <span class="text-slate-600">${data.seguros && data.seguros.length > 0 ? data.seguros[0].fecha_vencimiento : 'Sin registrar'}</span>
+
+          <div class="p-3 bg-emerald-50 border border-emerald-200 rounded-lg flex flex-col justify-between gap-2">
+            <div>
+              <span class="font-bold text-emerald-900 block text-xs uppercase">SOAT</span>
+              <span class="text-slate-600 block text-xs mt-0.5">${soatReg ? `Vence: ${soatReg.fecha_vencimiento}` : 'Sin registro'}</span>
+            </div>
+            <div>
+              ${soatReg && soatReg.url_adjunto
+                ? `<a href="${obtenerUrlCompleta(soatReg.url_adjunto)}" target="_blank" rel="noopener noreferrer" class="inline-block bg-emerald-600 text-white font-bold px-3 py-1.5 rounded text-xs hover:bg-emerald-700 transition">📄 Abrir SOAT</a>`
+                : '<span class="text-slate-400 text-xs italic">Sin imagen/PDF adjunto</span>'}
+            </div>
           </div>
-          <div class="p-3 bg-purple-50 border rounded-lg">
-            <span class="font-bold text-purple-900 block">CITV / Revisión</span>
-            <span class="text-slate-600">${data.documentos && data.documentos.length > 0 ? data.documentos[0].fecha_vencimiento : 'Sin registrar'}</span>
+
+          <div class="p-3 bg-purple-50 border border-purple-200 rounded-lg flex flex-col justify-between gap-2">
+            <div>
+              <span class="font-bold text-purple-900 block text-xs uppercase">Revisión Técnica (CITV)</span>
+              <span class="text-slate-600 block text-xs mt-0.5">${citvReg ? `Vence: ${citvReg.fecha_vencimiento}` : 'Sin registro'}</span>
+            </div>
+            <div>
+              ${citvReg && citvReg.url_adjunto
+                ? `<a href="${obtenerUrlCompleta(citvReg.url_adjunto)}" target="_blank" rel="noopener noreferrer" class="inline-block bg-purple-600 text-white font-bold px-3 py-1.5 rounded text-xs hover:bg-purple-700 transition">📄 Abrir CITV</a>`
+                : '<span class="text-slate-400 text-xs italic">Sin imagen/PDF adjunto</span>'}
+            </div>
           </div>
         `;
-      } catch(e) {
-        cont.innerHTML = '<p class="text-red-500 italic col-span-3">Error al consultar documentos.</p>';
+      } catch (e) {
+        cont.innerHTML = '<p class="text-red-500 italic col-span-3">Error al consultar documentos o tiempo de espera agotado.</p>';
       }
     }
 
     async function registrarParteChofer(e) {
       e.preventDefault();
+      const idVehiculo = document.getElementById("chofer-vehiculo-select").value;
+      if (!idVehiculo) {
+        alert("Por favor seleccione una unidad en la parte superior.");
+        return;
+      }
+
+      const fileInput = document.getElementById("chofer-foto-tablero");
+      if (!fileInput.files || fileInput.files.length === 0) {
+        alert("La foto del tablero/horómetro es obligatoria para enviar el parte diario.");
+        return;
+      }
+
       const btn = document.getElementById("btn-submit-chofer");
       btn.disabled = true;
-      btn.innerHTML = "Subiendo foto y registrando...";
+      btn.innerHTML = "Subiendo foto a Cloudinary y registrando...";
 
       const formData = new FormData();
-      formData.append("id_vehiculo", document.getElementById("chofer-vehiculo-select").value);
+      formData.append("id_vehiculo", idVehiculo);
       formData.append("chofer", localStorage.getItem("user_email") || "Chofer");
       formData.append("fecha_operacion", new Date().toISOString().split('T')[0]);
       formData.append("tipo_trabajo", document.getElementById("chofer-tipo-trabajo").value);
@@ -1550,11 +1994,7 @@ function seleccionarTipoTrabajo(valor, btn) {
       
       formData.append("galones_combustible", parseFloat(document.getElementById("chofer-galones").value) || 0);
       formData.append("galones_urea", parseFloat(document.getElementById("chofer-urea").value) || 0);
-
-      const fileInput = document.getElementById("chofer-foto-tablero");
-      if (fileInput.files.length > 0) {
-        formData.append("foto_tablero", fileInput.files[0]);
-      }
+      formData.append("foto_tablero", fileInput.files[0]);
 
       try {
         const res = await fetch(`${API_URL}/operaciones/chofer/`, { method: "POST", body: formData });
@@ -1562,7 +2002,8 @@ function seleccionarTipoTrabajo(valor, btn) {
           alert("Parte diario y foto guardados exitosamente.");
           document.getElementById("form-chofer-operacion").reset();
         } else {
-          alert("Error al guardar el registro.");
+          const err = await res.json().catch(() => null);
+          alert("Error al guardar: " + (err && err.detail ? err.detail : res.status));
         }
       } catch (err) {
         alert("Error de conexión al enviar formulario.");
@@ -1571,6 +2012,7 @@ function seleccionarTipoTrabajo(valor, btn) {
         btn.innerHTML = "💾 Guardar Registro Diario";
       }
     }
+
     async function registrarLlantaChofer(e) {
       e.preventDefault();
       const idVehiculo = document.getElementById("chofer-vehiculo-select").value;
@@ -1600,78 +2042,104 @@ function seleccionarTipoTrabajo(valor, btn) {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(payload)
         });
-
         if (res.ok) {
-          alert("Estado de llanta actualizado correctamente.");
+          alert("Estado de llanta registrado correctamente.");
           document.getElementById("form-chofer-llanta").reset();
         } else {
-          alert("Error al guardar la llanta.");
+          const err = await res.json().catch(() => null);
+          alert("Error al guardar llanta: " + (err && err.detail ? err.detail : res.status));
         }
       } catch (err) {
-        alert("Error de conexión con el servidor.");
+        alert("Error de red al guardar llanta.");
       } finally {
         btn.disabled = false;
         btn.innerHTML = "🛞 Guardar Estado de Llanta";
       }
     }
-    document.addEventListener("DOMContentLoaded", () => {
-      const savedRole = localStorage.getItem("user_role");
-      if (savedRole) {
-        aplicarPermisosDeRol(savedRole);
-        document.getElementById("pantalla-login").classList.add("hidden");
-        document.getElementById("pantalla-dashboard").classList.remove("hidden");
-        cargarMétricasResumen();
-        cargarListaVehiculos();
-        cargarListaLlantas();
-        cargarOperaciones();
-      }
-    });
-    async function registrarLlanta(e) {
-  e.preventDefault();
-  const payload = {
-    id_vehiculo: parseInt(document.getElementById("ll-vehiculo").value),
-    codigo: document.getElementById("ll-codigo").value.trim(),
-    marca: document.getElementById("ll-marca").value.trim(),
-    modelo: document.getElementById("ll-modelo").value.trim(),
-    posicion: document.getElementById("ll-posicion").value,
-    tipo_banda: "Original",
-    fecha_instalacion: document.getElementById("ll-fecha").value,
-    km_instalacion: parseFloat(document.getElementById("ll-km").value) || 0.0,
-    horometro_instalacion: parseFloat(document.getElementById("ll-horometro").value) || 0.0
-  };
 
-  try {
-    const res = await fetch(`${API_URL}/llantas/`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload)
-    });
-    if (res.ok) {
-      alert("Neumático registrado correctamente.");
-      document.getElementById("form-llanta").reset();
-      cargarListaLlantas();
-    } else {
-      const err = await res.json().catch(() => null);
-      alert("Error al registrar neumático: " + (err && err.detail ? err.detail : res.status));
+    // --- FUNCIONES DE EXPORTACIÓN A EXCEL (CSV) ---
+    function descargarCSV(contenido, nombreArchivo) {
+      const blob = new Blob(["\uFEFF" + contenido], { type: "text/csv;charset=utf-8;" });
+      const link = document.createElement("a");
+      const url = URL.createObjectURL(blob);
+      link.setAttribute("href", url);
+      link.setAttribute("download", nombreArchivo);
+      link.style.visibility = "hidden";
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
     }
-  } catch (err) {
-    alert("Error de conexión con el servidor.");
-  }
-}
 
-async function eliminarOperacion(idOperacion) {
-  if (!confirm("¿Está seguro de eliminar este parte diario?")) return;
-  try {
-    const res = await fetch(`${API_URL}/operaciones/${idOperacion}/`, { method: "DELETE" });
-    if (res.ok) {
-      cargarOperaciones();
-    } else {
-      alert("No se pudo eliminar la operación.");
+    async function exportarOperacionesCSV() {
+      try {
+        const res = await fetch(`${API_URL}/operaciones/`);
+        if (!res.ok) throw new Error("Error obteniendo datos de operaciones");
+        const operaciones = await res.json();
+        if (operaciones.length === 0) { alert("No hay datos de operaciones para exportar."); return; }
+
+        const mapVehiculos = {};
+        listaVehiculosGlobal.forEach(v => mapVehiculos[v.id_vehiculo] = v.placa);
+
+        let csv = "ID Operación,Fecha,Placa,Chofer,Tipo Trabajo,Ruta,Carga Toneladas,Viajes,Horómetro Final,Galones Diésel,Costo Diésel (S/),Galones Urea,Costo Urea (S/),Grifo,Observaciones\n";
+        operaciones.forEach(op => {
+          const placa = mapVehiculos[op.id_vehiculo] || (op.vehiculo ? op.vehiculo.placa : op.id_vehiculo);
+          csv += `"${op.id_operacion}","${op.fecha_operacion}","${placa}","${op.chofer || ''}","${op.tipo_trabajo || ''}","${op.ruta_origen_destino || ''}","${op.toneladas_carga || 0}","${op.numero_viajes || 1}","${op.km_horometro_final || 0}","${op.galones_combustible || 0}","${op.costo_combustible || 0}","${op.galones_urea || 0}","${op.costo_urea || 0}","${op.grifo_surtidor || ''}","${(op.observaciones || '').replace(/"/g, '""')}"\n`;
+        });
+        descargarCSV(csv, `Operaciones_Ponderosa_${new Date().toISOString().split('T')[0]}.csv`);
+      } catch (e) { alert("Error al exportar operaciones."); }
     }
-  } catch (err) {
-    alert("Error de red al eliminar la operación.");
-  }
-}
+
+    async function exportarReporteVehiculos() {
+      try {
+        const res = await fetch(`${API_URL}/vehiculos/`);
+        const vehiculos = await res.json();
+        if (vehiculos.length === 0) { alert("No hay vehículos."); return; }
+
+        let csv = "ID Vehículo,Placa,Sede,Marca,Modelo,Año,VIN,Tiene GPS,Empresa GPS,URL TIVE\n";
+        vehiculos.forEach(v => {
+          csv += `"${v.id_vehiculo}","${v.placa}","${v.sede_asignada || ''}","${v.marca || ''}","${v.modelo || ''}","${v.anio || ''}","${v.numero_vin || ''}","${v.tiene_gps ? 'SI' : 'NO'}","${v.empresa_gps || ''}","${v.url_tive || ''}"\n`;
+        });
+        descargarCSV(csv, `Vehiculos_Flota_Ponderosa_${new Date().toISOString().split('T')[0]}.csv`);
+      } catch (e) { alert("Error exportando vehículos."); }
+    }
+
+    async function exportarReporteVencimientos() {
+      try {
+        const [resSeguros, resDocumentos, resGps] = await Promise.all([
+          fetch(`${API_URL}/seguros/vencimientos/`).then(r => r.json()),
+          fetch(`${API_URL}/documentos/vencimientos/`).then(r => r.json()),
+          fetch(`${API_URL}/gps/vencimientos/`).then(r => r.json())
+        ]);
+        let csv = "Tipo Registro,ID Vehículo,Documento/Aseguradora,Número Póliza/Certificado,Fecha Inicio,Fecha Vencimiento,URL Adjunto\n";
+        resSeguros.forEach(s => csv += `"Seguro (${s.tipo_seguro})","${s.id_vehiculo}","${s.compania_seguros}","${s.numero_poliza}","${s.fecha_inicio}","${s.fecha_vencimiento}","${s.url_adjunto || ''}"\n`);
+        resDocumentos.forEach(d => csv += `"Documento (${d.tipo_documento})","${d.id_vehiculo}","${d.entidad_emisora}","${d.numero_documento}","${d.fecha_emision}","${d.fecha_vencimiento}","${d.url_adjunto || ''}"\n`);
+        resGps.forEach(g => csv += `"GPS Satelital","${g.id_vehiculo}","${g.empresa_gps}","N/A","${g.fecha_inicio}","${g.fecha_vencimiento}","N/A"\n`);
+        descargarCSV(csv, `Reporte_Vencimientos_Ponderosa_${new Date().toISOString().split('T')[0]}.csv`);
+      } catch (e) { alert("Error exportando vencimientos."); }
+    }
+
+    async function exportarReporteLlantas() {
+      try {
+        const res = await fetch(`${API_URL}/llantas/`);
+        const llantas = await res.json();
+        let csv = "ID Llanta,ID Vehículo,Código/Serie,Marca,Modelo,Posición,Km Instalación,Horómetro Instalación\n";
+        llantas.forEach(l => csv += `"${l.id_llanta}","${l.id_vehiculo}","${l.codigo || ''}","${l.marca || ''}","${l.modelo || ''}","${l.posicion || ''}","${l.km_instalacion || 0}","${l.horometro_instalacion || 0}"\n`);
+        descargarCSV(csv, `Inventario_Llantas_Ponderosa_${new Date().toISOString().split('T')[0]}.csv`);
+      } catch (e) { alert("Error exportando llantas."); }
+    }
+
+    async function exportarReporteTaller() {
+      try {
+        const [resTaller, resRepuestos] = await Promise.all([
+          fetch(`${API_URL}/taller/`).then(r => r.ok ? r.json() : []),
+          fetch(`${API_URL}/repuestos/`).then(r => r.ok ? r.json() : [])
+        ]);
+        let csv = "Tipo,ID Vehículo,Detalle/Repuesto,Taller/Instalador,Solicitante/Responsable,Fecha,Precio (S/),Descripción Falla\n";
+        resTaller.forEach(t => csv += `"Mantenimiento (${t.tipo_mantenimiento})","${t.id_vehiculo}","Servicio Taller","${t.taller_servicio}","${t.responsable_reparacion}","${t.fecha_ingreso}","0.00","${(t.descripcion_falla || '').replace(/"/g, '""')}"\n`);
+        resRepuestos.forEach(r => csv += `"Repuesto Instalado","${r.id_vehiculo}","${r.nombre_repuesto}","${r.instalador}","${r.solicitante}","${r.fecha_instalacion}","${r.precio_total}","N/A"\n`);
+        descargarCSV(csv, `Reporte_Taller_Repuestos_Ponderosa_${new Date().toISOString().split('T')[0]}.csv`);
+      } catch (e) { alert("Error exportando taller."); }
+    }
   </script>
 </body>
 </html>
