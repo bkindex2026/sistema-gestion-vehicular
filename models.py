@@ -167,3 +167,14 @@ class ChecklistVehicular(Base):
     estado_equipos_seguridad = Column(String(20), default="OK")
     tiene_inconveniente = Column(Boolean, default=False)
     detalle_inconveniente = Column(Text, default="")
+
+class Repuesto(Base):
+    __tablename__ = "repuestos"
+
+    id_repuesto = Column(Integer, primary_key=True, index=True)
+    id_vehiculo = Column(Integer, ForeignKey("vehiculos.id_vehiculo"), nullable=False)
+    nombre_repuesto = Column(String(150), nullable=False)
+    fecha_instalacion = Column(String(10), nullable=False)
+    precio_total = Column(Float, default=0.0)
+    solicitante = Column(String(150), nullable=False)
+    instalador = Column(String(150), nullable=False)

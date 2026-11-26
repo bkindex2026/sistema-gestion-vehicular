@@ -37,6 +37,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+
 # --- ESQUEMAS PYDANTIC ---
 class OperacionSchema(BaseModel):
     id_vehiculo: int
@@ -84,6 +85,38 @@ class LlantaCreateSchema(BaseModel):
     km_instalacion: Optional[float] = 0.0
 
 
+class UsuarioCreateSchema(BaseModel):
+    nombre: str
+    email: str
+    password: str
+    rol: str
+
+
+class GPSSchema(BaseModel):
+    id_vehiculo: int
+    empresa_gps: str
+    fecha_inicio: str
+    fecha_vencimiento: str
+
+
+class TallerCreateSchema(BaseModel):
+    id_vehiculo: int
+    tipo_mantenimiento: str
+    taller_servicio: str
+    responsable_reparacion: str
+    fecha_ingreso: str
+    descripcion_falla: Optional[str] = ""
+
+
+class RepuestoCreateSchema(BaseModel):
+    id_vehiculo: int
+    nombre_repuesto: str
+    fecha_instalacion: str
+    precio_total: Optional[float] = 0.0
+    solicitante: str
+    instalador: str
+
+
 def subir_a_cloudinary(archivo: UploadFile, carpeta: str) -> str:
     try:
         resultado = cloudinary.uploader.upload(
@@ -115,6 +148,98 @@ def listar_usuarios(db: Session = Depends(get_db)):
         }
         for u in usuarios
     ]
+
+
+@app.post("/usuarios/")
+def crear_usuario(payload: UsuarioCreateSchema, db: Session = Depends(get_db)):
+    email_clean = payload.email.strip().lower()
+    password_clean = payload.password.strip()
+    nombre_clean = payload.nombre.strip()
+    rol_clean = payload.rol.strip()
+
+    if not nombre_clean or not email_clean or not password_clean:
+        raise HTTPException(status_code=400, detail="Nombre, correo y contraseña son obligatorios.")
+
+    existente = db.query(models.Usuario).filter(func.lower(models.Usuario.email) == email_clean).first()
+    if existente:
+        raise HTTPException(status_code=400, detail="El correo electrónico ya está registrado.")
+
+    password_hash = bcrypt.hashpw(password_clean.encode("utf-8"), bcrypt.gensalt()).decode("utf-8")
+
+    nuevo_u = models.Usuario(
+        nombre=nombre_clean,
+        email=email_clean,
+        password=password_hash,
+        rol=rol_clean or "Lectura"
+    )
+    db.add(nuevo_u)
+    db.commit()
+    db.refresh(nuevo_u)
+    return {
+        "mensaje": "Usuario creado exitosamente",
+        "id_usuario": nuevo_u.id_usuario,
+        "nombre": nuevo_u.nombre,
+        "email": nuevo_u.email,
+        "rol": nuevo_u.rol
+    }
+
+
+# --- GPS ---
+@app.get("/gps/vencimientos/")
+def listar_gps_vencimientos(db: Session = Depends(get_db)):
+    return db.query(models.ServicioGPS).order_by(models.ServicioGPS.fecha_vencimiento.asc()).all()
+
+
+@app.post("/gps/")
+def registrar_gps(payload: GPSSchema, db: Session = Depends(get_db)):
+    v = db.query(models.Vehiculo).filter(models.Vehiculo.id_vehiculo == payload.id_vehiculo).first()
+    if v:
+        v.tiene_gps = True
+        v.empresa_gps = payload.empresa_gps.strip()
+        v.vencimiento_gps = payload.fecha_vencimiento.strip()
+
+    nuevo_g = models.ServicioGPS(
+        id_vehiculo=payload.id_vehiculo,
+        empresa_gps=payload.empresa_gps.strip(),
+        fecha_inicio=payload.fecha_inicio.strip(),
+        fecha_vencimiento=payload.fecha_vencimiento.strip()
+    )
+    db.add(nuevo_g)
+    db.commit()
+    return {"mensaje": "GPS registrado correctamente"}
+
+
+# --- TALLER Y REPUESTOS ---
+@app.post("/taller/")
+def registrar_taller(payload: TallerCreateSchema, db: Session = Depends(get_db)):
+    nueva_rep = models.Reparacion(
+        id_vehiculo=payload.id_vehiculo,
+        tipo_mantenimiento=payload.tipo_mantenimiento.strip(),
+        taller_servicio=payload.taller_servicio.strip(),
+        responsable_reparacion=payload.responsable_reparacion.strip(),
+        fecha_ingreso=payload.fecha_ingreso.strip(),
+        descripcion_falla=(payload.descripcion_falla or "").strip()
+    )
+    db.add(nueva_rep)
+    db.commit()
+    db.refresh(nueva_rep)
+    return {"mensaje": "Mantenimiento registrado correctamente", "id_reparacion": nueva_rep.id_reparacion}
+
+
+@app.post("/repuestos/")
+def registrar_repuesto(payload: RepuestoCreateSchema, db: Session = Depends(get_db)):
+    nuevo_rep = models.Repuesto(
+        id_vehiculo=payload.id_vehiculo,
+        nombre_repuesto=payload.nombre_repuesto.strip(),
+        fecha_instalacion=payload.fecha_instalacion.strip(),
+        precio_total=payload.precio_total or 0.0,
+        solicitante=payload.solicitante.strip(),
+        instalador=payload.instalador.strip()
+    )
+    db.add(nuevo_rep)
+    db.commit()
+    db.refresh(nuevo_rep)
+    return {"mensaje": "Repuesto registrado correctamente", "id_repuesto": nuevo_rep.id_repuesto}
 
 
 # --- LOGIN CON VERIFICACIÓN BCRYPT ---
@@ -363,37 +488,6 @@ def eliminar_documento(id_documento: int, db: Session = Depends(get_db)):
     db.delete(d)
     db.commit()
     return {"mensaje": "Documento eliminado"}
-
-
-# --- GPS ---
-@app.get("/gps/vencimientos/")
-def listar_gps_vencimientos(db: Session = Depends(get_db)):
-    return db.query(models.ServicioGPS).order_by(models.ServicioGPS.fecha_vencimiento.asc()).all()
-
-
-@app.post("/gps/")
-def registrar_gps(
-    id_vehiculo: int = Form(...),
-    empresa_gps: str = Form(...),
-    fecha_inicio: str = Form(...),
-    fecha_vencimiento: str = Form(...),
-    db: Session = Depends(get_db)
-):
-    v = db.query(models.Vehiculo).filter(models.Vehiculo.id_vehiculo == id_vehiculo).first()
-    if v:
-        v.tiene_gps = True
-        v.empresa_gps = empresa_gps
-        v.vencimiento_gps = fecha_vencimiento
-
-    nuevo_g = models.ServicioGPS(
-        id_vehiculo=id_vehiculo,
-        empresa_gps=empresa_gps,
-        fecha_inicio=fecha_inicio,
-        fecha_vencimiento=fecha_vencimiento
-    )
-    db.add(nuevo_g)
-    db.commit()
-    return {"mensaje": "GPS registrado correctamente"}
 
 
 # --- LLANTAS ---
