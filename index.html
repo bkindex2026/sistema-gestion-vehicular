@@ -1117,141 +1117,150 @@
     }
 
     async function subirTivePosterior(idVehiculo, input) {
-      if (!input.files || input.files.length === 0) return;
-      const formData = new FormData();
-      formData.append("archivo", input.files[0]);
+  if (!input.files || input.files.length === 0) return;
+  const formData = new FormData();
+  formData.append("archivo_tive", input.files[0]);
 
-      try {
-        const res = await fetch(`${API_URL}/vehiculos/${idVehiculo}/tive`, { method: "POST", body: formData });
-        if (res.ok) {
-          alert("TIVE actualizada exitosamente.");
-          cargarListaVehiculos();
-        } else {
-          alert("Error subiendo el archivo TIVE.");
-        }
-      } catch (err) {
-        alert("Error de red al actualizar TIVE.");
-      }
+  try {
+    const res = await fetch(`${API_URL}/vehiculos/${idVehiculo}/tive/`, { method: "POST", body: formData });
+    if (res.ok) {
+      alert("TIVE actualizada exitosamente.");
+      cargarListaVehiculos();
+    } else {
+      alert("Error subiendo el archivo TIVE.");
     }
+  } catch (err) {
+    alert("Error de red al actualizar TIVE.");
+  }
+}
 
     async function registrarSOAT(e) {
-      e.preventDefault();
-      const formData = new FormData();
-      formData.append("id_vehiculo", document.getElementById("soat-vehiculo").value);
-      formData.append("tipo_seguro", "SOAT");
-      formData.append("compania_seguros", document.getElementById("soat-compania").value.trim());
-      formData.append("numero_poliza", document.getElementById("soat-poliza").value.trim());
-      formData.append("fecha_inicio", document.getElementById("soat-inicio").value);
-      formData.append("fecha_vencimiento", document.getElementById("soat-vencimiento").value);
+  e.preventDefault();
+  const formData = new FormData();
+  formData.append("id_vehiculo", document.getElementById("soat-vehiculo").value);
+  formData.append("tipo_seguro", "SOAT");
+  formData.append("compania_seguros", document.getElementById("soat-compania").value.trim());
+  formData.append("numero_poliza", document.getElementById("soat-poliza").value.trim());
+  formData.append("fecha_inicio", document.getElementById("soat-inicio").value);
+  formData.append("fecha_vencimiento", document.getElementById("soat-vencimiento").value);
 
-      const fileInput = document.getElementById("soat-archivo");
-      if (fileInput && fileInput.files.length > 0) {
-        formData.append("archivo", fileInput.files[0]);
-      }
+  const fileInput = document.getElementById("soat-archivo");
+  if (fileInput && fileInput.files.length > 0) {
+    formData.append("archivo_adjunto", fileInput.files[0]);
+  }
 
-      try {
-        const res = await fetch(`${API_URL}/seguros/`, { method: "POST", body: formData });
-        if (res.ok) {
-          alert("SOAT registrado correctamente.");
-          document.getElementById("form-soat").reset();
-          cargarMétricasResumen();
-        } else {
-          const err = await res.json().catch(() => null);
-          alert("Error al guardar SOAT: " + (err && err.detail ? err.detail : res.status));
-        }
-      } catch (err) {
-        alert("Error de red al guardar SOAT.");
-      }
+  try {
+    const res = await fetch(`${API_URL}/seguros/`, { method: "POST", body: formData });
+    if (res.ok) {
+      alert("SOAT registrado correctamente.");
+      document.getElementById("form-soat").reset();
+      cargarMétricasResumen();
+    } else {
+      const err = await res.json().catch(() => null);
+      alert("Error al guardar SOAT: " + (err && err.detail ? JSON.stringify(err.detail) : res.status));
     }
-
+  } catch (err) {
+    alert("Error de red al guardar SOAT.");
+  }
+}
     async function registrarSeguroVehicular(e) {
-      e.preventDefault();
-      const formData = new FormData();
-      formData.append("id_vehiculo", document.getElementById("sv-vehiculo").value);
-      formData.append("tipo_seguro", "Todo Riesgo");
-      formData.append("compania_seguros", document.getElementById("sv-compania").value.trim());
-      formData.append("numero_poliza", document.getElementById("sv-poliza").value.trim() || "S/N");
-      formData.append("fecha_inicio", new Date().toISOString().split('T')[0]);
-      formData.append("fecha_vencimiento", document.getElementById("sv-vencimiento").value);
+  e.preventDefault();
+  const formData = new FormData();
+  formData.append("id_vehiculo", document.getElementById("sv-vehiculo").value);
+  formData.append("tipo_seguro", "Todo Riesgo");
+  formData.append("compania_seguros", document.getElementById("sv-compania").value.trim());
+  formData.append("numero_poliza", document.getElementById("sv-poliza").value.trim() || "S/N");
+  formData.append("fecha_inicio", new Date().toISOString().split('T')[0]);
+  formData.append("fecha_vencimiento", document.getElementById("sv-vencimiento").value);
 
-      const fileInput = document.getElementById("sv-archivo");
-      if (fileInput && fileInput.files.length > 0) {
-        formData.append("archivo", fileInput.files[0]);
-      }
+  const fileInput = document.getElementById("sv-archivo");
+  if (fileInput && fileInput.files.length > 0) {
+    formData.append("archivo_adjunto", fileInput.files[0]);
+  }
 
-      try {
-        const res = await fetch(`${API_URL}/seguros/`, { method: "POST", body: formData });
-        if (res.ok) {
-          alert("Seguro vehicular registrado correctamente.");
-          document.getElementById("form-seguro-vehicular").reset();
-          cargarMétricasResumen();
-        } else {
-          const err = await res.json().catch(() => null);
-          alert("Error al guardar seguro: " + (err && err.detail ? err.detail : res.status));
-        }
-      } catch (err) {
-        alert("Error de red al guardar seguro.");
-      }
+  try {
+    const res = await fetch(`${API_URL}/seguros/`, { method: "POST", body: formData });
+    if (res.ok) {
+      alert("Seguro vehicular registrado correctamente.");
+      document.getElementById("form-seguro-vehicular").reset();
+      cargarMétricasResumen();
+    } else {
+      const err = await res.json().catch(() => null);
+      alert("Error al guardar seguro: " + (err && err.detail ? JSON.stringify(err.detail) : res.status));
     }
+  } catch (err) {
+    alert("Error de red al guardar seguro.");
+  }
+}
 
     async function registrarCITV(e) {
-      e.preventDefault();
-      const formData = new FormData();
-      formData.append("id_vehiculo", document.getElementById("c-vehiculo").value);
-      formData.append("tipo_documento", "Revisión Técnica CITV");
-      formData.append("entidad_emisora", document.getElementById("c-entidad").value.trim());
-      formData.append("numero_documento", document.getElementById("c-numero").value.trim());
-      formData.append("fecha_emision", document.getElementById("c-emision").value);
-      formData.append("fecha_vencimiento", document.getElementById("c-vencimiento").value);
+  e.preventDefault();
+  const formData = new FormData();
+  formData.append("id_vehiculo", document.getElementById("c-vehiculo").value);
+  formData.append("tipo_documento", "Revisión Técnica CITV");
+  formData.append("entidad_emisora", document.getElementById("c-entidad").value.trim());
+  formData.append("numero_documento", document.getElementById("c-numero").value.trim());
+  formData.append("fecha_emision", document.getElementById("c-emision").value);
+  formData.append("fecha_vencimiento", document.getElementById("c-vencimiento").value);
 
-      const fileInput = document.getElementById("c-archivo");
-      if (fileInput && fileInput.files.length > 0) {
-        formData.append("archivo", fileInput.files[0]);
-      }
+  const fileInput = document.getElementById("c-archivo");
+  if (fileInput && fileInput.files.length > 0) {
+    formData.append("archivo_adjunto", fileInput.files[0]);
+  }
 
-      try {
-        const res = await fetch(`${API_URL}/documentos/`, { method: "POST", body: formData });
-        if (res.ok) {
-          alert("CITV registrado correctamente.");
-          document.getElementById("form-citv").reset();
-          cargarMétricasResumen();
-        } else {
-          const err = await res.json().catch(() => null);
-          alert("Error al guardar CITV: " + (err && err.detail ? err.detail : res.status));
-        }
-      } catch (err) {
-        alert("Error de red al guardar CITV.");
-      }
+  try {
+    const res = await fetch(`${API_URL}/documentos/`, { method: "POST", body: formData });
+    if (res.ok) {
+      alert("CITV registrado correctamente.");
+      document.getElementById("form-citv").reset();
+      cargarMétricasResumen();
+    } else {
+      const err = await res.json().catch(() => null);
+      alert("Error al guardar CITV: " + (err && err.detail ? JSON.stringify(err.detail) : res.status));
     }
+  } catch (err) {
+    alert("Error de red al guardar CITV.");
+  }
+}
 
     async function registrarGPS(e) {
-      e.preventDefault();
-      const payload = {
-        id_vehiculo: parseInt(document.getElementById("gps-vehiculo").value),
-        empresa_gps: document.getElementById("gps-empresa").value.trim(),
-        fecha_inicio: document.getElementById("gps-inicio").value,
-        fecha_vencimiento: document.getElementById("gps-vencimiento").value
-      };
+  e.preventDefault();
+  const idVehiculo = parseInt(document.getElementById("gps-vehiculo").value);
+  const empresaGps = document.getElementById("gps-empresa").value.trim();
+  const fechaInicio = document.getElementById("gps-inicio").value;
+  const fechaVencimiento = document.getElementById("gps-vencimiento").value;
 
-      try {
-        const res = await fetch(`${API_URL}/gps/`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(payload)
-        });
-        if (res.ok) {
-          alert("Servicio GPS registrado correctamente.");
-          document.getElementById("form-gps").reset();
-          cargarListaVehiculos();
-          cargarMétricasResumen();
-        } else {
-          const err = await res.json().catch(() => null);
-          alert("Error al guardar GPS: " + (err && err.detail ? err.detail : res.status));
-        }
-      } catch (err) {
-        alert("Error de red al guardar GPS.");
-      }
+  if (!idVehiculo || !empresaGps || !fechaInicio || !fechaVencimiento) {
+    alert("Por favor complete todos los campos obligatorios del GPS.");
+    return;
+  }
+
+  const payload = {
+    id_vehiculo: idVehiculo,
+    empresa_gps: empresaGps,
+    fecha_inicio: fechaInicio,
+    fecha_vencimiento: fechaVencimiento
+  };
+
+  try {
+    const res = await fetch(`${API_URL}/gps/`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload)
+    });
+
+    if (res.ok) {
+      alert("GPS registrado correctamente.");
+      document.getElementById("form-gps").reset();
+      cargarMétricasResumen();
+    } else {
+      const err = await res.json().catch(() => null);
+      alert("Error al guardar GPS: " + (err && err.detail ? JSON.stringify(err.detail) : res.status));
     }
+  } catch (err) {
+    alert("Error de red al guardar GPS.");
+  }
+}
 
     async function registrarLlanta(e) {
       e.preventDefault();
@@ -1315,33 +1324,46 @@
     }
 
     async function registrarRepuesto(e) {
-      e.preventDefault();
-      const payload = {
-        id_vehiculo: parseInt(document.getElementById("rep-vehiculo").value),
-        nombre_repuesto: document.getElementById("rep-nombre").value.trim(),
-        fecha_instalacion: document.getElementById("rep-fecha").value,
-        precio_total: parseFloat(document.getElementById("rep-precio").value) || 0.0,
-        solicitante: document.getElementById("rep-solicitante").value.trim(),
-        instalador: document.getElementById("rep-instalador").value.trim()
-      };
+  e.preventDefault();
+  const idVehiculo = parseInt(document.getElementById("rep-vehiculo").value);
+  const nombreRepuesto = document.getElementById("rep-nombre").value.trim();
+  const fechaInstalacion = document.getElementById("rep-fecha").value;
+  const precioTotal = parseFloat(document.getElementById("rep-precio").value) || 0.0;
+  const solicitante = document.getElementById("rep-solicitante").value.trim();
+  const instalador = document.getElementById("rep-instalador").value.trim();
 
-      try {
-        const res = await fetch(`${API_URL}/repuestos/`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(payload)
-        });
-        if (res.ok) {
-          alert("Repuesto registrado correctamente.");
-          document.getElementById("form-repuesto").reset();
-        } else {
-          const err = await res.json().catch(() => null);
-          alert("Error al registrar repuesto: " + (err && err.detail ? err.detail : res.status));
-        }
-      } catch (err) {
-        alert("Error de red al guardar repuesto.");
-      }
+  if (!idVehiculo || !nombreRepuesto || !fechaInstalacion || !solicitante || !instalador) {
+    alert("Por favor complete los campos obligatorios del repuesto.");
+    return;
+  }
+
+  const payload = {
+    id_vehiculo: idVehiculo,
+    nombre_repuesto: nombreRepuesto,
+    fecha_instalacion: fechaInstalacion,
+    precio_total: precioTotal,
+    solicitante: solicitante,
+    instalador: instalador
+  };
+
+  try {
+    const res = await fetch(`${API_URL}/repuestos/`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload)
+    });
+
+    if (res.ok) {
+      alert("Repuesto registrado correctamente.");
+      document.getElementById("form-repuesto").reset();
+    } else {
+      const err = await res.json().catch(() => null);
+      alert("Error al registrar repuesto: " + (err && err.detail ? JSON.stringify(err.detail) : res.status));
     }
+  } catch (err) {
+    alert("Error de red al registrar repuesto.");
+  }
+}
 
     async function registrarOperacion(e) {
       e.preventDefault();
