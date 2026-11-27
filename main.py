@@ -309,33 +309,33 @@ def listar_vehiculos(db: Session = Depends(get_db)):
 @app.post("/vehiculos/")
 def crear_vehiculo(
     placa: str = Form(...),
-    tipo_vehiculo: str = Form(...),
-    marca_modelo: Optional[str] = Form(None),
-    anio: Optional[int] = Form(None),
     sede: Optional[str] = Form(None),
+    marca: Optional[str] = Form(None),
+    modelo: Optional[str] = Form(None),
+    anio: Optional[int] = Form(None),
     vin: Optional[str] = Form(None),
-    tarjeta_tive: UploadFile = File(None),
+    descripcion: Optional[str] = Form(None),
+    archivo_tive: UploadFile = File(None),
     db: Session = Depends(get_db)
 ):
-    # --- SUBPASO 3.2: Sanitización obligatoria de la placa ---
     placa_normalizada = sanitizar_placa(placa)
 
-    # Verificar si la placa ya existe en la base de datos
     existe = db.query(models.Vehiculo).filter(models.Vehiculo.placa == placa_normalizada).first()
     if existe:
         raise HTTPException(status_code=400, detail=f"La placa {placa_normalizada} ya se encuentra registrada.")
 
     url_tive = ""
-    if tarjeta_tive:
-        url_tive = subir_a_cloudinary(tarjeta_tive, "tives_vehiculos")
+    if archivo_tive:
+        url_tive = subir_a_cloudinary(archivo_tive, "tives_vehiculos")
 
     nuevo_vehiculo = models.Vehiculo(
-        placa=placa_normalizada,  # Guardar siempre la versión formateada (Ej. ABC-123)
-        tipo_vehiculo=tipo_vehiculo,
-        marca_modelo=marca_modelo,
-        anio=anio,
-        sede=sede,
-        vin=vin,
+        placa=placa_normalizada,
+        sede_asignada=sede or "Por Asignar",
+        marca=marca or "Por Especificar",
+        modelo=modelo or "Por Especificar",
+        anio=anio or 2024,
+        numero_vin=vin or "S/N",
+        descripcion=descripcion or "",
         url_tive=url_tive
     )
     db.add(nuevo_vehiculo)

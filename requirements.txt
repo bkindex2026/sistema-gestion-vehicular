@@ -7,10 +7,6 @@ cloudinary
 pydantic
 passlib[bcrypt]
 bcrypt
-fastapi
-uvicorn
-pydantic
 google-genai
 pillow
 requests
-psycopg2-binary
