@@ -12,6 +12,25 @@ import cloudinary
 import cloudinary.uploader
 import models
 from database import engine, get_db
+import re
+from fastapi import HTTPException
+
+def sanitizar_placa(placa_raw: str) -> str:
+    if not placa_raw:
+        return ""
+    placa = placa_raw.strip().upper().replace(" ", "")
+    
+    # Si viene de 6 caracteres sin guion (ej. ABC123), le inserta el guion
+    if re.match(r"^[A-Z0-9]{6}$", placa):
+        placa = f"{placa[:3]}-{placa[3:]}"
+        
+    # Valida el patrón estándar 3 caracteres - 3 caracteres
+    if not re.match(r"^[A-Z0-9]{3}-[A-Z0-9]{3}$", placa):
+        raise HTTPException(
+            status_code=400, 
+            detail="La placa ingresada no cumple el formato válido obligatorio (Ej. ABC-123)."
+        )
+    return placa
 
 # --- CONFIGURACIÓN DE CLOUDINARY (ENTORNO CON RESPALDO) ---
 cloudinary.config(
@@ -290,37 +309,40 @@ def listar_vehiculos(db: Session = Depends(get_db)):
 @app.post("/vehiculos/")
 def crear_vehiculo(
     placa: str = Form(...),
-    sede_asignada: str = Form("Por Asignar"),
-    marca: str = Form("Por Especificar"),
-    modelo: str = Form("Por Especificar"),
-    anio: int = Form(2024),
-    numero_vin: str = Form("S/N"),
-    descripcion: str = Form(""),
-    archivo_tive: UploadFile = File(None),
+    tipo_vehiculo: str = Form(...),
+    marca_modelo: Optional[str] = Form(None),
+    anio: Optional[int] = Form(None),
+    sede: Optional[str] = Form(None),
+    vin: Optional[str] = Form(None),
+    tarjeta_tive: UploadFile = File(None),
     db: Session = Depends(get_db)
 ):
-    existente = db.query(models.Vehiculo).filter(models.Vehiculo.placa == placa.upper().strip()).first()
-    if existente:
-        raise HTTPException(status_code=400, detail="La placa ya está registrada")
+    # --- SUBPASO 3.2: Sanitización obligatoria de la placa ---
+    placa_normalizada = sanitizar_placa(placa)
+
+    # Verificar si la placa ya existe en la base de datos
+    existe = db.query(models.Vehiculo).filter(models.Vehiculo.placa == placa_normalizada).first()
+    if existe:
+        raise HTTPException(status_code=400, detail=f"La placa {placa_normalizada} ya se encuentra registrada.")
 
     url_tive = ""
-    if archivo_tive:
-        url_tive = subir_a_cloudinary(archivo_tive, "tive")
+    if tarjeta_tive:
+        url_tive = subir_a_cloudinary(tarjeta_tive, "tives_vehiculos")
 
-    nuevo_v = models.Vehiculo(
-        placa=placa.upper().strip(),
-        sede_asignada=sede_asignada,
-        marca=marca,
-        modelo=modelo,
+    nuevo_vehiculo = models.Vehiculo(
+        placa=placa_normalizada,  # Guardar siempre la versión formateada (Ej. ABC-123)
+        tipo_vehiculo=tipo_vehiculo,
+        marca_modelo=marca_modelo,
         anio=anio,
-        numero_vin=numero_vin,
-        descripcion=descripcion,
+        sede=sede,
+        vin=vin,
         url_tive=url_tive
     )
-    db.add(nuevo_v)
+    db.add(nuevo_vehiculo)
     db.commit()
-    db.refresh(nuevo_v)
-    return nuevo_v
+    db.refresh(nuevo_vehiculo)
+    
+    return {"mensaje": "Vehículo registrado correctamente", "id_vehiculo": nuevo_vehiculo.id_vehiculo}
 
 
 @app.post("/vehiculos/{id_vehiculo}/tive/")

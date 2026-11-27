@@ -118,7 +118,12 @@
           <form id="form-vehiculo" onsubmit="registrarVehiculo(event)" class="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div>
               <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Placa (* Obligatorio)</label>
-              <input type="text" id="v-placa" required placeholder="Ej. ABC-123" class="w-full p-2.5 border rounded-lg text-sm border-blue-400 focus:ring-2 focus:ring-blue-500">
+              <input type="text" id="v-placa" required 
+       pattern="^[A-Z0-9]{3}-[A-Z0-9]{3}$" 
+       placeholder="Ej. ABC-123" 
+       title="Formato obligatorio con guion: ABC-123"
+       maxlength="7"
+       class="w-full p-2.5 border rounded-lg text-sm border-blue-400 focus:ring-2 focus:ring-blue-500">
             </div>
             <div>
               <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Sede / Unidad (Opcional)</label>
@@ -2187,6 +2192,14 @@
         descargarCSV(csv, `Reporte_Taller_Repuestos_Ponderosa_${new Date().toISOString().split('T')[0]}.csv`);
       } catch (e) { alert("Error exportando taller."); }
     }
+  // Auto-formatear placa con guion mientras se escribe
+document.getElementById("v-placa")?.addEventListener("input", function(e) {
+  let val = e.target.value.replace(/[^A-Z0-9]/gi, "").toUpperCase();
+  if (val.length > 3) {
+    val = val.slice(0, 3) + "-" + val.slice(3, 6);
+  }
+  e.target.value = val;
+});
   </script>
 </body>
 </html>
