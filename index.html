@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Ponderosa Flota v1.1.0 - Gestión Vehicular Integrada</title>
   <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/exif-js"></script>
 </head>
 <body class="bg-slate-100 min-h-screen text-slate-800">
 
@@ -792,7 +793,7 @@
             <!-- FOTO OBLIGATORIA DEL TABLERO -->
             <div class="bg-amber-50 p-4 rounded-lg border border-amber-200 space-y-2">
               <label class="block text-xs font-bold text-amber-900 uppercase">📷 Foto del Tablero / Horómetro (* Obligatorio)</label>
-              <input type="file" id="chofer-foto-tablero" accept="image/*" capture="environment" required class="w-full text-xs text-slate-600 file:mr-3 file:py-2.5 file:px-4 file:rounded-lg file:border-0 file:bg-amber-600 file:text-white file:font-bold">
+              <input type="file" id="chofer-foto-tablero" accept="image/*" required class="w-full text-xs text-slate-600 file:mr-3 file:py-2.5 file:px-4 file:rounded-lg file:border-0 file:bg-amber-600 file:text-white file:font-bold">
             </div>
 
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -1987,53 +1988,77 @@
     }
 
     async function registrarParteChofer(e) {
-      e.preventDefault();
-      const idVehiculo = document.getElementById("chofer-vehiculo-select").value;
-      if (!idVehiculo) {
-        alert("Por favor seleccione una unidad en la parte superior.");
-        return;
+  e.preventDefault();
+  const idVehiculo = document.getElementById("chofer-vehiculo-select").value;
+  if (!idVehiculo) {
+    alert("Por favor seleccione una unidad en la parte superior.");
+    return;
+  }
+
+  const fileInput = document.getElementById("chofer-foto-tablero");
+  if (!fileInput.files || fileInput.files.length === 0) {
+    alert("La foto del tablero/horómetro es obligatoria para enviar el parte diario.");
+    return;
+  }
+
+  const fotoFile = fileInput.files[0];
+  let fechaExifDetectada = "";
+
+  // Extraer metadatos EXIF de la foto (Opción C)
+  try {
+    EXIF.getData(fotoFile, function() {
+      const fechaExif = EXIF.getTag(this, "DateTimeOriginal");
+      if (fechaExif) {
+        fechaExifDetectada = fechaExif;
+        console.log("Fecha original de captura (EXIF):", fechaExif);
       }
+    });
+  } catch (errExif) {
+    console.warn("No se pudo extraer metadatos EXIF:", errExif);
+  }
 
-      const fileInput = document.getElementById("chofer-foto-tablero");
-      if (!fileInput.files || fileInput.files.length === 0) {
-        alert("La foto del tablero/horómetro es obligatoria para enviar el parte diario.");
-        return;
+  const btn = document.getElementById("btn-submit-chofer");
+  btn.disabled = true;
+  btn.innerHTML = "Procesando foto e IA...";
+
+  const formData = new FormData();
+  formData.append("id_vehiculo", idVehiculo);
+  formData.append("chofer", localStorage.getItem("user_email") || "Chofer");
+  formData.append("fecha_operacion", new Date().toISOString().split('T')[0]);
+  formData.append("tipo_trabajo", document.getElementById("chofer-tipo-trabajo").value);
+  formData.append("horometro_final", parseFloat(document.getElementById("chofer-horometro").value));
+  
+  const kmManual = document.getElementById("chofer-km-manual").value;
+  if (kmManual) formData.append("kilometraje_manual", parseFloat(kmManual));
+  
+  formData.append("galones_combustible", parseFloat(document.getElementById("chofer-galones").value) || 0);
+  formData.append("galones_urea", parseFloat(document.getElementById("chofer-urea").value) || 0);
+  formData.append("foto_tablero", fotoFile);
+
+  try {
+    const res = await fetch(`${API_URL}/operaciones/chofer/`, { method: "POST", body: formData });
+    if (res.ok) {
+      const resData = await res.json().catch(() => null);
+      let mensajeExito = "Parte diario y foto guardados exitosamente.";
+      if (fechaExifDetectada) {
+        mensajeExito += `\n[Fecha Toma Foto]: ${fechaExifDetectada}`;
       }
-
-      const btn = document.getElementById("btn-submit-chofer");
-      btn.disabled = true;
-      btn.innerHTML = "Subiendo foto a Cloudinary y registrando...";
-
-      const formData = new FormData();
-      formData.append("id_vehiculo", idVehiculo);
-      formData.append("chofer", localStorage.getItem("user_email") || "Chofer");
-      formData.append("fecha_operacion", new Date().toISOString().split('T')[0]);
-      formData.append("tipo_trabajo", document.getElementById("chofer-tipo-trabajo").value);
-      formData.append("horometro_final", parseFloat(document.getElementById("chofer-horometro").value));
-      
-      const kmManual = document.getElementById("chofer-km-manual").value;
-      if (kmManual) formData.append("kilometraje_manual", parseFloat(kmManual));
-      
-      formData.append("galones_combustible", parseFloat(document.getElementById("chofer-galones").value) || 0);
-      formData.append("galones_urea", parseFloat(document.getElementById("chofer-urea").value) || 0);
-      formData.append("foto_tablero", fileInput.files[0]);
-
-      try {
-        const res = await fetch(`${API_URL}/operaciones/chofer/`, { method: "POST", body: formData });
-        if (res.ok) {
-          alert("Parte diario y foto guardados exitosamente.");
-          document.getElementById("form-chofer-operacion").reset();
-        } else {
-          const err = await res.json().catch(() => null);
-          alert("Error al guardar: " + (err && err.detail ? err.detail : res.status));
-        }
-      } catch (err) {
-        alert("Error de conexión al enviar formulario.");
-      } finally {
-        btn.disabled = false;
-        btn.innerHTML = "💾 Guardar Registro Diario";
+      if (resData && resData.horometro_ocr) {
+        mensajeExito += `\n[Lectura OCR IA]: ${resData.horometro_ocr}`;
       }
+      alert(mensajeExito);
+      document.getElementById("form-chofer-operacion").reset();
+    } else {
+      const err = await res.json().catch(() => null);
+      alert("Error al guardar: " + (err && err.detail ? err.detail : res.status));
     }
+  } catch (err) {
+    alert("Error de conexión al enviar formulario.");
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = "💾 Guardar Registro Diario";
+  }
+}
 
     async function registrarLlantaChofer(e) {
       e.preventDefault();

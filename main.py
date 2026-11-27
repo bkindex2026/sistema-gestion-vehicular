@@ -6,6 +6,8 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from sqlalchemy import func
 from sqlalchemy.orm import Session
+from google import genai
+from google.genai import types
 import cloudinary
 import cloudinary.uploader
 import models
@@ -729,15 +731,40 @@ def registrar_operacion_chofer(
     horometro_final: float = Form(...),
     kilometraje_manual: Optional[float] = Form(None),
     galones_combustible: Optional[float] = Form(0.0),
-    costo_combustible: Optional[float] = Form(0.0),
     galones_urea: Optional[float] = Form(0.0),
-    costo_urea: Optional[float] = Form(0.0),
     foto_tablero: UploadFile = File(None),
     db: Session = Depends(get_db)
 ):
     url_foto = ""
+    lectura_ocr_texto = "No procesado"
+
     if foto_tablero:
+        contenido_bytes = foto_tablero.file.read()
+        foto_tablero.file.seek(0)
+        
+        # 1. Subida del archivo a Cloudinary
         url_foto = subir_a_cloudinary(foto_tablero, "tableros_horometro")
+
+        # 2. Procesamiento de OCR Multimodal mediante Gemini API (Modelo validado 3.8-flash)
+        api_key_gemini = os.getenv("GEMINI_API_KEY", "").strip()
+        if api_key_gemini and contenido_bytes:
+            try:
+                client = genai.Client(api_key=api_key_gemini)
+                prompt_ocr = "Analiza esta imagen de un tablero de vehículo o maquinaria. Extrae únicamente la lectura numérica del horómetro u odómetro principal. Responde strictly con el número o un resumen corto del valor leído."
+                
+                response = client.models.generate_content(
+                    model="gemini-3.8-flash",
+                    contents=[
+                        types.Part.from_bytes(data=contenido_bytes, mime_type=foto_tablero.content_type or "image/jpeg"),
+                        prompt_ocr
+                    ]
+                )
+                if response.text:
+                    lectura_ocr_texto = response.text.strip()
+            except Exception as e:
+                lectura_ocr_texto = f"Error OCR: {str(e)}"
+
+    obs_final = f"Foto Tablero: {url_foto} | OCR Lectura: {lectura_ocr_texto}" if url_foto else "Sin Foto"
 
     nueva_op = models.OperacionDiaria(
         id_vehiculo=id_vehiculo,
@@ -747,10 +774,10 @@ def registrar_operacion_chofer(
         km_horometro_final=horometro_final,
         kilometraje_manual=kilometraje_manual,
         galones_combustible=galones_combustible or 0.0,
-        costo_combustible=costo_combustible or 0.0,
+        costo_combustible=0.0,
         galones_urea=galones_urea or 0.0,
-        costo_urea=costo_urea or 0.0,
-        observaciones=f"Foto Tablero: {url_foto}" if url_foto else "Sin Foto"
+        costo_urea=0.0,
+        observaciones=obs_final
     )
     db.add(nueva_op)
 
@@ -763,5 +790,6 @@ def registrar_operacion_chofer(
     return {
         "mensaje": "Parte diario registrado correctamente por Chofer",
         "id_operacion": nueva_op.id_operacion,
-        "url_foto": url_foto
+        "url_foto": url_foto,
+        "horometro_ocr": lectura_ocr_texto
     }
