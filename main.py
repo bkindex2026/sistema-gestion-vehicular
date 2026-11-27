@@ -815,3 +815,21 @@ def registrar_operacion_chofer(
         "url_foto": url_foto,
         "horometro_ocr": lectura_ocr_texto
     }
+
+@app.put("/vehiculos/{id_vehiculo}/tive")
+def actualizar_tive_vehiculo(
+    id_vehiculo: int,
+    tarjeta_tive: UploadFile = File(...),
+    db: Session = Depends(get_db)
+):
+    vehiculo = db.query(models.Vehiculo).filter(models.Vehiculo.id_vehiculo == id_vehiculo).first()
+    if not vehiculo:
+        raise HTTPException(status_code=404, detail="Vehículo no encontrado")
+
+    url_tive = subir_a_cloudinary(tarjeta_tive, "tives_vehiculos")
+    vehiculo.url_tive = url_tive
+
+    db.commit()
+    db.refresh(vehiculo)
+
+    return {"mensaje": "TIVE actualizada correctamente", "url_tive": url_tive}
